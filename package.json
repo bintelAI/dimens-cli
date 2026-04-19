@@ -1,0 +1,71 @@
+{
+  "name": "@bintel/dimens-cli",
+  "version": "1.0.3",
+  "description": "Dimens CLI 与 Node.js SDK，提供维表智联项目的认证、项目、表格、行数据与 AI chat-completions 调用能力",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "bin": {
+    "dimens-cli": "bin/dimens-cli.js"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "scripts/",
+    "skills/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/ index.ts",
+    "lint:fix": "eslint src/ index.ts --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check src/**/*.ts",
+    "pack:check": "npm pack --dry-run",
+    "publish:check": "pnpm test && pnpm typecheck && pnpm build && npm pack --dry-run",
+    "release:patch": "npm version patch",
+    "release:minor": "npm version minor",
+    "release:major": "npm version major"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.48",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.3",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.3",
+    "prettier": "^3.8.1",
+    "tsdown": "^0.21.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.32.1",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "cli",
+    "dimens",
+    "bintel",
+    "ai",
+    "sdk",
+    "workflow",
+    "chat-completions"
+  ],
+  "author": "Bintel Team",
+  "license": "MIT"
+}
