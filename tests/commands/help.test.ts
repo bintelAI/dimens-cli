@@ -20,6 +20,7 @@ describe('Help Command', () => {
     expect(output).toContain('命令组: project');
     expect(output).toContain('相关 Skill');
     expect(output).toContain('dimens-team');
+    expect(output).toContain('dimens-project');
     logSpy.mockRestore();
   });
 

@@ -3,10 +3,12 @@
 本文档把权限 Skill 要引用的真实接口和真实权限链路拆开说明，重点覆盖：
 
 1. 项目准入与项目内资源授权的区别
-2. 项目权限接口
-3. 行级策略接口
-4. Yjs 协同连接与权限快照入口
-5. 当前 CLI 未直接封装，但 Skill 必须解释的平台真实接口
+2. 角色接口
+3. 项目权限接口
+4. 行级策略接口
+5. 单行 ACL 接口
+6. Yjs 协同连接与权限快照入口
+7. 当前 CLI 未直接封装，但 Skill 必须解释的平台真实接口
 
 更细的规则说明请分别查看：
 
@@ -22,6 +24,10 @@ Skill 在解释权限时，第一句话必须先区分这两个层次：
 
 1. 能不能进入项目
 2. 能不能操作项目内资源
+
+对于 `role` / `permission` 使用，还要再补一句：
+
+3. CLI 命令执行成功，不等于前端权限快照与后端最终授权已经完全一致
 
 ### 1.1 项目准入链路
 
@@ -53,18 +59,84 @@ Skill 在解释权限时，第一句话必须先区分这两个层次：
 
 ---
 
-## 2. 项目权限接口
+## 2. 角色接口
 
 ### 2.1 路径前缀
+
+| 项 | 内容 |
+| --- | --- |
+| 前缀 | `/app/mul/project/:projectId/role` |
+| 入口角色 | 项目角色入口 |
+
+### 2.2 查询角色列表
+
+| 项 | 内容 |
+| --- | --- |
+| 方法 | `GET` |
+| 路径 | `/app/mul/project/:projectId/role/list` |
+| 当前 CLI | `dimens-cli role list` |
+
+### 2.3 新增角色
+
+| 项 | 内容 |
+| --- | --- |
+| 方法 | `POST` |
+| 路径 | `/app/mul/project/:projectId/role/add` |
+| 当前 CLI | `dimens-cli role create` |
+
+请求体关键字段：
+
+```json
+{
+  "name": "班主任",
+  "description": "班级管理角色",
+  "canManageSheets": false,
+  "canEditSchema": false,
+  "canEditData": true
+}
+```
+
+### 2.4 分配 / 移除用户角色
+
+分配：
+
+| 方法 | 路径 | 当前 CLI |
+| --- | --- | --- |
+| `POST` | `/app/mul/project/:projectId/role/assignUser` | `dimens-cli role assign-user` |
+
+移除：
+
+| 方法 | 路径 | 当前 CLI |
+| --- | --- | --- |
+| `POST` | `/app/mul/project/:projectId/role/removeUser` | `dimens-cli role revoke-user` |
+
+请求体关键字段：
+
+```json
+{
+  "roleId": "role_teacher",
+  "userId": 1001,
+  "sheetId": "sh_class"
+}
+```
+
+说明：
+
+- `sheetId` 不传时是项目级角色
+- `sheetId` 传入时是表级角色
+
+---
+
+## 3. 项目权限接口
+
+### 3.1 路径前缀
 
 | 项 | 内容 |
 | --- | --- |
 | 前缀 | `/app/mul/project/:projectId/permission` |
 | 入口角色 | 项目权限管理入口 |
 
-这些接口当前主要服务于项目内权限管理界面和权限诊断，CLI 还没有直接封装，但 Skill 不能遗漏。
-
-### 2.2 查询我的权限快照
+### 3.2 查询我的权限快照
 
 | 项 | 内容 |
 | --- | --- |
@@ -88,60 +160,42 @@ Skill 在解释权限时，第一句话必须先区分这两个层次：
 | `data.access` | `object` | 设置、成员、角色、审计、回收站入口权限 |
 | `data.currentRole` | `object \| null` | 当前主要角色 |
 
-这是 Skill 解释“为什么这个人能看/不能看项目设置、成员、角色、回收站”的主要接口依据。
+解释 `role` / `permission` 是否真正生效时，优先看这个接口，而不是先看命令执行是否报错。
 
-### 2.3 查询某张表的权限配置列表
+### 3.3 查询某张表的权限配置列表
 
 | 项 | 内容 |
 | --- | --- |
 | 方法 | `GET` |
 | 路径 | `/app/mul/project/:projectId/permission/list?sheetId=:sheetId` |
-| 鉴权 | `Authorization: Bearer {token}` |
+| 当前 CLI | `dimens-cli permission list --project-id PROJ1 --sheet-id sh_xxx` |
 
-查询参数：
-
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `sheetId` | `string` | 否 | 指定表时返回该表权限；不传时可查项目级权限 |
-
-### 2.4 新增权限配置
+### 3.4 新增权限配置
 
 | 项 | 内容 |
 | --- | --- |
 | 方法 | `POST` |
 | 路径 | `/app/mul/project/:projectId/permission/add` |
-| 鉴权 | `Authorization: Bearer {token}` |
+| 当前 CLI | `dimens-cli permission create` |
 
 请求体说明：
 
 - body 是 `MulPermissionEntity` 的部分字段
 - 若带 `sheetId`，服务端会校验该表属于当前项目
 
-成功返回：
-
-```json
-{
-  "code": 1000,
-  "message": "success",
-  "data": {
-    "...": "权限记录"
-  }
-}
-```
-
-### 2.5 更新 / 删除权限配置
+### 3.5 更新 / 删除权限配置
 
 更新：
 
-| 方法 | 路径 |
-| --- | --- |
-| `POST` | `/app/mul/project/:projectId/permission/update` |
+| 方法 | 路径 | 当前 CLI |
+| --- | --- | --- |
+| `POST` | `/app/mul/project/:projectId/permission/update` | `dimens-cli permission update` |
 
 删除：
 
-| 方法 | 路径 |
-| --- | --- |
-| `POST` | `/app/mul/project/:projectId/permission/delete` |
+| 方法 | 路径 | 当前 CLI |
+| --- | --- | --- |
+| `POST` | `/app/mul/project/:projectId/permission/delete` | `dimens-cli permission delete` |
 
 删除请求体重点：
 
@@ -157,43 +211,59 @@ Skill 在解释权限时，第一句话必须先区分这两个层次：
 - 删除和更新后会触发 `yjsSyncService.notifyPermissionChanged`
 - 所以 Skill 在解释“为什么协同权限会跟着变化”时，要把权限变更事件也提到
 
+### 3.6 设置资源权限
+
+| 方法 | 路径 | 当前 CLI |
+| --- | --- | --- |
+| `POST` | `/app/mul/project/:projectId/permission/updateResourcePermission` | `dimens-cli permission set-resource` |
+
+请求体示例：
+
+```json
+{
+  "roleId": "role_teacher",
+  "resourceId": "doc_xxx",
+  "resourceType": "document",
+  "permission": {
+    "visible": true,
+    "editable": false
+  }
+}
+```
+
 ---
 
-## 3. 行级策略接口
+## 4. 行级策略接口
 
-### 3.1 路径前缀
+### 4.1 路径前缀
 
 | 项 | 内容 |
 | --- | --- |
 | 前缀 | `/app/mul/project/:projectId/row_policy` |
 | 入口角色 | 行级策略入口 |
 
-### 3.2 查询策略列表
+### 4.2 查询策略列表
 
 | 项 | 内容 |
 | --- | --- |
 | 方法 | `GET` |
 | 路径 | `/app/mul/project/:projectId/row_policy/list?sheetId=:sheetId` |
+| 当前 CLI | `dimens-cli row-policy list` |
 
-查询参数：
-
-| 字段 | 类型 | 必填 |
-| --- | --- | --- |
-| `sheetId` | `string` | 是 |
-
-### 3.3 新增策略
+### 4.3 新增策略
 
 | 项 | 内容 |
 | --- | --- |
 | 方法 | `POST` |
 | 路径 | `/app/mul/project/:projectId/row_policy/add` |
+| 当前 CLI | `dimens-cli row-policy create` |
 
 说明：
 
 - body 是 `MulRowPolicyEntity` 的部分字段
 - 如果带 `sheetId`，服务端会校验这张表属于当前项目
 
-### 3.4 带冲突检测的新增 / 更新
+### 4.4 带冲突检测的新增 / 更新
 
 新增并检测冲突：
 
@@ -207,15 +277,7 @@ Skill 在解释权限时，第一句话必须先区分这两个层次：
 | --- | --- |
 | `POST` | `/app/mul/project/:projectId/row_policy/updateWithCheck` |
 
-冲突返回结构重点：
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `code` | `1001` | 存在严重冲突 |
-| `data.conflicts` | `array` | 冲突列表 |
-| `data.hasErrors` | `boolean` | 是否有错误级冲突 |
-
-### 3.5 行级判定与过滤接口
+### 4.5 行级判定与过滤接口
 
 检查单行访问：
 
@@ -223,75 +285,80 @@ Skill 在解释权限时，第一句话必须先区分这两个层次：
 | --- | --- |
 | `POST` | `/app/mul/project/:projectId/row_policy/check` |
 
-请求体：
-
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `sheetId` | `string` | 是 | 表 ID |
-| `rowData` | `object` | 是 | 要判断的行数据 |
-| `action` | `string` | 是 | 常见 `view` / `edit` |
-| `context` | `object` | 否 | 当前用户/部门上下文 |
-
 批量过滤行：
 
 | 方法 | 路径 |
 | --- | --- |
 | `POST` | `/app/mul/project/:projectId/row_policy/filter` |
 
-请求体：
+### 4.6 启用 / 禁用策略
 
-| 字段 | 类型 | 必填 |
+| 方法 | 路径 | 当前 CLI |
 | --- | --- | --- |
-| `sheetId` | `string` | 是 |
-| `rows` | `array` | 是 |
-| `action` | `string` | 是 |
-| `context` | `object` | 否 |
-
-### 3.6 Skill 应该怎么用这些接口结论
-
-当用户说：
-
-- “为什么这行看不到”
-- “为什么这行能编辑，那行不能”
-- “公开角色明明只能看自己，为什么还看到了别人的行”
-
-Skill 不能只说“去查策略”，而要明确：
-
-1. 这类问题要落到 `row_policy/check` 或 `row_policy/filter` 这一层
-2. 最终判定依赖 `rowData + action + context`
-3. 同一个项目里，不同行数据命中的策略可以不同
-
-## 6. 这份文档的职责边界
-
-这份文档只负责接口级案例总览，不再展开：
-
-- 用户场景应该优先走哪条排查路径
-- 哪些能力只是 `server-only`
-- 五层权限结构的长篇判断说明
-
-这些内容已经拆到独立 references 中，方便后续 Skill 精确引用。
+| `POST` | `/app/mul/project/:projectId/row_policy/toggle` | `dimens-cli row-policy enable/disable` |
 
 ---
 
-## 4. 协同权限与 Yjs 入口
+## 5. 单行 ACL 接口
 
-### 4.1 WebSocket 连接入口
+### 5.1 路径前缀
+
+| 项 | 内容 |
+| --- | --- |
+| 前缀 | `/app/mul/rowAcl` |
+| 入口角色 | 行级 ACL 例外授权入口 |
+
+### 5.2 授权接口
+
+通用授权：
+
+| 方法 | 路径 | 当前 CLI |
+| --- | --- | --- |
+| `POST` | `/app/mul/rowAcl/grant` | `dimens-cli row-acl grant-user/grant-role/grant-dept` |
+
+请求体关键字段：
+
+```json
+{
+  "sheetId": "sh_class",
+  "rowId": "row_xxx",
+  "target": {
+    "roleId": "role_teacher"
+  },
+  "permission": "edit",
+  "canTransfer": false
+}
+```
+
+### 5.3 查询 ACL 列表
+
+| 方法 | 路径 | 当前 CLI |
+| --- | --- | --- |
+| `GET` | `/app/mul/rowAcl/list?sheetId=:sheetId&rowId=:rowId` | `dimens-cli row-acl list` |
+
+### 5.4 撤销角色 ACL
+
+| 方法 | 路径 | 当前 CLI |
+| --- | --- | --- |
+| `POST` | `/app/mul/rowAcl/revokeRoleAccess` | `dimens-cli row-acl revoke-role` |
+
+说明：
+
+- 当前 CLI 先打通了角色撤销主链
+- 其他批量授权、转移所有权、更多 revoke 变体，Skill 仍需按能力状态文档说明边界
+
+---
+
+## 6. 协同权限与 Yjs 入口
+
+### 6.1 WebSocket 连接入口
 
 | 项 | 内容 |
 | --- | --- |
 | 协议入口 | `/mul/yjs/*` |
 | 入口角色 | 协同连接入口 |
 
-连接查询参数重点：
-
-| 字段 | 必填 | 说明 |
-| --- | --- | --- |
-| `token` | 是 | 当前用户 JWT，WebSocket 这里直接从 query 里取 |
-| `type` | 否 | 新版连接类型，例如 `sheet` |
-| `id` | 否 | 资源 ID，常见是 `sheetId` |
-| `projectId` | 否 | 项目 ID |
-
-### 4.2 协同连接阶段的权限判断
+### 6.2 协同连接阶段的权限判断
 
 连接时会做这些事：
 
@@ -306,31 +373,3 @@ Skill 不能只说“去查策略”，而要明确：
 
 - 协同连接本身就是一层独立权限门槛
 - 行分页接口能读，不代表 WebSocket 一定能连上
-
-### 4.3 协同失败的典型控制消息
-
-如果连接失败，服务端会发类似：
-
-```json
-{
-  "type": "session:kicked",
-  "code": "NO_VIEW_PERMISSION",
-  "message": "当前无权访问该表格",
-  "canView": false,
-  "canEdit": false
-}
-```
-
-Skill 在解释“为什么协同打不开”时，要把这一层区别于普通 HTTP 读取链路说清楚。
-
----
-
-## 5. Skill 输出要求
-
-当用户提到权限、公开访问、协同越权、只读、行级控制时，Skill 至少要明确这些事实：
-
-1. 项目准入和项目内资源授权不是一回事。
-2. `myPermissions` 适合看当前人的综合权限快照。
-3. `row_policy` 接口是解释单行/批量行可见性与可写性的关键入口。
-4. 协同连接单独走 WebSocket 权限判断，和普通分页读取不是同一条入口。
-5. 权限变更会触发协同权限刷新事件，不能把协同结果当成静态缓存。

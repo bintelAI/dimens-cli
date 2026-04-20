@@ -9,6 +9,7 @@
 | 阶段 | 子 Skill | 作用 |
 | --- | --- | --- |
 | 上下文阶段 | `dimens-team` | 确认团队、项目、成员和隔离边界 |
+| 项目初始化阶段 | `dimens-project` | 创建项目、补默认公开视图、推进到可建表状态 |
 | 数据建模阶段 | `dimens-table` | 设计表、字段、视图和对象关系 |
 | 权限阶段 | `dimens-permission` | 设计角色、数据范围和协同边界 |
 | 流程阶段 | `dimens-workflow` | 设计审批、自动化、AI 分析 |
@@ -38,8 +39,9 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 归一化完成后，再进入正常路由：
 
 1. `dimens-team`
-2. `dimens-table`
-3. 按需追加 `dimens-permission` / `dimens-workflow` / `dimens-report` / `dimens-key-auth`
+2. `dimens-project`
+3. `dimens-table`
+4. 按需追加 `dimens-permission` / `dimens-workflow` / `dimens-report` / `dimens-key-auth`
 
 ## 3. 子 Skill 之间的依赖关系
 
@@ -54,11 +56,22 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 
 没有这一层，后面的表结构和权限设计很容易返工。
 
-### 3.2 为什么 `dimens-table` 往往早于 `dimens-workflow`
+### 3.2 为什么 `dimens-project` 应该先于 `dimens-table`
+
+因为系统建设不只是“有项目 ID 就够了”，还包括：
+
+- 项目是否已经创建
+- 项目描述 / 项目类型是否补齐
+- 建表前是否需要补默认公开视图
+- 后续表格、权限、工作流是否共享这条初始化主链
+
+所以系统级主线应先经过 `dimens-project`，再进入表结构设计。
+
+### 3.3 为什么 `dimens-table` 往往早于 `dimens-workflow`
 
 因为流程、审批、自动化最终都要挂在业务对象上。若客户、工单、任务、商机这些对象没拆清，工作流节点和触发条件就会飘。
 
-### 3.3 为什么 `dimens-permission` 不能最后才看
+### 3.4 为什么 `dimens-permission` 不能最后才看
 
 权限不是补丁，而是系统设计的一部分。只要用户提到下面任一场景，就要尽早进入 `dimens-permission`：
 
@@ -69,7 +82,19 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 - 外部成员参与
 - 协同编辑但不能越权广播
 
-### 3.4 `dimens-report` 为什么不是可有可无
+如果用户已经不是在问“要不要做权限”，而是在问“角色和权限怎么落地”，总控 Skill 还要继续把落点说完整：
+
+1. 先进入 `dimens-permission/references/command-mapping.md`
+2. 再按顺序执行：
+   - `dimens-cli role create`
+   - `dimens-cli permission create`
+   - `dimens-cli role assign-user`
+   - `dimens-cli permission set-resource`
+   - `dimens-cli row-policy create`
+
+这样用户提“角色 / 项目权限需求”时，路由就不是停在说明层，而是能直接进入权限命令主链。
+
+### 3.5 `dimens-report` 为什么不是可有可无
 
 如果系统存在管理视角、经营视角、运营视角，就必须把报表视为一等模块，因为：
 
@@ -77,7 +102,7 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 - 它影响哪些数据要沉淀为结构化字段
 - 它决定是否需要参数联动、导出和权限隔离
 
-### 3.5 `dimens-key-auth` 什么时候提前
+### 3.6 `dimens-key-auth` 什么时候提前
 
 如果用户一开始就说：
 
@@ -95,15 +120,16 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 更稳妥的通用路由是：
 
 1. `team`
-2. `table`
-3. 可选扩展：`permission`
-4. 可选扩展：`workflow`
-5. 可选扩展：`report`
-6. 可选扩展：`key-auth`
+2. `project`
+3. `table`
+4. 可选扩展：`permission`
+5. 可选扩展：`workflow`
+6. 可选扩展：`report`
+7. 可选扩展：`key-auth`
 
 说明：
 
-- `team -> table` 是默认主线，因为大多数用户先需要项目、表、字段、关联、样例数据和查询案例。
+- `team -> project -> table` 是默认主线，因为大多数用户先需要明确上下文、创建项目、补齐默认公开视图，再继续表、字段、关联、样例数据和查询案例。
 - `permission / workflow / report / key-auth` 只有当用户明确要求时再展开。
 
 ## 5. 什么时候不要进入总控 Skill
@@ -146,12 +172,13 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 
 | 子 Skill | 优先查看的接口级文档 | 用途 |
 | --- | --- | --- |
-| `dimens-team` | `../dimens-team/references/examples.md` | 看项目列表、项目详情、默认上下文 |
-| `dimens-table` | `../dimens-table/references/examples.md` | 看表、字段、行的真实接口与 CLI |
-| `dimens-permission` | `../dimens-permission/references/examples.md`、`../dimens-permission/references/matrix.md` | 看权限接口、五层判断矩阵 |
-| `dimens-workflow` | `../dimens-workflow/references/examples.md`、`../dimens-workflow/references/usage.md` | 看工作流运行接口与团队/项目挂载边界 |
-| `dimens-report` | `../dimens-report/references/examples.md` | 看报表、组件、查询、模板、版本接口 |
-| `dimens-key-auth` | `../dimens-key-auth/references/examples.md`、`../dimens-key-auth/references/login-flow.md` | 看 Key 登录与管理接口 |
+| `dimens-team` | `dimens-team/references/examples.md` | 看项目列表、项目详情、默认上下文 |
+| `dimens-project` | `dimens-project/references/examples.md`、`dimens-project/references/bootstrap-flow.md` | 看项目初始化主链、默认公开视图补偿和建表前置步骤 |
+| `dimens-table` | `dimens-table/references/examples.md` | 看表、字段、行的真实接口与 CLI |
+| `dimens-permission` | `dimens-permission/references/command-mapping.md`、`dimens-permission/references/examples.md`、`dimens-permission/references/matrix.md` | 先看权限命令主链，再看接口案例和五层判断矩阵 |
+| `dimens-workflow` | `dimens-workflow/references/examples.md`、`dimens-workflow/references/usage.md` | 看工作流运行接口与团队/项目挂载边界 |
+| `dimens-report` | `dimens-report/references/examples.md` | 看报表、组件、查询、模板、版本接口 |
+| `dimens-key-auth` | `dimens-key-auth/references/examples.md`、`dimens-key-auth/references/login-flow.md` | 看 Key 登录与管理接口 |
 
 如果用户明确问“这些能力哪些已经有 CLI 命令，哪些还没有”，则继续查：
 

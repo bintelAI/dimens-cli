@@ -46,8 +46,11 @@ export function registerProjectCommands(): void {
         }
       },
       {
-        usage: 'project list [--team-id <teamId>] [--page 1] [--size 20]',
-        examples: ['dimens-cli project list --team-id TEAM1'],
+        usage: 'project list [--team-id <teamId>] [--page 1] [--size 20] [--app-url <url>]',
+        examples: [
+          'dimens-cli project list --team-id TEAM1',
+          'dimens-cli project list --app-url https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/',
+        ],
       }
     )
   );
@@ -98,12 +101,20 @@ export function registerProjectCommands(): void {
           const sdk = new ProjectSDK(createClient(context));
           const payload: {
             name: string;
+            description?: string;
             remark?: string;
+            projectType?: string;
           } = {
             name,
           };
+          if (flags.description) {
+            payload.description = flags.description;
+          }
           if (flags.remark) {
             payload.remark = flags.remark;
+          }
+          if (flags['project-type']) {
+            payload.projectType = flags['project-type'];
           }
           const result = await sdk.create(teamId, payload);
           printSuccess(context, '项目创建成功', result.data);
@@ -112,7 +123,11 @@ export function registerProjectCommands(): void {
         }
       },
       {
-        usage: 'project create --name <name>',
+        usage: 'project create --name <name> [--description <description>] [--project-type <type>] [--team-id <teamId>] [--app-url <url>]',
+        examples: [
+          'dimens-cli project create --team-id TEAM1 --name 客户管理系统',
+          'dimens-cli project create --team-id TEAM1 --name 知识库项目 --description 文档协作空间 --project-type document',
+        ],
       }
     )
   );

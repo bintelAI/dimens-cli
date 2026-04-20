@@ -98,4 +98,39 @@ describe('ProjectSDK', () => {
       })
     );
   });
+
+  it('should request project create with description and projectType payload', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 1000,
+        message: '创建成功',
+        data: { id: 'P2', name: '客户管理系统', projectType: 'document' },
+      }),
+    });
+
+    const sdk = new ProjectSDK(
+      new DimensClient({
+        baseUrl: 'https://api.example.com',
+      })
+    );
+
+    await sdk.create('TEAM1', {
+      name: '客户管理系统',
+      description: '客户全生命周期管理',
+      projectType: 'document',
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/app/org/TEAM1/project/add',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          name: '客户管理系统',
+          description: '客户全生命周期管理',
+          projectType: 'document',
+        }),
+      })
+    );
+  });
 });

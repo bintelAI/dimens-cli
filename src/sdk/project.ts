@@ -23,8 +23,10 @@ export interface ProjectPageResult {
 export interface ProjectMutationPayload {
   id?: string;
   name?: string;
+  description?: string;
   icon?: string;
   remark?: string;
+  projectType?: string;
   [key: string]: unknown;
 }
 

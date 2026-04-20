@@ -44,6 +44,7 @@ describe('Skill Commands', () => {
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('dimens-workflow');
     expect(output).toContain('dimens-team');
+    expect(output).toContain('dimens-project');
     logSpy.mockRestore();
   });
 
@@ -87,6 +88,34 @@ describe('Skill Commands', () => {
     expect(output).toContain('system_decomposition');
     expect(output).toContain('推荐关键词示例');
     expect(output).toContain('帮我生成一个客户管理系统');
+    logSpy.mockRestore();
+  });
+
+  it('should print project skill info', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'info'
+    );
+
+    await command?.handler(['dimens-project']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('dimens-project');
+    expect(output).toContain('project');
+    expect(output).toContain('sheet create');
+    expect(output).toContain('doc create');
+    expect(output).toContain('doc info');
+    expect(output).toContain('doc update');
+    expect(output).toContain('doc delete');
+    expect(output).toContain('doc versions');
+    expect(output).toContain('doc version');
+    expect(output).toContain('doc restore');
+    expect(output).toContain('ProjectSDK');
+    expect(output).toContain('bootstrap-flow.md');
     logSpy.mockRestore();
   });
 

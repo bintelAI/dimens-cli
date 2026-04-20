@@ -14,6 +14,8 @@
 
 如果用户要的是“怎么一步步把系统搭出来”，请继续看 `build-flow.md`。
 
+如果用户后续还要做报表，这份文档要和 `dimens-report` 一起看。表结构不是独立问题，字段设计会直接影响后面的 `report preview / query-widget / dataMapping` 是否能一次成功。
+
 ---
 
 ## 1. 查询表列表
@@ -219,6 +221,69 @@ relation 字段配置重点：
 - `dimens-cli column create --type relation` 当前已支持把 `--target-sheet-id` 映射为 `config.relationConfig.targetSheetId`
 - 推荐同时传 `--display-column-id`，避免 relation 展示值异常
 - 如果后续仍出现“CLI 成功但字段未落库”，优先对照服务端最终入库结构核对 `config.relationConfig`
+
+### 4.4 `select` 字段案例：`提交状态`
+
+CLI 命令：
+
+```bash
+dimens-cli column create \
+  --team-id TTFFEN \
+  --project-id PUQUNFE \
+  --sheet-id sh_ja2IwgaBhV1jUWB4 \
+  --label 提交状态 \
+  --type select \
+  --options 待提交,提交中,已提交,已驳回
+```
+
+服务端 body：
+
+```json
+{
+  "label": "提交状态",
+  "type": "select",
+  "config": {
+    "options": [
+      { "label": "待提交" },
+      { "label": "提交中" },
+      { "label": "已提交" },
+      { "label": "已驳回" }
+    ],
+    "dataSourceType": "manual",
+    "dictionaryId": null
+  }
+}
+```
+
+补充说明：
+
+- `select` / `multiSelect` 当前先走自定义选项模式
+- 创建这类字段时不能只传 `--type select`，还必须同时传 `--options`
+- 技能生成字段方案时，也必须把候选项一并生成出来
+- 同一个字段的选项 `id` 必须唯一，不能重复，否则前端下拉映射和后续统计都有概率异常
+
+### 4.5 报表友好的字段组合案例
+
+如果这张表后续还要接报表，建模时建议先按下面这种组合思路准备：
+
+| 字段名 | 推荐类型 | 字段角色 | 说明 |
+| --- | --- | --- | --- |
+| 客户名称 | `text` | 维度字段 | 主展示字段，也可做分类标签 |
+| 客户等级 | `select` | 维度字段 | 适合分组和统计 |
+| 销售负责人 | `person` | 维度字段 | 不要退化成普通下拉 |
+| 归属部门 | `department` | 维度字段 | 不要退化成普通下拉 |
+| 跟进日期 | `date` | 维度字段 | 适合趋势图、按日/月统计 |
+| 预计金额 | `number` | 指标字段 | 适合求和、排序、柱状图 |
+| 成交金额 | `number` | 指标字段 | 适合求和、对比分析 |
+| 客户备注 | `text` | 说明字段 | 只做补充说明，不直接做指标 |
+
+这类组合的核心目标是：
+
+- 维度字段要稳定、可读、可分组
+- 指标字段必须是 `number`
+- 说明字段只做详情展示，不直接进 `valueKey`
+
+如果一开始就把这三层分清楚，后面进入 `dimens-report` 的固定预检链会顺很多。
 
 ## 5. 查询行分页
 

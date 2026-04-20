@@ -63,7 +63,7 @@
 
 1. 先用本文件解释 `usageType` 和 `systemView` 的区别。
 2. 再到 `examples.md` 查看表、字段、行接口的真实方法、路径、入参、出参。
-3. 如果要判断当前 Skill 链路里哪些能力已经可以直接执行，再看 `../SKILL.md` 和 `build-flow.md`。
+3. 如果要判断当前 Skill 链路里哪些能力已经可以直接执行，回看当前技能目录下的 `SKILL.md` 和 `build-flow.md`。
 
 特别注意：
 

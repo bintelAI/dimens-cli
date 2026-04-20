@@ -22,17 +22,64 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - ✅ 参数联动异常不一定是前端问题，也可能是查询链路或默认值问题
 - ✅ 报表可访问不代表底层数据源一定可访问，项目权限和数据源约束可能继续收窄
 - ✅ 涉及多维表格数据源时，还要联动检查表格权限和字段映射
+- ✅ 当前报表前端图表主渲染基于 `recharts@3.6.0`，生成组件时必须按前端真实支持的 `type` 和字段映射输出
+- ✅ 当报表组件来自多维表格时，不能只给 `sheetId`，必须同时补 `sheet.columns`、`fieldIds`、`recommendedMapping`、`previewMapping`、`dataMapping`
+
+## 高风险跑偏点
+
+下面这些是 AI 在报表场景最容易做错的地方，主技能必须优先强调：
+
+1. 不要把“创建报表”理解成只执行 `report create`
+2. 不要跳过固定预检链，直接执行 `widget-add`
+3. 不要把 `recommendedMapping` 当成最终图表映射
+4. 不要把 `sheetId` 当成完整数据源配置
+5. 不要默认任何字段都适合作为图表数值轴
+6. 不要把系统字段默认拿来做主维度或主指标
+7. 不要把 `query`、`query-widget`、`preview` 三者混成一件事
+
+对应解释：
+
+- `report create` 只会创建主资源，不会自动补组件
+- `preview` 是看数据源是否能出数，`query-widget` 是看组件配置后能不能正确跑，`query` 是整报表结果校验
+- `recommendedMapping` 更偏规范层，真正给前端渲染的是 `dataMapping`
+- 对多维表格数据源，通常至少要有：`sheetId + columns + fieldIds + recommendedMapping + previewMapping + dataMapping`
+- 数值轴字段必须是数字或可稳定转数字，文本字段不要硬塞成 `valueKey`
+
+## 报表生成时禁止省略的关键层
+
+只要是“直接生成图表组件”，下面这些层任意缺一，都应该视为高风险：
+
+1. 项目上下文：`projectId`
+2. 组件类型：`type`
+3. 数据源定义：`dataSource`
+4. 多维表格元信息：`sheet.columns`、`fieldIds`
+5. 查询预检映射：`previewMapping`
+6. 最终渲染映射：`dataMapping`
+7. 执行前验证：`preview` 或 `query-widget`
 
 ## 快速索引：意图 → 工具 / 命令 → 必填参数
 
 | 用户意图 | 工具 / 命令 | 必填参数 | 常用可选 | 说明 |
 | --- | --- | --- | --- | --- |
-| 查询报表列表 | `report_list` | `projectId` | `keyword`, `status`, `type` | 报表属于项目资源 |
-| 查询报表详情 | `report_info` | `projectId`, `reportId` | - | 先明确项目上下文 |
-| 查询图表组件 | `report_widget_list` | `projectId`, `reportId` | `type` | 看组件配置与数据源 |
-| 查询参数定义 | `report_parameter_list` | `projectId`, `reportId` | - | 看参数联动和默认值 |
-| 执行报表查询 | `report_query` | `projectId`, `reportId` | `params`, `widgetId` | 可能受权限与数据源限制 |
-| 导出报表 | `report_export` | `projectId`, `reportId` | `format`, `params` | 需检查导出与查询链路是否一致 |
+| 查询报表列表 | `dimens-cli report list` | `projectId` | `keyword`, `status`, `type`, `page`, `size`, `app-url` | 报表属于项目资源 |
+| 查询报表详情 | `dimens-cli report info` | `projectId`, `reportId` | `app-url` | 先明确项目上下文 |
+| 创建报表 | `dimens-cli report create` | `projectId`, `name` | `description`, `type`, `app-url` | 先补报表主资源 |
+| 更新报表 | `dimens-cli report update` | `projectId`, `reportId` | `name`, `description`, `type`, `app-url` | 调整报表基础信息 |
+| 复制报表 | `dimens-cli report copy` | `projectId`, `reportId` | `name`, `app-url` | 快速生成副本 |
+| 发布报表 | `dimens-cli report publish` | `projectId`, `reportId`, `is-public` | `app-url` | 控制公开状态 |
+| 删除报表 | `dimens-cli report delete` | `projectId`, `reportId` | `app-url` | 删除主资源 |
+| 归档报表 | `dimens-cli report archive` | `projectId`, `reportId` | `app-url` | 生命周期收口 |
+| 校验报表配置 | `dimens-cli report validate` | `projectId`, `config` | `app-url` | 创建或更新前建议先执行 |
+| 调整报表顺序 | `dimens-cli report sort` | `projectId`, `reportId`, `target-index` | `app-url` | 调整主资源排序 |
+| 移动报表到其他项目 | `dimens-cli report move` | `projectId`, `reportId`, `target-project-id` | `app-url` | 跨项目迁移 |
+| 新增报表组件 | `dimens-cli report widget-add` | `projectId`, `reportId`, `type`, `data-source` | `title`, `description`, `layout`, `data-mapping`, `chart-config`, `order-num`, `app-url` | 创建组件主链 |
+| 更新报表组件 | `dimens-cli report widget-update` | `projectId`, `widgetId` | `type`, `title`, `description`, `data-source`, `layout`, `data-mapping`, `chart-config`, `order-num`, `app-url` | 修改组件配置 |
+| 删除报表组件 | `dimens-cli report widget-delete` | `projectId`, `widgetId` | `app-url` | 删除组件 |
+| 批量覆盖组件 | `dimens-cli report widget-batch` | `projectId`, `reportId`, `widgets` | `app-url` | 用于重建整个组件数组 |
+| 调整组件排序 | `dimens-cli report widget-sort` | `projectId`, `reportId`, `widgetId`, `target-order` | `app-url` | 调整组件顺序 |
+| 执行整报表查询 | `dimens-cli report query` | `projectId`, `reportId` | `params`, `widget-ids`, `app-url` | 返回按 `widgetId` 聚合结果 |
+| 执行单组件查询 | `dimens-cli report query-widget` | `projectId`, `reportId`, `widgetId` | `params`, `data-source`, `data-mapping`, `app-url` | 适合单组件试跑 |
+| 预览数据源结果 | `dimens-cli report preview` | `projectId`, `data-source` | `data-mapping`, `params`, `app-url` | 创建前预检最常用 |
 
 ## 核心约束
 
@@ -59,6 +106,153 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - 用户必须具备项目访问权限才能操作报表
 - 组件可显示不代表底层查询一定能返回完整数据
 
+### 5. 当前报表能力现状
+
+当前 `dimens-cli` 在报表这块已经不是“只支持一点点”，而是三条主链都已可执行：
+
+1. 主资源链：
+   `list -> info -> create -> update -> copy -> publish -> delete -> archive -> validate -> sort -> move`
+2. 组件链：
+   `widget-add -> widget-update -> widget-delete -> widget-batch -> widget-sort`
+3. 查询链：
+   `query -> query-widget -> preview`
+
+但要注意：
+
+- 当前命令层已经能做基础结构校验，不代表任何复杂报表都能一次自动生成成功
+- 真正影响成功率的关键，仍然是 `dataSource + dataMapping + previewMapping + 组件 type` 是否和前端真实实现一致
+- 更复杂的可视化诊断、批量运维、副作用联动，还不能等同于“报表运维平台已经完全 CLI 化”
+
+## 标准执行顺序
+
+### 1. 用户要“创建一个报表”
+
+建议默认按下面顺序执行：
+
+1. 先确认 `projectId`
+2. 执行 `dimens-cli report create`
+3. 如果要加组件，先回到 `references/recharts-widget-guide.md`
+4. 先执行 `dimens-cli report preview`
+5. 再执行 `dimens-cli report widget-add`
+6. 如需验证单个组件，再执行 `dimens-cli report query-widget`
+7. 全部组件补齐后，再执行 `dimens-cli report query`
+8. 确认结果可用后，再决定是否 `report publish`
+
+这条顺序就是报表生成时的固定预检链，不要跳过中间步骤。
+
+### 2. 用户要“修一个有问题的报表”
+
+建议默认按下面顺序执行：
+
+1. `dimens-cli report info`
+2. 如果是结构问题，先查组件配置
+3. 先跑 `dimens-cli report preview`
+4. 再跑 `dimens-cli report query-widget`
+5. 如果只是基础信息问题，用 `dimens-cli report update`
+6. 如果是组件问题，用 `widget-update` / `widget-batch` / `widget-sort`
+
+防跑偏提醒：
+
+- 不要一看到“图表空白”就直接改组件
+- 先分清是数据源空、参数不对，还是映射错误
+- 没有 `preview` 结果时，不要急着判断前端渲染有问题
+
+### 3. 用户要“把一个报表迁移到别的项目”
+
+建议默认按下面顺序执行：
+
+1. 先确认源 `projectId`
+2. 先确认目标 `targetProjectId`
+3. 如果只是保留一份副本，优先 `report copy`
+4. 如果明确是迁移，执行 `report move`
+5. 迁移后立刻执行 `report info` 或 `report query` 做校验
+
+## 创建前预检规则
+
+当 Skill 准备帮用户直接生成报表、图表组件或命令时，至少要先完成下面这些检查：
+
+1. 是否已经锁定 `projectId`
+2. 组件 `type` 是否属于前端真实支持列表
+3. 如果数据源来自多维表格，是否已经明确 `sheetId`
+4. `sheet.columns` 是否包含真实字段标签和类型
+5. `fieldIds` 是否与选中字段一致
+6. `recommendedMapping` 是否使用规范键名
+7. `previewMapping` 是否存在
+8. `dataMapping` 是否使用真实字段标签
+9. 是否能先用 `report preview` 预览
+10. 是否需要再用 `report query-widget` 做单组件试跑
+
+只要上面任一项不完整，就不要直接输出“可一次成功创建”的结论。
+
+特别提醒：
+
+- 如果用户只给了“想做一个折线图”，不要自动假设维度列和值列
+- 如果用户只给了示例数据，没有给真实字段结构，不要直接伪造 `sheet.columns`
+- 如果用户要的是“复用现有报表”，优先 `report info` 和 `query-widget`，不要直接重建
+
+## 生成报表时的固定输出要求
+
+当用户要你“直接生成一个报表 / 看板 / 图表组件”时，Skill 不应该只给一句命令。默认至少要输出这四块：
+
+1. 报表主资源信息：
+   名称、描述、项目上下文
+2. 组件设计：
+   `type`、标题、布局、数据源、字段映射
+3. 预检命令：
+   `report preview` 或 `report query-widget`
+4. 最终执行命令：
+   `report create`、`widget-add`、必要时 `publish`
+
+如果用户要求“直接给 JSON”，也要把 JSON 按下面顺序组织：
+
+1. `dataSource`
+2. `dataMapping`
+3. `chartConfig`
+4. 展示层字段如 `colSpan`、`height`、`showLegend`
+
+## 常用命令模板
+
+### 1. 先创建报表主资源
+
+```bash
+dimens-cli report create \
+  --project-id PROJ1 \
+  --name "销售分析看板" \
+  --description "月度销售经营看板" \
+  --type 1
+```
+
+### 2. 先预览数据再加组件
+
+```bash
+dimens-cli report preview \
+  --project-id PROJ1 \
+  --data-source '{"mode":"sheet","sheet":{"sheetId":"S1","columns":[{"fieldId":"fld_1","label":"名称","type":"text"},{"fieldId":"fld_2","label":"销售额","type":"number"}],"fieldIds":["fld_1","fld_2"],"recommendedMapping":{"nameKey":"name","valueKey":"value"},"previewMapping":{"nameKey":"name","valueKey":"value","aggregation":"sum","limit":10}}}' \
+  --data-mapping '{"nameKey":"名称","valueKey":"销售额"}'
+```
+
+### 3. 创建组件
+
+```bash
+dimens-cli report widget-add \
+  --project-id PROJ1 \
+  --report-id REPORT_1 \
+  --type line \
+  --title "销售趋势" \
+  --data-source '{"mode":"sheet","sheet":{"sheetId":"S1","columns":[{"fieldId":"fld_1","label":"名称","type":"text"},{"fieldId":"fld_2","label":"销售额","type":"number"}],"fieldIds":["fld_1","fld_2"],"recommendedMapping":{"nameKey":"name","valueKey":"value"},"previewMapping":{"nameKey":"name","valueKey":"value","aggregation":"sum","limit":10}}}' \
+  --data-mapping '{"nameKey":"名称","valueKey":"销售额"}'
+```
+
+### 4. 单组件试跑
+
+```bash
+dimens-cli report query-widget \
+  --project-id PROJ1 \
+  --report-id REPORT_1 \
+  --widget-id widget_1 \
+  --params '{"month":"2026-04"}'
+```
+
 ## 必查文档
 
 | Skill / references | 作用 | 什么时候必须看 |
@@ -69,8 +263,30 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 | `references/usage.md` | 报表使用分层说明 | 处理报表时必须看 |
 | `references/capability-status.md` | 当前报表能力范围 | 判断是否已封装时建议看 |
 | `references/examples.md` | 报表 / 图表 / 参数接口案例 | 需要直接举例时看 |
+| `references/recharts-widget-guide.md` | Recharts 组件类型、字段映射与一次生成成功规范 | 生成或修改报表组件时必须看 |
 
 ## 使用场景示例
+
+### 场景 0：AI 直接生成报表组件
+
+固定顺序：
+
+1. 先确认 `projectId + reportId`
+2. 再确认图表类型是否属于前端真实支持列表
+3. 如果数据来自多维表格，必须确认 `sheetId + 字段列表 + 字段类型 + 最终 dataMapping`
+4. 最后再生成命令或 JSON
+
+如果上面信息不完整，不要直接承诺“一次创建成功”
+
+### 场景 0.1：AI 直接生成整份看板
+
+默认动作：
+
+1. 先创建报表主资源
+2. 按组件逐个设计 `type + dataSource + dataMapping`
+3. 每个组件先预览，再创建
+4. 所有组件完成后再整报表查询
+5. 确认无误后再发布
 
 ### 场景 1：解释为什么报表能打开但图表没数据
 
@@ -112,10 +328,17 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 | 图表组件不显示 | 组件可见性条件或布局配置异常 | 检查组件配置和显示条件 |
 | 导出结果和页面结果不一致 | 导出链路与查询参数不一致 | 对比导出参数与页面查询参数 |
 | 报表查多维表格数据失败 | 底层表格权限、字段映射或数据源配置有问题 | 联动检查 `dimens-table` 和权限链路 |
+| AI 生成的图表创建失败或渲染空白 | 图表类型、`dataMapping`、`sheet.columns`、`previewMapping` 其中一层缺失 | 必须回到 `references/recharts-widget-guide.md` 按 checklist 重建 |
+| AI 直接创建组件就失败 | 没先执行 `report preview` 或 `report query-widget` 做预检 | 先预览数据源，再创建组件 |
+| 报表迁移后打不开 | 只做了资源移动，没有继续校验数据源和查询 | 迁移后立即执行 `report info`、`report preview` 或 `report query` |
+| 以为 Skill 说得通就一定能创建成功 | 技能和命令之间少了预检步骤 | 把 `report create -> report preview -> report widget-add -> report query-widget -> report query` 当成固定预检链 |
+| 把字段标签和字段 ID 混用 | 映射层和元信息层混在一起了 | `sheet.columns/fieldIds` 保留字段 ID，`dataMapping` 使用真实字段标签或前端消费键 |
+| 把文本列当数值列 | 没先确认字段类型 | 数值轴只使用数字字段，必要时先在预览阶段验证 |
 
 ## 参考文档
 
 - `references/usage.md`
 - `references/capability-status.md`
 - `references/examples.md`
-- `../references/cli-api-catalog.md`
+- `references/recharts-widget-guide.md`
+- 如需查看整个 Skill 体系的能力总览，请返回 `dimens-cli/skills/README.md`

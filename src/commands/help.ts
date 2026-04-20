@@ -104,6 +104,7 @@ const helpCommand: CLICommand = {
 
     console.log('\n使用 "help [group]" 查看命令组，使用 "help [group] [command]" 查看具体命令');
     console.log('使用 "help skill" 查看技能命令组，使用 "skill info <name>" 查看具体 Skill\n');
+    console.log('权限链路常用入口: "help role"、"help permission"、"help row-policy"、"help row-acl"\n');
   },
 };
 

@@ -27,4 +27,29 @@ describe('Context', () => {
 
     expect(result.baseUrl).toBe('https://custom.example.com');
   });
+
+  it('should parse teamId and projectId from dimens app url', () => {
+    const result = resolveContext(
+      { appUrl: 'https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/' },
+      {}
+    );
+
+    expect(result.baseUrl).toBe('https://dimens.bintelai.com/api');
+    expect(result.teamId).toBe('TTFFEN');
+    expect(result.projectId).toBe('PXWXBJQ');
+  });
+
+  it('should let explicit cli args override ids parsed from app url', () => {
+    const result = resolveContext(
+      {
+        appUrl: 'https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/',
+        teamId: 'TEAM_ARG',
+      },
+      {}
+    );
+
+    expect(result.baseUrl).toBe('https://dimens.bintelai.com/api');
+    expect(result.teamId).toBe('TEAM_ARG');
+    expect(result.projectId).toBe('PXWXBJQ');
+  });
 });

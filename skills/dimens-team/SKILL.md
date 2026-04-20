@@ -32,7 +32,7 @@ tags: [team, project, tenant, context, dimens-cli]
 | 查看团队成员 | `team_user_list` | `teamId` | `projectId`, `keyword` | 先看团队成员池 |
 | 查看项目列表 | `dimens-cli project list` | `teamId` | `page`, `keyword`, `status` | 项目永远从团队上下文进入 |
 | 查看项目详情 | `dimens-cli project info` | `teamId`, `id` | - | 需要明确项目属于哪个团队 |
-| 创建项目 | `dimens-cli project create` | `teamId`, `name` | `description`, `projectType` | 项目创建在团队下面 |
+| 创建项目入口 | `dimens-cli project create` | `teamId`, `name` | `description`, `projectType` | 命令属于项目初始化主链，执行时应路由到 `dimens-project` |
 | 切换默认团队 | `dimens-cli auth use-team` | `teamId` | - | 影响后续默认上下文 |
 | 切换默认项目 | `dimens-cli auth use-project` | `projectId` | - | 仅在已有团队上下文下才安全 |
 
@@ -84,6 +84,7 @@ CLI 的团队、项目上下文通常有三种来源：
 | Skill / references | 作用 | 什么时候必须看 |
 | --- | --- | --- |
 | `dimens-system-orchestrator` | 系统级任务入口与整体路由 | 处理系统建设任务时建议先看 |
+| `dimens-project` | 项目创建、项目初始化与默认公开视图补偿 | 用户要开始落项目时必须看 |
 | `dimens-permission` | 权限分层与资源可见性 | 分析能看不能看时建议看 |
 | `dimens-table` | 表格、文档、字段、行数据会继承项目上下文 | 进入表域前建议看 |
 | `references/context-sources.md` | 显式参数、profile、环境变量三类上下文来源 | 处理上下文覆盖时必须看 |
@@ -102,6 +103,8 @@ CLI 的团队、项目上下文通常有三种来源：
 3. 项目是否为公开可见
 4. 用户是否被邀请进项目
 5. 用户是否因部门角色、团队角色而获得默认管理权限
+
+如果用户下一步是“直接创建项目并继续搭系统”，不要停在 `dimens-team`，应继续路由到 `dimens-project`。
 
 ### 场景 2：查询某团队下的项目列表
 
@@ -142,4 +145,4 @@ dimens-cli auth use-project PROJ1
 - `references/project-entry.md`
 - `references/isolation.md`
 - `references/examples.md`
-- `../references/cli-api-catalog.md`
+- 如需查看整个 Skill 体系的能力总览，请返回 `dimens-cli/skills/README.md`

@@ -55,6 +55,7 @@ export function getContext(flags: Record<string, string> = {}): CLIContext {
     token?: string;
     teamId?: string;
     projectId?: string;
+    appUrl?: string;
     output?: 'table' | 'json' | 'raw';
   } = {};
 
@@ -69,6 +70,9 @@ export function getContext(flags: Record<string, string> = {}): CLIContext {
   }
   if (flags['project-id']) {
     contextArgs.projectId = flags['project-id'];
+  }
+  if (flags['app-url']) {
+    contextArgs.appUrl = flags['app-url'];
   }
   if (flags.output === 'json' || flags.output === 'raw' || flags.output === 'table') {
     contextArgs.output = flags.output;

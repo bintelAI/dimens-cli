@@ -16,12 +16,18 @@
 4. 给出常用筛选和查询案例
 5. 路由子 Skill：
    - `dimens-team`
+   - `dimens-project`
    - `dimens-table`
 6. 只有用户继续要求时，再补：
    - `dimens-permission`
    - `dimens-workflow`
    - `dimens-report`
 7. 先输出方案，再等待确认
+
+如果用户在这一步已经明确提出“角色怎么配”“项目权限怎么落地”“谁能看谁的数据”，则不要只写成可选扩展，而要继续补：
+
+- `dimens-permission/references/command-mapping.md`
+- 角色 / 项目权限主链：`role create -> permission create -> role assign-user -> row-policy create`
 
 ## 场景 2：通用系统级输出骨架
 
@@ -93,11 +99,12 @@
 
 ### 7. 推荐子 Skill 路由
 1. dimens-team
-2. dimens-table
-3. dimens-permission（可选扩展）
-4. dimens-workflow（可选扩展）
-5. dimens-report（可选扩展）
-6. dimens-key-auth（可选扩展）
+2. dimens-project
+3. dimens-table
+4. dimens-permission（可选扩展）
+5. dimens-workflow（可选扩展）
+6. dimens-report（可选扩展）
+7. dimens-key-auth（可选扩展）
 
 ### 8. 待确认项
 - 主对象和从对象分别是什么
@@ -120,13 +127,14 @@
 2. 先拆项目、核心表、字段、关联、示例数据、查询案例。
 3. 给出子 Skill 路由。
 4. 再明确接口目录落点：
-   - `dimens-team/references/examples.md`
+   - `dimens-project/references/examples.md`
    - `dimens-table/references/examples.md`
 5. 优先提醒 `dimens-table/references/examples.md` 中查看：
    - 字段案例
    - relation 配置
    - `row/page` 筛选案例
 6. 如用户后续继续扩展，再补：
+   - `dimens-permission/references/command-mapping.md`
    - `dimens-permission/references/examples.md`
    - `dimens-workflow/references/examples.md`
    - `dimens-report/references/examples.md`
@@ -158,24 +166,30 @@
 
 ### 2. 子 Skill 路由
 1. dimens-team
-2. dimens-table
-3. 可选扩展：dimens-permission / dimens-workflow / dimens-report / dimens-key-auth
+2. dimens-project
+3. dimens-table
+4. 可选扩展：dimens-permission / dimens-workflow / dimens-report / dimens-key-auth
 
 ### 3. 接口落点
-- 团队 / 项目：`dimens-team/references/examples.md`
+- 团队 / 上下文：`dimens-team/references/examples.md`
+- 项目初始化：`dimens-project/references/examples.md`
 - 表 / 字段 / 行：`dimens-table/references/examples.md`
 - 字段设计：`dimens-table/references/field-design-patterns.md`
 - 行筛选与排序：`dimens-table/references/row-filters.md`
-- 如需扩展权限 / 协同：`dimens-permission/references/examples.md`、`matrix.md`
+- 如需扩展权限 / 协同：`dimens-permission/references/command-mapping.md`、`examples.md`、`matrix.md`
 - 如需扩展工作流 / AI：`dimens-workflow/references/examples.md`
 - 如需扩展报表：`dimens-report/references/examples.md`
 - 如需扩展 Key / 外部登录：`dimens-key-auth/references/examples.md`
 
 ### 4. 当前能力状态
 - 已封装：`auth api-key-login`、`project list/info`、`sheet list/tree/info`、`column list`、`row page/info`、`ai chat-completions`
-- server-only：大部分报表接口、权限管理接口、工作流管理与挂载接口
+- server-only：大部分报表接口、工作流管理与挂载接口
 - 部分对齐：`row create`、`row update`、`row set-cell`
 ```
+
+补充：
+
+- 角色、项目权限、资源权限、行级策略的主链已应当优先视为 `dimens-permission` 内的已封装 CLI 能力，不应再在总控示例里笼统归为“权限管理接口都是 server-only”。
 
 ## 场景 6：CRM 作为单一案例
 

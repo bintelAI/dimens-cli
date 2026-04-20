@@ -19,15 +19,39 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 - ✅ 执行任何 `project / sheet / column / row / ai` 命令前，先完成认证；认证方式优先参考 `dimens-key-auth`
 - ✅ 表格能力默认要先确认 `projectId`，大多数写操作还需要 `teamId`
+- ✅ 如果用户还处在“创建项目 / 初始化项目”阶段，先路由到 `dimens-project`，不要在 `dimens-table` 里直接吞掉上游步骤
 - ✅ 字段、视图、行数据都属于工作表上下文，不能脱离 `sheetId` 单独判断
 - ✅ 默认要优先帮助用户把“项目 -> 表 -> 字段 -> 关联 -> 示例数据 -> 查询案例”搭起来
 - ✅ 字段设计必须细到可落地，不能只写“有客户名称、状态、时间”这种抽象描述
 - ✅ relation 字段创建必须补齐目标表，推荐显式传 `--target-sheet-id`，并尽量补 `--display-column-id`
+- ✅ `select` / `multiSelect` 字段在技能创建时必须同时给出完整候选项，不能只定义字段名和类型
+- ✅ `select` / `multiSelect`、`person`、`department` 都属于特殊字段，不能只按普通文本字段理解
+- ✅ 如果项目已经有自己的部门、内置角色和用户体系，且需求本质是“人员下拉 / 负责人选择 / 成员选择”，优先配置 `person` 字段，不要误建成普通下拉字段
+- ✅ 如果需求本质是部门选择、部门归属、部门筛选，优先配置 `department` 字段，不要误建成普通下拉字段
 - ✅ 新表落地后必须确认至少存在一个公开默认视图；如果技能链路没有自动补齐，就要显式执行 `view create`
 - ✅ `row/page` 默认要按“基于字段的搜索、筛选、排序”来解释，不只是分页
 - ✅ 系统视图相关问题要区分团队级默认字段和项目级实际分配字段
 - ✅ 处理字段和行写入问题时，不能只看字段结构，还要同步看权限与系统字段边界
 - ✅ 表格接口能读取不代表一定可写，行级、列级、协同权限可能继续收敛
+- ✅ 如果后续要做报表，这一步就要提前考虑字段能否直接进入 `report preview / query-widget / dataMapping`，不要等到报表阶段再返工
+
+## 高风险跑偏点
+
+下面这些是 AI 在表格建模阶段最容易做错、但会直接影响后续报表成功率的地方：
+
+1. 只设计字段名，不设计字段类型
+2. 把本该用于统计的字段建成文本字段
+3. 把人员、部门字段误建成普通 `select`
+4. 认为 `select` 只要有字段名就行，忘记补候选项
+5. 建表时没考虑哪些字段后面要做报表维度、数值轴、筛选项
+6. 只关心表能录数据，不关心字段是否可用于 `preview` 和报表映射
+
+对应提醒：
+
+- 报表维度字段通常需要稳定标签和可读值
+- 报表数值字段必须是数字或可稳定转数字
+- 如果字段后续要进入报表，尽量在建表阶段就明确“谁做维度、谁做指标”
+- 不要等到 `dimens-report` 阶段才发现字段类型不适合出图
 
 ## 快速索引：意图 → 工具 / 命令 → 必填参数
 
@@ -37,7 +61,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | 查询表详情 | `dimens-cli sheet info` | `teamId`, `projectId`, `sheetId` | - | 明确工作表上下文 |
 | 创建表 | `dimens-cli sheet create` | `projectId`, `name` | `teamId`, `parentId` | 归属于项目 |
 | 查询字段列表 | `dimens-cli column list` | `teamId`, `projectId`, `sheetId` | - | 先确认字段结构 |
-| 创建字段 | `dimens-cli column create` | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `property`, `uiType`, `config`, `required`, `unique`, `key` | 字段类型影响值结构，推荐优先传 `--label` |
+| 创建字段 | `dimens-cli column create` | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `property`, `uiType`, `config`, `required`, `unique`, `key`, `options` | 字段类型影响值结构，推荐优先传 `--label`；`select/multiSelect` 必须补 `--options` |
 | 查询视图列表 | `dimens-cli view list` | `teamId`, `projectId`, `sheetId` | - | 建表后先确认默认视图是否已落地 |
 | 创建公开默认视图 | `dimens-cli view create` | `teamId`, `projectId`, `sheetId`, `name`, `type` | `isPublic`, `config` | 技能建表链路默认要求至少补一个公开 grid 视图 |
 | 查询行数据 | `dimens-cli row page` | `teamId`, `projectId`, `sheetId` | `viewId`, `page`, `size`, `keyword`, `searchFieldIds`, `filters`, `filterMatchType`, `sortRule` | 行读取统一走分页接口，读取链路会受字段筛选、视图配置和权限共同影响 |
@@ -69,8 +93,30 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - 字段类型不同，值结构和允许写入方式不同
 - 字段能力不能只看名字，必须结合类型、`uiType`、`property`
 - 字段设计默认至少要明确：字段名、类型、是否必填、是否唯一、默认值、是否参与筛选、是否参与排序、是否用于主展示
+- 如果字段类型是 `select` 或 `multiSelect`，还必须同步明确候选项列表；没有选项值就不是完整字段设计
+- 如果字段语义是“选人”，且项目本身已有用户体系、部门体系、内置角色，则这不是普通 `select`，应优先落到 `person`
+- 如果字段语义是“选部门 / 归属部门 / 所属组织”，则这不是普通 `select`，应优先落到 `department`
 - 关联字段默认要明确：目标表、展示字段、是否多选、是否双向、编辑视图字段
 - 涉及工作流、AI 分析、审批、自动化入口时，还要同时检查系统视图字段映射
+
+### 3.1 报表联动边界
+
+如果用户后续还要做报表，这里要提前提醒：
+
+- 哪些字段会作为图表维度字段
+- 哪些字段会作为数值字段
+- 哪些字段会进入筛选和排序
+- 哪些字段只是详情说明，不适合直接出图
+
+默认建议：
+
+| 报表用途 | 推荐字段类型 | 说明 |
+| --- | --- | --- |
+| 类目维度 | `text` / `select` / `date` / `department` / `person` | 用于横轴、分类、分组 |
+| 数值指标 | `number` | 用于求和、排序、统计 |
+| 详情说明 | `text` | 不要默认当 `valueKey` |
+| 组织筛选 | `department` | 不要退化成普通 `select` |
+| 人员筛选 | `person` | 不要退化成普通 `select` |
 
 ### 4. 权限边界
 
@@ -89,8 +135,10 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | --- | --- | --- |
 | `dimens-key-auth` | 认证、token 复用与第三方接入边界 | 执行任何表格命令前必须先确认 |
 | `dimens-team` | 团队与项目上下文来源 | 进入表域前必须先看 |
+| `dimens-project` | 项目创建、默认公开视图补偿、建表前置链路 | 用户还没完成项目初始化时必须先看 |
 | `dimens-permission` | 表级、列级、行级与协同权限边界 | 处理写入权限时建议看 |
 | `dimens-workflow` | 系统视图字段与工作流入口的映射关系 | 处理 AI 分析、审批、自动化入口时建议看 |
+| `dimens-report` | 报表组件、字段映射、固定预检链 | 字段后续要进入看板、图表、统计分析时必须看 |
 | `references/field-design-patterns.md` | 字段设计模板、relation 结构 | 设计字段时必须看 |
 | `references/row-filters.md` | `row/page` 搜索、筛选、排序与 `viewId` 继承 | 设计查询案例时必须看 |
 | `references/field-rules.md` | 字段规则和系统视图字段边界 | 处理系统字段时必须看 |
@@ -110,7 +158,18 @@ tags: [table, sheet, row, column, view, dimens-cli]
 5. 示例行数据
 6. `row/page` 查询案例
 
+补充：
+
+- 如果项目还没创建或默认公开视图还没补齐，这一步应先回到 `dimens-project`
+- 如果后续还要做报表，字段设计阶段就要明确哪些字段要做维度、哪些字段要做数值
+
 只有用户继续要求时，再扩展权限、工作流、报表。
+
+如果用户已经明确后面要做报表，不要把“报表”理解成后置可忽略项，至少在建表阶段补一句：
+
+1. 哪些字段会做图表维度
+2. 哪些字段会做统计指标
+3. 哪些字段要支持后续 `report preview` 和 `dataMapping`
 
 ### 场景 1：查询某项目下的表列表
 
@@ -172,6 +231,9 @@ dimens-cli row set-cell \
 | 错误现象 | 根本原因 | 解决方案 |
 | --- | --- | --- |
 | 表搭出来了，但字段不好用 | 字段只按名字设计，没有提前考虑筛选、排序、主展示和关联 | 回到字段模板，补齐字段能力设计 |
+| 人员下拉被建成普通下拉字段 | 没识别项目已有用户体系、内置角色、部门体系，误把“选人”当成静态枚举 | 优先改用 `person` 字段，先判断是不是用户选择场景 |
+| 部门字段被建成普通下拉字段 | 没识别“部门归属 / 部门筛选”属于组织结构字段 | 优先改用 `department` 字段，不要用静态 `select` 代替 |
+| 后面做报表时发现字段出不了图 | 建表阶段没区分维度字段、指标字段和说明字段 | 回到字段设计模板，先把用于报表的字段类型设计正确 |
 | 行能查出来，但筛选条件不好表达 | 没按 `keyword / searchFieldIds / filters / filterMatchType / sortRule` 结构设计 | 按 `row/page` 真实请求结构重写查询案例 |
 | 表能查到，但字段写入失败 | 字段类型不匹配、列级只读或系统字段受控 | 先查字段结构，再查列权限与系统字段规则 |
 | 行分页读取正常，协同更新异常 | 普通接口权限和 Yjs 协同过滤不是同一条缓存链 | 检查协同权限快照、系统字段净化和广播过滤 |

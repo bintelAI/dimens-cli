@@ -77,6 +77,11 @@ const SKILL_RECOMMEND_EXAMPLES: Record<string, string[]> = {
     'teamId projectId',
     '租户隔离 项目上下文',
   ],
+  'dimens-project': [
+    '项目初始化 建表 默认视图',
+    'project create sheet create',
+    '从 teamId 创建项目',
+  ],
   'dimens-table': [
     '多维表格 字段 row',
     'sheet column view',
@@ -184,6 +189,17 @@ const REPORT_INTENT_KEYWORDS = [
   '看板',
 ];
 
+const PROJECT_INTENT_KEYWORDS = [
+  '项目初始化',
+  '项目搭建',
+  'project',
+  'project create',
+  '建项目',
+  '创建项目',
+  '默认视图',
+  '初始化',
+];
+
 function getSystemOrchestratorBonus(
   skill: ReturnType<typeof getSkillOrThrow>,
   normalizedQuery: string
@@ -277,10 +293,19 @@ function getSkillMatchSignals(
   }
 
   if (
+    skill.name === 'dimens-project' &&
+    hasIntentKeyword(normalizedQuery, PROJECT_INTENT_KEYWORDS)
+  ) {
+    matchedBy.push('project-intent');
+    keywordScore += 3;
+  }
+
+  if (
     skill.name === 'dimens-workflow' &&
     hasIntentKeyword(normalizedQuery, WORKFLOW_INTENT_KEYWORDS)
   ) {
     matchedBy.push('workflow-intent');
+    keywordScore += 3;
   }
 
   if (
@@ -288,6 +313,7 @@ function getSkillMatchSignals(
     hasIntentKeyword(normalizedQuery, AUTH_INTENT_KEYWORDS)
   ) {
     matchedBy.push('auth-intent');
+    keywordScore += 3;
   }
 
   if (
@@ -295,6 +321,7 @@ function getSkillMatchSignals(
     hasIntentKeyword(normalizedQuery, TABLE_INTENT_KEYWORDS)
   ) {
     matchedBy.push('table-intent');
+    keywordScore += 3;
   }
 
   if (
@@ -302,6 +329,7 @@ function getSkillMatchSignals(
     hasIntentKeyword(normalizedQuery, PERMISSION_INTENT_KEYWORDS)
   ) {
     matchedBy.push('permission-intent');
+    keywordScore += 3;
   }
 
   if (
@@ -309,6 +337,7 @@ function getSkillMatchSignals(
     hasIntentKeyword(normalizedQuery, REPORT_INTENT_KEYWORDS)
   ) {
     matchedBy.push('report-intent');
+    keywordScore += 3;
   }
 
   const score = keywordScore + phraseScore + systemBonus;
@@ -316,6 +345,9 @@ function getSkillMatchSignals(
 
   if (systemBonus > 0) {
     reasonParts.push('命中系统建设意图');
+  }
+  if (matchedBy.includes('project-intent')) {
+    reasonParts.push('命中项目初始化意图');
   }
   if (matchedBy.includes('workflow-intent')) {
     reasonParts.push('命中工作流意图');

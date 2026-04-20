@@ -20,25 +20,39 @@
 
 ## 3. 当前报表能力状态
 
-### 3.1 server-only
+### 3.1 已封装
 
-当前报表主体能力基本都属于 `server-only`：
+当前 `dimens-cli` 已经具备以下最小报表主链能力：
 
 | 能力 | 当前状态 | 说明 |
 | --- | --- | --- |
-| 报表主资源管理 | `server-only` | 列表、详情、创建、发布、归档、校验等都还未 CLI 化 |
-| 组件管理 | `server-only` | 组件新增、更新、批量覆盖仍是接口能力 |
-| 报表查询 | `server-only` | 整报表查询、单组件查询、数据预览仍是接口能力 |
-| 模板与版本管理 | `server-only` | 当前仍以后端接口为主 |
+| 报表主资源管理 | `已封装` | 已支持 `report list`、`report info`、`report create`、`report update`、`report copy`、`report publish`、`report delete`、`report archive`、`report validate`、`report sort`、`report move` |
+| 报表查询 | `已封装` | 已支持 `report query`、`report query-widget`、`report preview`，可按 `widgetIds` 做定向查询，也可单组件试跑和预览数据 |
+| 组件管理 | `已封装` | 已支持 `report widget-add`、`report widget-update`、`report widget-delete`、`report widget-batch`、`report widget-sort` |
+| 组件结构校验 | `已封装` | CLI 已对 Recharts 组件类型和 `sheet.columns`、`fieldIds`、`recommendedMapping`、`previewMapping`、`dataMapping` 做基础校验 |
+
+如果用户目标是“让 AI 一次生成成功”，不要只盯着“已封装”三个字，还要继续补一句：
+
+- 已封装不等于可以跳过固定预检链
+- 默认仍应按 `report create -> report preview -> report widget-add -> report query-widget -> report query` 推进
 
 ### 3.2 部分对齐
 
-下面这些能力容易被误判成“报表 CLI 已支持”：
+下面这些能力仍然不能被表述成“报表 CLI 已完整支持”：
 
-| 现象 | 为什么只是部分对齐 |
-| --- | --- |
-| `project info` 里能看到报表资源入口 | 只能说明项目里有报表资源，不等于已有报表命令 |
-| 表格和权限链路已有命令 | 只能说明报表底层数据源相关能力存在，不等于报表本身已 CLI 化 |
+| 能力 | 当前状态 | 说明 |
+| --- | --- | --- |
+| 组件高级管理 | `部分对齐` | 当前已补主操作，但更细粒度的单组件查询、预览联动、复杂布局协同仍未完全 CLI 化 |
+| 报表生命周期高级能力 | `部分对齐` | 主资源生命周期已基本 CLI 化，但更复杂的跨项目联动、副作用校验和批量运维动作仍未完全封装 |
+| 查询扩展能力 | `部分对齐` | 单组件查询和数据预览已封装，但更复杂的预览联动、批量调试和可视化诊断仍未 CLI 化 |
+
+### 3.3 server-only
+
+以下能力当前依旧主要停留在服务端接口层：
+
+| 能力 | 当前状态 | 说明 |
+| --- | --- | --- |
+| 模板与版本管理 | `server-only` | 模板、版本、导出等能力仍以后端接口为主 |
 
 ---
 
@@ -47,8 +61,10 @@
 当用户问“报表能不能直接用 CLI 操作”时，建议固定这样回答：
 
 1. 先说明当前能力状态。
-2. 如果是 `server-only`，只给接口案例，不要伪装成命令能力。
-3. 如果涉及多维表数据源，再补一句需要联动 `dimens-table` 和权限链路。
+2. 对 `已封装` 能力，优先给真实 CLI 命令案例。
+3. 对 `部分对齐` 和 `server-only` 能力，明确边界，不要伪装成已有命令。
+4. 如果涉及多维表数据源，再补一句需要联动 `dimens-table` 和权限链路。
+5. 如果涉及“直接生成报表”，要明确提醒先走固定预检链，防止 AI 直接跳到 `widget-add`。
 
 ---
 

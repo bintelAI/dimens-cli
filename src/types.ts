@@ -87,6 +87,7 @@ export interface CLIProfile {
   refreshToken?: string;
   teamId?: string;
   projectId?: string;
+  appUrl?: string;
   output?: OutputMode;
 }
 
@@ -99,6 +100,7 @@ export interface CLIContext {
   refreshToken?: string;
   teamId?: string;
   projectId?: string;
+  appUrl?: string;
   output: OutputMode;
 }
 

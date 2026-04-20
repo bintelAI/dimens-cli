@@ -47,10 +47,15 @@
 ## 3. 推荐排查顺序
 
 1. 先确认项目准入。
-2. 再确认 `myPermissions` 的综合权限快照。
+2. 再确认前端 `permissionStore` 当前展示和 `myPermissions` 的综合权限快照是否一致。
 3. 再确认是表级问题、列级问题还是行级问题。
 4. 涉及某一行时，继续落到 `row_policy/check` 或 `row_policy/filter`。
 5. 涉及协同时，再看 WebSocket 准入、权限快照缓存、系统字段净化和广播过滤。
+
+补充：
+
+- `role` / `permission` 改动后，如果只验证 CLI 返回，不验证 `myPermissions` 和前端快照，很容易误判“权限已生效”
+- 复杂项目权限问题必须同时看前端消费层和后端合并层
 
 ## 4. 常见误判对照
 

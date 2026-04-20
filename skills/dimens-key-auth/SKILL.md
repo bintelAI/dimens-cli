@@ -140,4 +140,4 @@ dimens-cli auth api-key-login \
 - `references/integration-boundaries.md`
 - `references/capability-status.md`
 - `references/examples.md`
-- `../references/cli-api-catalog.md`
+- 如需查看整个 Skill 体系的能力总览，请返回 `dimens-cli/skills/README.md`

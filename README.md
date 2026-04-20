@@ -21,9 +21,13 @@ https://dimens.bintelai.com/api
 
 - `auth`
 - `project`
+- `role`
+- `permission`
 - `sheet`
 - `column`
 - `row`
+- `row-policy`
+- `row-acl`
 - `ai`
 - `skill`
 - `system`
@@ -32,9 +36,13 @@ https://dimens.bintelai.com/api
 
 - `sdk.auth`
 - `sdk.project`
+- `sdk.role`
+- `sdk.permission`
 - `sdk.sheet`
 - `sdk.column`
 - `sdk.row`
+- `sdk.rowPolicy`
+- `sdk.rowAcl`
 - `sdk.ai`
 
 ## 安装
@@ -95,6 +103,10 @@ dimens-cli help
 ```bash
 node ./bin/dimens-cli.js help
 node ./bin/dimens-cli.js help auth
+node ./bin/dimens-cli.js help role
+node ./bin/dimens-cli.js help permission
+node ./bin/dimens-cli.js help row-policy
+node ./bin/dimens-cli.js help row-acl
 node ./bin/dimens-cli.js help ai
 node ./bin/dimens-cli.js help skill
 ```
@@ -219,6 +231,126 @@ node ./bin/dimens-cli.js row page \
 
 - `row page` 是当前唯一保留的行读取命令
 - 不再使用 `row list`
+
+## 权限命令快速示例
+
+权限链路建议按“角色 -> 项目/表权限 -> 行级策略 -> 单行 ACL”理解和使用，这也与仓库内权限设计文档的分层保持一致。
+
+查看角色与权限帮助：
+
+```bash
+node ./bin/dimens-cli.js help role
+node ./bin/dimens-cli.js help permission
+node ./bin/dimens-cli.js help row-policy
+node ./bin/dimens-cli.js help row-acl
+```
+
+创建角色：
+
+```bash
+node ./bin/dimens-cli.js role create \
+  --project-id PROJ1 \
+  --name 班主任 \
+  --description 班级管理角色 \
+  --can-manage-sheets false \
+  --can-edit-schema false \
+  --can-edit-data true
+```
+
+给用户分配角色：
+
+```bash
+node ./bin/dimens-cli.js role assign-user \
+  --project-id PROJ1 \
+  --role-id role_teacher \
+  --user-id 1001 \
+  --sheet-id sh_class
+```
+
+创建表级权限：
+
+```bash
+node ./bin/dimens-cli.js permission create \
+  --project-id PROJ1 \
+  --role-id role_teacher \
+  --sheet-id sh_class \
+  --data-access private_rw \
+  --can-read true \
+  --can-write true \
+  --column-visibility '{"fld_name":true,"fld_class_no":true}' \
+  --column-readonly '{"fld_score":true}'
+```
+
+设置文档 / 报表 / 页面等资源权限：
+
+```bash
+node ./bin/dimens-cli.js permission set-resource \
+  --project-id PROJ1 \
+  --role-id role_teacher \
+  --resource-id doc_xxx \
+  --resource-type document \
+  --visible true \
+  --editable false
+```
+
+创建“仅查看自己”行策略：
+
+```bash
+node ./bin/dimens-cli.js row-policy create \
+  --project-id PROJ1 \
+  --sheet-id sh_class \
+  --role-id role_teacher \
+  --name 仅查看自己 \
+  --effect allow \
+  --actions view,edit \
+  --conditions '[{"columnId":"createdBy","operator":"equals","value":"{{currentUser}}"}]' \
+  --priority 10 \
+  --match-type and \
+  --active true
+```
+
+启用 / 禁用行策略：
+
+```bash
+node ./bin/dimens-cli.js row-policy enable \
+  --project-id PROJ1 \
+  --id policy_xxx \
+  --sheet-id sh_class
+
+node ./bin/dimens-cli.js row-policy disable \
+  --project-id PROJ1 \
+  --id policy_xxx \
+  --sheet-id sh_class
+```
+
+给指定行追加 ACL：
+
+```bash
+node ./bin/dimens-cli.js row-acl grant-user \
+  --sheet-id sh_class \
+  --row-id row_xxx \
+  --user-id 1001 \
+  --permission view \
+  --can-transfer false
+
+node ./bin/dimens-cli.js row-acl grant-role \
+  --sheet-id sh_class \
+  --row-id row_xxx \
+  --role-id role_teacher \
+  --permission edit
+
+node ./bin/dimens-cli.js row-acl revoke-role \
+  --sheet-id sh_class \
+  --row-id row_xxx \
+  --role-id role_teacher
+```
+
+说明：
+
+- `permission` 负责项目 / 表 / 资源层权限配置
+- `row-policy` 负责批量规则化的行级授权
+- `row-acl` 负责对单行做额外精细授权
+- 如果文档结论与服务端实现出现差异，应优先对照 `.trae/已开发文档/权限机制架构设计图.md` 与 `.trae/已开发文档/权限流程图.md` 再确认
 
 调用 AI chat completions：
 

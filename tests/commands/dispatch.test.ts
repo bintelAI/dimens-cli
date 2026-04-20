@@ -135,6 +135,7 @@ describe('CLI Dispatch', () => {
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('相关 Skill');
     expect(output).toContain('dimens-team');
+    expect(output).toContain('dimens-project');
     logSpy.mockRestore();
   });
 
@@ -150,6 +151,7 @@ describe('CLI Dispatch', () => {
     expect(output).toContain('"success": false');
     expect(output).toContain('"relatedSkills"');
     expect(output).toContain('"dimens-team"');
+    expect(output).toContain('"dimens-project"');
     logSpy.mockRestore();
   });
 
