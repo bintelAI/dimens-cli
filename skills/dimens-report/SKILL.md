@@ -24,6 +24,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - ✅ 涉及多维表格数据源时，还要联动检查表格权限和字段映射
 - ✅ 当前报表前端图表主渲染基于 `recharts@3.6.0`，生成组件时必须按前端真实支持的 `type` 和字段映射输出
 - ✅ 当报表组件来自多维表格时，不能只给 `sheetId`，必须同时补 `sheet.columns`、`fieldIds`、`recommendedMapping`、`previewMapping`、`dataMapping`
+- ✅ 报表主资源和报表组件的更新都应默认按“先拿数据 -> 改数据 -> 更新数据”执行，不要直接把局部 patch 当成通用模式
 
 ## 高风险跑偏点
 
@@ -36,6 +37,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 5. 不要默认任何字段都适合作为图表数值轴
 6. 不要把系统字段默认拿来做主维度或主指标
 7. 不要把 `query`、`query-widget`、`preview` 三者混成一件事
+8. 不要跳过 `report info` 或现有组件读取，直接覆盖更新报表或组件
 
 对应解释：
 
@@ -57,29 +59,37 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 6. 最终渲染映射：`dataMapping`
 7. 执行前验证：`preview` 或 `query-widget`
 
-## 快速索引：意图 → 工具 / 命令 → 必填参数
+## 命令维护表
 
-| 用户意图 | 工具 / 命令 | 必填参数 | 常用可选 | 说明 |
+| 命令 | 作用 | 必填参数 | 常用可选 | 细节说明 |
 | --- | --- | --- | --- | --- |
-| 查询报表列表 | `dimens-cli report list` | `projectId` | `keyword`, `status`, `type`, `page`, `size`, `app-url` | 报表属于项目资源 |
-| 查询报表详情 | `dimens-cli report info` | `projectId`, `reportId` | `app-url` | 先明确项目上下文 |
-| 创建报表 | `dimens-cli report create` | `projectId`, `name` | `description`, `type`, `app-url` | 先补报表主资源 |
-| 更新报表 | `dimens-cli report update` | `projectId`, `reportId` | `name`, `description`, `type`, `app-url` | 调整报表基础信息 |
-| 复制报表 | `dimens-cli report copy` | `projectId`, `reportId` | `name`, `app-url` | 快速生成副本 |
-| 发布报表 | `dimens-cli report publish` | `projectId`, `reportId`, `is-public` | `app-url` | 控制公开状态 |
-| 删除报表 | `dimens-cli report delete` | `projectId`, `reportId` | `app-url` | 删除主资源 |
-| 归档报表 | `dimens-cli report archive` | `projectId`, `reportId` | `app-url` | 生命周期收口 |
-| 校验报表配置 | `dimens-cli report validate` | `projectId`, `config` | `app-url` | 创建或更新前建议先执行 |
-| 调整报表顺序 | `dimens-cli report sort` | `projectId`, `reportId`, `target-index` | `app-url` | 调整主资源排序 |
-| 移动报表到其他项目 | `dimens-cli report move` | `projectId`, `reportId`, `target-project-id` | `app-url` | 跨项目迁移 |
-| 新增报表组件 | `dimens-cli report widget-add` | `projectId`, `reportId`, `type`, `data-source` | `title`, `description`, `layout`, `data-mapping`, `chart-config`, `order-num`, `app-url` | 创建组件主链 |
-| 更新报表组件 | `dimens-cli report widget-update` | `projectId`, `widgetId` | `type`, `title`, `description`, `data-source`, `layout`, `data-mapping`, `chart-config`, `order-num`, `app-url` | 修改组件配置 |
-| 删除报表组件 | `dimens-cli report widget-delete` | `projectId`, `widgetId` | `app-url` | 删除组件 |
-| 批量覆盖组件 | `dimens-cli report widget-batch` | `projectId`, `reportId`, `widgets` | `app-url` | 用于重建整个组件数组 |
-| 调整组件排序 | `dimens-cli report widget-sort` | `projectId`, `reportId`, `widgetId`, `target-order` | `app-url` | 调整组件顺序 |
-| 执行整报表查询 | `dimens-cli report query` | `projectId`, `reportId` | `params`, `widget-ids`, `app-url` | 返回按 `widgetId` 聚合结果 |
-| 执行单组件查询 | `dimens-cli report query-widget` | `projectId`, `reportId`, `widgetId` | `params`, `data-source`, `data-mapping`, `app-url` | 适合单组件试跑 |
-| 预览数据源结果 | `dimens-cli report preview` | `projectId`, `data-source` | `data-mapping`, `params`, `app-url` | 创建前预检最常用 |
+| `dimens-cli report list` | 查询项目下报表列表 | `projectId` | `keyword`, `status`, `type`, `page`, `size`, `app-url` | 报表属于项目资源，排查问题先锁定 `projectId` |
+| `dimens-cli report info` | 获取报表详情 | `projectId`, `reportId` | `app-url` | 报表更新前默认先读当前主资源和组件数组 |
+| `dimens-cli report create` | 创建报表主资源 | `projectId`, `name` | `description`, `type`, `app-url` | 只创建主资源，不能替代组件创建和查询预检 |
+| `dimens-cli report update` | 更新报表主资源信息 | `projectId`, `reportId` | `name`, `description`, `type`, `app-url` | 默认先 `report info` 拿当前数据，再改目标字段，再 update |
+| `dimens-cli report copy` | 复制已有报表 | `projectId`, `reportId` | `name`, `app-url` | 适合快速生成副本，不替代跨项目迁移 |
+| `dimens-cli report publish` | 发布或取消公开报表 | `projectId`, `reportId`, `is-public` | `app-url` | 发布前建议至少做一次 `query` 或 `query-widget` 验证 |
+| `dimens-cli report delete` | 删除报表主资源 | `projectId`, `reportId` | `app-url` | 删除前先确认是不是仍有组件和外部入口依赖 |
+| `dimens-cli report archive` | 归档报表 | `projectId`, `reportId` | `app-url` | 用于生命周期收口，不等价删除 |
+| `dimens-cli report validate` | 校验报表配置 | `projectId`, `config` | `app-url` | 创建或更新前建议先校验配置结构 |
+| `dimens-cli report sort` | 调整报表顺序 | `projectId`, `reportId`, `target-index` | `app-url` | 影响列表顺序，不改报表内容本身 |
+| `dimens-cli report move` | 将报表迁移到其他项目 | `projectId`, `reportId`, `target-project-id` | `app-url` | 迁移后要重新校验查询结果和访问权限 |
+| `dimens-cli report widget-add` | 给报表新增组件 | `projectId`, `reportId`, `type`, `data-source` | `title`, `description`, `layout`, `data-mapping`, `chart-config`, `order-num`, `app-url` | 正常链路是先 `preview`，再新增组件，最后 `query-widget` |
+| `dimens-cli report widget-update` | 更新某个报表组件配置 | `projectId`, `widgetId` | `report-id`, `type`, `title`, `description`, `data-source`, `layout`, `data-mapping`, `chart-config`, `order-num`, `app-url` | 默认先 `report info` 读取当前组件，再合并变更后更新，不要直接盲写局部 patch |
+| `dimens-cli report widget-delete` | 删除组件 | `projectId`, `widgetId` | `app-url` | 删除前应确认目标组件归属和顺序影响 |
+| `dimens-cli report widget-batch` | 批量覆盖整份组件数组 | `projectId`, `reportId`, `widgets` | `app-url` | 属于高风险命令，提交前要先拿当前组件数组并确认覆盖范围 |
+| `dimens-cli report widget-sort` | 调整组件顺序 | `projectId`, `reportId`, `widgetId`, `target-order` | `app-url` | 只调整顺序，不应误改组件主体配置 |
+| `dimens-cli report query` | 执行整报表查询 | `projectId`, `reportId` | `params`, `widget-ids`, `app-url` | 用于整报表联调和发布前确认 |
+| `dimens-cli report query-widget` | 执行单组件查询 | `projectId`, `reportId`, `widgetId` | `params`, `data-source`, `data-mapping`, `app-url` | 适合单组件试跑和映射排查 |
+| `dimens-cli report preview` | 预览数据源结果 | `projectId`, `data-source` | `data-mapping`, `params`, `app-url` | 创建和修改组件前的固定预检步骤，不建议跳过 |
+
+### 强调细节
+
+- 报表主资源更新和组件更新都默认遵循“拿数据 -> 改数据 -> 更新数据”，不能把局部 patch 当通用更新模型。
+- `report update` 前默认先 `report info`；`widget-update` 前默认先拿当前报表和当前组件数据，再合并目标字段。
+- 报表链路不要只执行 `report create` 或 `widget-add`，固定预检链是 `report preview -> widget-add/widget-update -> query-widget -> query`。
+- 如果组件来自多维表格数据源，不能只传 `sheetId`，还要把 `columns`、`fieldIds`、映射信息一起带齐。
+- `widget-batch` 是整数组覆盖操作，风险高，默认先读取当前 `widgets` 并明确覆盖范围后再提交。
 
 ## 核心约束
 
@@ -150,6 +160,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 4. 再跑 `dimens-cli report query-widget`
 5. 如果只是基础信息问题，用 `dimens-cli report update`
 6. 如果是组件问题，用 `widget-update` / `widget-batch` / `widget-sort`
+7. 无论是报表还是组件更新，默认先读当前数据，再改目标字段，再提交更新
 
 防跑偏提醒：
 

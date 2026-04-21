@@ -10,6 +10,7 @@ export interface SheetInfo {
 export interface SheetMutationPayload {
   name?: string;
   icon?: string;
+  type?: 'sheet' | 'folder' | 'document' | 'report';
   folderId?: string;
   [key: string]: unknown;
 }

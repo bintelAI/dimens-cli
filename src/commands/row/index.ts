@@ -94,9 +94,18 @@ export function registerRowCommands(): void {
         if (Number.isNaN(version)) {
           throw new Error('缺少 version，请传入 --version');
         }
-        const values = flags.values ? JSON.parse(flags.values) as Record<string, unknown> : {};
         const sdk = new RowSDK(createClient(context));
-        const result = await sdk.update(sheetId, rowId, values, version);
+        const teamId = requireTeamId(context, flags);
+        const projectId = requireProjectId(context, flags);
+        const currentRowResult = await sdk.info(teamId, projectId, sheetId, rowId);
+        const currentRow = currentRowResult.data;
+        const nextValues = flags.values ? JSON.parse(flags.values) as Record<string, unknown> : {};
+        const mergedRow = {
+          ...currentRow,
+          ...nextValues,
+        };
+        const { id: _rowId, ...mergedValues } = mergedRow;
+        const result = await sdk.update(sheetId, rowId, mergedValues, version);
         printSuccess(context, '行更新成功', result.data);
       } catch (error) {
         printError(context, error);

@@ -86,7 +86,16 @@ export function registerRowPolicyCommands(): void {
         if (flags.active) data.isActive = parseBooleanFlag(flags.active, 'active');
 
         const sdk = new RowPolicySDK(createClient(context));
-        const result = await sdk.update(projectId, { id, sheetId, data });
+        const currentPolicyResult = await sdk.info(projectId, id, sheetId);
+        const currentPolicy = currentPolicyResult.data;
+        const result = await sdk.update(projectId, {
+          id,
+          sheetId,
+          data: {
+            ...currentPolicy,
+            ...data,
+          },
+        });
         printSuccess(context, '行策略更新成功', result.data);
       } catch (error) {
         printError(context, error);

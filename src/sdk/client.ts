@@ -61,6 +61,21 @@ export class DimensClient {
     return requestJson<APIResponse<T>>(this.buildUrl(path), requestInit);
   }
 
+  async postFormData<T>(
+    path: string,
+    formData: FormData,
+    init: RequestInit = {}
+  ): Promise<APIResponse<T>> {
+    const requestInit: RequestInit = {
+      ...init,
+      method: 'POST',
+      headers: this.buildHeaders(init.headers, false, true),
+      body: formData,
+    };
+
+    return requestJson<APIResponse<T>>(this.buildUrl(path), requestInit);
+  }
+
   private buildUrl(path: string, query?: QueryParams): string {
     const base = this.options.baseUrl.replace(/\/+$/, '');
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
@@ -78,14 +93,18 @@ export class DimensClient {
 
   private buildHeaders(
     headers?: unknown,
-    hasJsonBody = false
+    hasJsonBody = false,
+    hasFormDataBody = false
   ): Record<string, string> {
     const merged = normalizeHeaders(headers);
     merged.Accept = 'application/json';
     merged['User-Agent'] = getUserAgent();
 
-    if (hasJsonBody) {
+    if (hasJsonBody && !hasFormDataBody) {
       merged['Content-Type'] = 'application/json';
+    }
+    if (hasFormDataBody) {
+      delete merged['Content-Type'];
     }
     if (this.options.token) {
       merged.Authorization = `Bearer ${this.options.token}`;

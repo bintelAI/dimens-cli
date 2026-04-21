@@ -29,7 +29,20 @@ vi.mock('../../src/core/config', () => {
 });
 
 const roleSdkSpies = {
+  info: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      roleId: 'role_1',
+      name: '班主任',
+      description: '旧描述',
+      canManageSheets: false,
+      canEditSchema: false,
+      canEditData: true,
+    },
+  })),
   create: vi.fn(async () => ({ code: 1000, message: 'success', data: { roleId: 'role_1' } })),
+  update: vi.fn(async () => ({ code: 1000, message: 'success', data: { roleId: 'role_1' } })),
   assignUser: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 1 } })),
 };
 
@@ -39,8 +52,14 @@ vi.mock('../../src/sdk/role', () => {
       async list() {
         return { code: 1000, message: 'success', data: [{ roleId: 'role_1', name: '班主任' }] };
       }
+      async info(...args: unknown[]) {
+        return roleSdkSpies.info(...args);
+      }
       async create(...args: unknown[]) {
         return roleSdkSpies.create(...args);
+      }
+      async update(...args: unknown[]) {
+        return roleSdkSpies.update(...args);
       }
       async assignUser(...args: unknown[]) {
         return roleSdkSpies.assignUser(...args);
@@ -50,6 +69,20 @@ vi.mock('../../src/sdk/role', () => {
 });
 
 const permissionSdkSpies = {
+  info: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      id: 1,
+      roleId: 'role_teacher',
+      sheetId: 'sh_1',
+      dataAccess: 'private_r',
+      canRead: true,
+      canWrite: false,
+      columnVisibility: { fld_name: true },
+      columnReadonly: { fld_name: false },
+    },
+  })),
   create: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 1 } })),
   update: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 1 } })),
   list: vi.fn(async () => ({ code: 1000, message: 'success', data: [] })),
@@ -61,6 +94,9 @@ vi.mock('../../src/sdk/permission', () => {
     PermissionSDK: class {
       async list(...args: unknown[]) {
         return permissionSdkSpies.list(...args);
+      }
+      async info(...args: unknown[]) {
+        return permissionSdkSpies.info(...args);
       }
       async create(...args: unknown[]) {
         return permissionSdkSpies.create(...args);
@@ -76,7 +112,24 @@ vi.mock('../../src/sdk/permission', () => {
 });
 
 const rowPolicySdkSpies = {
+  info: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      policyId: 'policy_1',
+      sheetId: 'sh_1',
+      roleId: 'role_teacher',
+      name: '仅查看自己',
+      effect: 'allow',
+      actions: ['view'],
+      priority: 10,
+      conditions: [{ columnId: 'createdBy', operator: 'equals', value: '{{currentUser}}' }],
+      conditionMatchType: 'and',
+      isActive: true,
+    },
+  })),
   create: vi.fn(async () => ({ code: 1000, message: 'success', data: { policyId: 'policy_1' } })),
+  update: vi.fn(async () => ({ code: 1000, message: 'success', data: { policyId: 'policy_1' } })),
   toggle: vi.fn(async () => ({ code: 1000, message: 'success', data: { policyId: 'policy_1' } })),
   check: vi.fn(async () => ({ code: 1000, message: 'success', data: { allowed: true } })),
 };
@@ -87,8 +140,14 @@ vi.mock('../../src/sdk/row-policy', () => {
       async list() {
         return { code: 1000, message: 'success', data: [] };
       }
+      async info(...args: unknown[]) {
+        return rowPolicySdkSpies.info(...args);
+      }
       async create(...args: unknown[]) {
         return rowPolicySdkSpies.create(...args);
+      }
+      async update(...args: unknown[]) {
+        return rowPolicySdkSpies.update(...args);
       }
       async toggle(...args: unknown[]) {
         return rowPolicySdkSpies.toggle(...args);
@@ -126,14 +185,19 @@ describe('Permission Domain Commands', () => {
     clearCommands();
     vi.clearAllMocks();
     roleSdkSpies.create.mockClear();
+    roleSdkSpies.update.mockClear();
     roleSdkSpies.assignUser.mockClear();
     permissionSdkSpies.create.mockClear();
+    permissionSdkSpies.info.mockClear();
     permissionSdkSpies.update.mockClear();
     permissionSdkSpies.list.mockClear();
     permissionSdkSpies.updateResourcePermission.mockClear();
     rowPolicySdkSpies.create.mockClear();
+    rowPolicySdkSpies.update.mockClear();
+    rowPolicySdkSpies.info.mockClear();
     rowPolicySdkSpies.toggle.mockClear();
     rowPolicySdkSpies.check.mockClear();
+    roleSdkSpies.info.mockClear();
     rowAclSdkSpies.grant.mockClear();
     rowAclSdkSpies.revokeRole.mockClear();
   });
@@ -219,6 +283,33 @@ describe('Permission Domain Commands', () => {
       roleId: 'role_teacher',
       userId: 1001,
       sheetId: 'sh_1',
+    });
+    logSpy.mockRestore();
+  });
+
+  it('should execute role update command by loading current role before merging changed fields', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('role')?.commands.find(item => item.name === 'update');
+    await command?.handler([
+      '--role-id',
+      'role_1',
+      '--description',
+      '新描述',
+    ]);
+
+    expect(roleSdkSpies.info).toHaveBeenCalledWith('PROJ1', 'role_1');
+    expect(roleSdkSpies.update).toHaveBeenCalledWith('PROJ1', {
+      roleId: 'role_1',
+      data: {
+        name: '班主任',
+        description: '新描述',
+        canManageSheets: false,
+        canEditSchema: false,
+        canEditData: true,
+      },
     });
     logSpy.mockRestore();
   });
@@ -326,6 +417,43 @@ describe('Permission Domain Commands', () => {
       permission: {
         visible: true,
         editable: false,
+      },
+    });
+    logSpy.mockRestore();
+  });
+
+  it('should execute permission update by loading current permission before merging changed fields', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('permission')?.commands.find(
+      item => item.name === 'update'
+    );
+    await command?.handler([
+      '--id',
+      '1',
+      '--sheet-id',
+      'sh_1',
+      '--role-id',
+      'role_teacher',
+      '--can-write',
+      'true',
+    ]);
+
+    expect(permissionSdkSpies.info).toHaveBeenCalledWith('PROJ1', 1, 'sh_1');
+    expect(permissionSdkSpies.update).toHaveBeenCalledWith('PROJ1', {
+      id: 1,
+      sheetId: 'sh_1',
+      data: {
+        id: 1,
+        roleId: 'role_teacher',
+        sheetId: 'sh_1',
+        dataAccess: 'private_r',
+        canRead: true,
+        canWrite: true,
+        columnVisibility: { fld_name: true },
+        columnReadonly: { fld_name: false },
       },
     });
     logSpy.mockRestore();
@@ -445,6 +573,43 @@ describe('Permission Domain Commands', () => {
       id: 'policy_1',
       isActive: true,
       sheetId: 'sh_1',
+    });
+    logSpy.mockRestore();
+  });
+
+  it('should execute row-policy update by loading current policy before merging changed fields', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('row-policy')?.commands.find(
+      item => item.name === 'update'
+    );
+    await command?.handler([
+      '--id',
+      'policy_1',
+      '--sheet-id',
+      'sh_1',
+      '--actions',
+      'view,edit',
+    ]);
+
+    expect(rowPolicySdkSpies.info).toHaveBeenCalledWith('PROJ1', 'policy_1', 'sh_1');
+    expect(rowPolicySdkSpies.update).toHaveBeenCalledWith('PROJ1', {
+      id: 'policy_1',
+      sheetId: 'sh_1',
+      data: {
+        policyId: 'policy_1',
+        sheetId: 'sh_1',
+        roleId: 'role_teacher',
+        name: '仅查看自己',
+        effect: 'allow',
+        actions: ['view', 'edit'],
+        priority: 10,
+        conditions: [{ columnId: 'createdBy', operator: 'equals', value: '{{currentUser}}' }],
+        conditionMatchType: 'and',
+        isActive: true,
+      },
     });
     logSpy.mockRestore();
   });

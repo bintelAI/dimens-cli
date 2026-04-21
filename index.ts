@@ -41,6 +41,7 @@ export {
   ProjectSDK,
   RowSDK,
   SheetSDK,
+  UploadSDK,
   type SDKConfig,
   type APIResponse,
   type DimensClientOptions,

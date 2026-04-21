@@ -24,17 +24,24 @@ tags: [auth, api-key, token, integration, dimens-cli]
 - ✅ API Key 的可见权限仍然继承其绑定用户本身的权限
 - ✅ 处理 API Key 问题时，必须区分“Key 本身是否有效”和“用户是否本来就有权限”
 
-## 快速索引：意图 → 工具 / 命令 → 必填参数
+## 命令维护表
 
-| 用户意图 | 工具 / 命令 | 必填参数 | 常用可选 | 说明 |
+| 命令 | 作用 | 必填参数 | 常用可选 | 细节说明 |
 | --- | --- | --- | --- | --- |
-| API Key 登录 | `dimens-cli auth api-key-login` | `apiKey`, `apiSecret` | `baseUrl` | 当前最关键的 CLI 登录链路 |
-| 创建 API Key | `api_key_create` | `name` | `expireTime`, `remark`, `ipWhiteList` | 创建后仅返回一次明文 secret |
-| 查询 API Key 列表 | `api_key_list` | `token` | `status`, `page`, `size` | 列表不返回明文 secret |
-| 启停 API Key | `api_key_status` | `id`, `status` | - | 状态会直接影响登录结果 |
-| 删除 API Key | `api_key_delete` | `id` | - | 删除后不能继续登录 |
-| 重置 Secret | `api_key_reset_secret` | `id` | - | 成功后返回新的明文 secret |
-| 查看登录日志 | `api_key_log_page` | `id` 或 `apiKey` | `page`, `size` | 用于审计与排查登录失败 |
+| `dimens-cli auth api-key-login` | 使用 API Key / Secret 换取登录 token | `apiKey`, `apiSecret` | `baseUrl` | 这是最关键的 CLI 登录链路，成功后复用的仍是现有用户 token |
+| `api_key_create` | 创建 API Key | `name` | `expireTime`, `remark`, `ipWhiteList` | 创建成功后只返回一次明文 `apiSecret`，要立即保存 |
+| `api_key_list` | 查询 API Key 列表 | `token` | `status`, `page`, `size` | 列表不返回明文 secret，只用于查看状态和元数据 |
+| `api_key_status` | 启用或停用 API Key | `id`, `status` | - | 状态变化会直接影响登录是否成功 |
+| `api_key_delete` | 删除 API Key | `id` | - | 删除后不能继续登录，属于不可逆的使用中止 |
+| `api_key_reset_secret` | 重置 Secret | `id` | - | 成功后会返回新的明文 secret，旧 secret 即失效 |
+| `api_key_log_page` | 查询 API Key 登录日志 | `id` 或 `apiKey` | `page`, `size` | 用于审计和排查登录失败原因 |
+
+### 强调细节
+
+- Key 登录成功只说明换 token 成功，不代表这个用户对目标团队、项目、表格、报表天然有权限。
+- `apiSecret` 只会在创建或重置时返回一次，列表接口拿不回来，不要误判为数据丢失。
+- 处理 Key 问题时先区分“Key 是否有效”和“用户本身是否有权限”，这两层不要混。
+- 这个技能主要是认证入口，不是资源更新链；真正进入项目、表格、报表更新时，仍要遵循“拿数据 -> 改数据 -> 更新数据”的业务更新流程。
 
 ## 核心约束
 

@@ -148,18 +148,40 @@ export function registerProjectCommands(): void {
             throw new Error('缺少项目 ID，请传入 --id');
           }
           const sdk = new ProjectSDK(createClient(context));
+          const currentProjectResult = await sdk.info(teamId, id);
+          const currentProject = currentProjectResult.data;
           const payload: {
             id: string;
             name?: string;
             remark?: string;
+            icon?: string;
+            coverImage?: string;
           } = {
             id,
           };
+          if (typeof currentProject.name === 'string') {
+            payload.name = currentProject.name;
+          }
+          if (typeof currentProject.remark === 'string') {
+            payload.remark = currentProject.remark;
+          }
+          if (typeof currentProject.icon === 'string') {
+            payload.icon = currentProject.icon;
+          }
+          if (typeof currentProject.coverImage === 'string') {
+            payload.coverImage = currentProject.coverImage;
+          }
           if (flags.name) {
             payload.name = flags.name;
           }
           if (flags.remark) {
             payload.remark = flags.remark;
+          }
+          if (flags.icon) {
+            payload.icon = flags.icon;
+          }
+          if (flags['cover-image']) {
+            payload.coverImage = flags['cover-image'];
           }
           const result = await sdk.update(teamId, payload);
           printSuccess(context, '项目更新成功', result.data);
@@ -168,7 +190,7 @@ export function registerProjectCommands(): void {
         }
       },
       {
-        usage: 'project update --id <projectId> [--name <name>]',
+        usage: 'project update --id <projectId> [--name <name>] [--icon <iconUrl>] [--cover-image <coverImageUrl>] [--remark <remark>]',
       }
     )
   );

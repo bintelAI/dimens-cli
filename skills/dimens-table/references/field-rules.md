@@ -12,6 +12,7 @@
 | 文档 | 职责 |
 | --- | --- |
 | `field-design-patterns.md` | 字段设计模板、业务字段分层、relation 设计 |
+| `field-option-colors.md` | 单选/多选/下拉选择器颜色协议、默认内置色、自定义色 |
 | `row-filters.md` | `row/page` 的搜索、筛选、排序、`viewId` 继承案例 |
 | `examples.md` | 接口级方法、路径、CLI 命令、返回结构与实测案例 |
 
@@ -48,6 +49,12 @@
 | 时间区间筛选 | `date` / `datetime` | 适合做区间、前后比较 |
 | 金额排序 | `number` | 适合 `sortRule` |
 | 跨表筛选 | `relation` | 适合按目标行 ID 或目标对象过滤 |
+
+补充：
+
+- 如果状态字段要在前端以标签形式展示，字段设计时不要漏掉 `color`
+- 颜色策略统一参考 `field-option-colors.md`
+- 当前前端已经支持内置颜色和 `custom:` 自定义颜色两种协议
 
 需要细化案例时：
 

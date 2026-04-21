@@ -12,8 +12,23 @@ import {
   requireSheetId,
   requireTeamId,
 } from '../utils';
+import { SheetSDK } from '../../sdk/sheet';
 
 const DEFAULT_SELECT_OPTION_COLOR = 'bg-slate-100 text-slate-700';
+const BUILTIN_SELECT_OPTION_COLORS = new Set([
+  'bg-slate-100 text-slate-700',
+  'bg-red-100 text-red-700',
+  'bg-orange-100 text-orange-700',
+  'bg-yellow-100 text-yellow-700',
+  'bg-green-100 text-green-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-blue-100 text-blue-700',
+  'bg-indigo-100 text-indigo-700',
+  'bg-purple-100 text-purple-700',
+  'bg-pink-100 text-pink-700',
+  'bg-rose-100 text-rose-700',
+  'bg-gray-100 text-gray-700',
+]);
 
 export function registerColumnCommands(): void {
   createCommandGroup('column', '字段管理');
@@ -83,13 +98,32 @@ export function registerColumnCommands(): void {
           throw new Error('缺少字段 ID，请传入 --field-id');
         }
         const sdk = new ColumnSDK(createClient(context));
-        const payload: { title?: string; label?: string; type?: string } = {};
+        const structureResult = await createSheetStructureReader(context).structure(sheetId);
+        const columns = extractStructureColumns(structureResult.data);
+        const currentColumn = columns.find(column => resolveColumnId(column) === fieldId);
+        const payload: { title?: string; label?: string; type?: string; config?: Record<string, unknown> } = {};
+        if (currentColumn && typeof currentColumn.label === 'string') {
+          payload.label = currentColumn.label;
+        } else if (currentColumn && typeof currentColumn.title === 'string') {
+          payload.title = currentColumn.title;
+        }
+        if (currentColumn && typeof currentColumn.type === 'string') {
+          payload.type = currentColumn.type;
+        }
+        if (currentColumn && currentColumn.config && typeof currentColumn.config === 'object') {
+          payload.config = currentColumn.config as Record<string, unknown>;
+        }
         const label = flags.label || flags.title;
         if (label) {
           payload.label = label;
+          delete payload.title;
         }
         if (flags.type) {
           payload.type = flags.type;
+        }
+        const nextType = payload.type || flags['current-type'];
+        if ((nextType === 'select' || nextType === 'multiSelect') && flags.options) {
+          payload.config = buildSelectConfig(flags);
         }
         const result = await sdk.update(sheetId, fieldId, payload);
         printSuccess(context, '字段更新成功', result.data);
@@ -119,6 +153,29 @@ export function registerColumnCommands(): void {
       }
     })
   );
+}
+
+function createSheetStructureReader(context: ReturnType<typeof getContext>): SheetSDK {
+  return new SheetSDK(createClient(context));
+}
+
+function extractStructureColumns(
+  structure: Record<string, unknown>
+): Array<Record<string, unknown>> {
+  const columns = structure.columns;
+  return Array.isArray(columns)
+    ? columns.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    : [];
+}
+
+function resolveColumnId(column: Record<string, unknown>): string | undefined {
+  if (typeof column.id === 'string') {
+    return column.id;
+  }
+  if (typeof column.fieldId === 'string') {
+    return column.fieldId;
+  }
+  return undefined;
 }
 
 function buildRelationConfig(flags: Record<string, string>): Record<string, unknown> {
@@ -219,6 +276,7 @@ function normalizeSelectOption(option: Record<string, unknown>): Record<string, 
     typeof option.color === 'string' && option.color.trim()
       ? option.color.trim()
       : DEFAULT_SELECT_OPTION_COLOR;
+  validateSelectOptionColor(color);
 
   return {
     id,
@@ -248,6 +306,51 @@ function ensureUniqueSelectOptionIds(options: Array<Record<string, unknown>>): v
       `select / multiSelect 字段选项存在重复 id: ${Array.from(duplicatedIds).join(', ')}`
     );
   }
+}
+
+function validateSelectOptionColor(color: string): void {
+  if (BUILTIN_SELECT_OPTION_COLORS.has(color)) {
+    return;
+  }
+
+  if (!color.startsWith('custom:')) {
+    throw new Error(
+      'select / multiSelect 字段选项颜色无效，内置颜色必须使用前端 12 色池，或使用 custom:{"bg":"#xxxxxx","text":"#xxxxxx"}'
+    );
+  }
+
+  const payload = color.slice('custom:'.length).trim();
+  if (!payload) {
+    throw new Error(
+      'select / multiSelect 字段自定义颜色无效，必须使用 custom:{"bg":"#xxxxxx","text":"#xxxxxx"}'
+    );
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(payload);
+  } catch {
+    throw new Error(
+      'select / multiSelect 字段自定义颜色无效，必须使用 custom:{"bg":"#xxxxxx","text":"#xxxxxx"}'
+    );
+  }
+
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error(
+      'select / multiSelect 字段自定义颜色无效，必须使用 custom:{"bg":"#xxxxxx","text":"#xxxxxx"}'
+    );
+  }
+
+  const customColor = parsed as Record<string, unknown>;
+  if (!isHexColor(customColor.bg) || !isHexColor(customColor.text)) {
+    throw new Error(
+      'select / multiSelect 字段自定义颜色无效，bg 和 text 必须是十六进制颜色值'
+    );
+  }
+}
+
+function isHexColor(value: unknown): value is string {
+  return typeof value === 'string' && /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value.trim());
 }
 
 function parseBooleanFlag(value: string, fieldName: string): boolean {

@@ -24,17 +24,24 @@ tags: [team, project, tenant, context, dimens-cli]
 - ✅ 分析资源访问问题时，先判断团队可见性，再判断项目级权限
 - ✅ 很多 CLI 命令支持显式参数、本地 profile、环境变量三种上下文来源，不能只看单次命令参数
 
-## 快速索引：意图 → 工具 / 命令 → 必填参数
+## 命令维护表
 
-| 用户意图 | 工具 / 命令 | 必填参数 | 常用可选 | 说明 |
+| 命令 | 作用 | 必填参数 | 常用可选 | 细节说明 |
 | --- | --- | --- | --- | --- |
-| 查看团队详情 | `dimens-cli team info` | `teamId` | - | 团队是最高隔离边界 |
-| 查看团队成员 | `team_user_list` | `teamId` | `projectId`, `keyword` | 先看团队成员池 |
-| 查看项目列表 | `dimens-cli project list` | `teamId` | `page`, `keyword`, `status` | 项目永远从团队上下文进入 |
-| 查看项目详情 | `dimens-cli project info` | `teamId`, `id` | - | 需要明确项目属于哪个团队 |
-| 创建项目入口 | `dimens-cli project create` | `teamId`, `name` | `description`, `projectType` | 命令属于项目初始化主链，执行时应路由到 `dimens-project` |
-| 切换默认团队 | `dimens-cli auth use-team` | `teamId` | - | 影响后续默认上下文 |
-| 切换默认项目 | `dimens-cli auth use-project` | `projectId` | - | 仅在已有团队上下文下才安全 |
+| `dimens-cli team info` | 获取团队详情 | `teamId` | - | 团队是最高隔离边界，很多问题先从这里确认上下文 |
+| `team_user_list` | 查询团队成员池 | `teamId` | `projectId`, `keyword` | 用于先看用户是否在团队范围内，再判断项目访问问题 |
+| `dimens-cli project list` | 查询团队下项目列表 | `teamId` | `page`, `keyword`, `status` | 项目永远从团队上下文进入，排查时建议显式传 `teamId` |
+| `dimens-cli project info` | 获取项目详情 | `teamId`, `id` | - | 项目更新前默认先拿当前项目数据，确认团队归属和资源边界 |
+| `dimens-cli project create` | 从团队上下文创建项目 | `teamId`, `name` | `description`, `projectType` | 这是项目初始化入口，创建后应路由到 `dimens-project` 继续完成资源搭建 |
+| `dimens-cli auth use-team` | 切换默认团队上下文 | `teamId` | - | 影响后续默认上下文，但不替代真实详情读取 |
+| `dimens-cli auth use-project` | 切换默认项目上下文 | `projectId` | - | 仅在已有正确团队上下文下才安全 |
+
+### 强调细节
+
+- 团队和项目上下文是所有资源判断的上游前提，很多“命令没问题但数据不对”的情况，本质都是上下文拿错了。
+- 如果后续要做项目更新，默认先 `project info` 拿当前数据，再改字段再 update，而不是跳过读取阶段。
+- `auth use-team` / `auth use-project` 只是在本地切换默认上下文，不等于真实资源校验。
+- 处理跨团队、跨项目问题时，要同时检查显式参数、本地 profile、环境变量三类上下文来源。
 
 ## 核心约束
 

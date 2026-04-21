@@ -24,16 +24,23 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - ✅ `chat/completions` 接口与普通工作流节点执行是两条不同链路，不能混为一谈
 - ✅ 涉及项目入口、AI 分析、审批、自动化时，要同时检查项目上下文和权限边界
 
-## 快速索引：意图 → 工具 / 命令 → 必填参数
+## 命令维护表
 
-| 用户意图 | 工具 / 命令 | 必填参数 | 常用可选 | 说明 |
+| 命令 | 作用 | 必填参数 | 常用可选 | 细节说明 |
 | --- | --- | --- | --- | --- |
-| 查询团队工作流 | `flow_list` | `teamId` | `usageType`, `visibility`, `status` | 先看团队级定义 |
-| 查询项目工作流挂载 | `project_workflow_binding_list` | `teamId`, `projectId` | `systemView`, `showInAiAnalysis` | 判断为什么项目中看不到 |
-| 调用工作流 | `flow_run_invoke` | `teamId`, `flowId` 或 `label` | `projectId`, `debug`, `input` | 正式执行与调试执行分开理解 |
-| 调试工作流 | `flow_run_debug` | `teamId`, `flowId` 或 `label` | `projectId`, `input` | 更适合排查节点执行问题 |
-| OpenAI 兼容聊天调用 | `dimens-cli ai chat-completions` | `teamId`, `messages` | `model`, `temperature`, `stream` | `model` 为空时可能走团队默认文本模型 |
-| 查询默认模型策略 | `flow_config_get` | `teamId` | `type=default_models` | 不等于所有节点都自动继承 |
+| `flow_list` | 查询团队级工作流定义 | `teamId` | `usageType`, `visibility`, `status` | 先看团队级是否真的存在这个工作流 |
+| `project_workflow_binding_list` | 查询项目内工作流挂载关系 | `teamId`, `projectId` | `systemView`, `showInAiAnalysis` | 用于判断为什么项目里看不到或入口不对 |
+| `flow_run_invoke` | 正式执行工作流 | `teamId`, `flowId` 或 `label` | `projectId`, `debug`, `input` | 正式执行和调试执行要分开理解，不能混用结论 |
+| `flow_run_debug` | 调试运行工作流 | `teamId`, `flowId` 或 `label` | `projectId`, `input` | 更适合排查节点执行问题和输入输出结构 |
+| `dimens-cli ai chat-completions` | 走 OpenAI 兼容接口调用团队模型或工作流能力 | `teamId`, `messages` | `model`, `temperature`, `stream` | `model` 为空时可能走团队默认文本模型，但不等于所有工作流节点都这样继承 |
+| `flow_config_get` | 查询团队默认模型策略 | `teamId` | `type=default_models` | 只说明团队默认模型配置，不代表节点自动回退一定生效 |
+
+### 强调细节
+
+- 工作流问题默认要分三层看：团队定义、项目挂载、运行调用，不能只查一个接口就下结论。
+- 如果后续存在更新类工作流配置命令，也应遵循“拿数据 -> 改数据 -> 更新数据”的通用规则，先读当前定义或绑定关系再改。
+- `chat-completions` 和普通工作流节点执行是两条链路，不能因为一条可用就推断另一条也正常。
+- 用户说“项目里看不到工作流”时，默认先查 `flow_list` 再查 `project_workflow_binding_list`，不要直接怀疑前端。
 
 ## 核心约束
 

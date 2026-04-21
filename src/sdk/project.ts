@@ -27,6 +27,7 @@ export interface ProjectMutationPayload {
   icon?: string;
   remark?: string;
   projectType?: string;
+  coverImage?: string;
   [key: string]: unknown;
 }
 

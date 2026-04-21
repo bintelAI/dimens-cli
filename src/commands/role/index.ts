@@ -90,14 +90,20 @@ export function registerRoleCommands(): void {
           throw new Error('缺少 roleId，请传入 --role-id');
         }
 
+        const sdk = new RoleSDK(createClient(context));
+        const currentRoleResult = await sdk.info(projectId, roleId);
+        const currentRole = currentRoleResult.data;
         const data: Record<string, unknown> = {};
+        if (typeof currentRole.name === 'string') data.name = currentRole.name;
+        if (typeof currentRole.description === 'string') data.description = currentRole.description;
+        if (typeof currentRole.canManageSheets === 'boolean') data.canManageSheets = currentRole.canManageSheets;
+        if (typeof currentRole.canEditSchema === 'boolean') data.canEditSchema = currentRole.canEditSchema;
+        if (typeof currentRole.canEditData === 'boolean') data.canEditData = currentRole.canEditData;
         if (flags.name) data.name = flags.name;
         if (flags.description) data.description = flags.description;
         if (flags['can-manage-sheets']) data.canManageSheets = parseBooleanFlag(flags['can-manage-sheets'], 'can-manage-sheets');
         if (flags['can-edit-schema']) data.canEditSchema = parseBooleanFlag(flags['can-edit-schema'], 'can-edit-schema');
         if (flags['can-edit-data']) data.canEditData = parseBooleanFlag(flags['can-edit-data'], 'can-edit-data');
-
-        const sdk = new RoleSDK(createClient(context));
         const result = await sdk.update(projectId, { roleId, data });
         printSuccess(context, '角色更新成功', result.data);
       } catch (error) {

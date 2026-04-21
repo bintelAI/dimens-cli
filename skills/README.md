@@ -44,26 +44,61 @@ pnpm add @bintel/dimens-cli
 
 只有当 `@bintel/dimens-cli` 已安装，并且本地能执行 `dimens-cli` 或 `node ./bin/dimens-cli.js` 时，这些 Skill 里的命令、案例和映射才成立。
 
-## 3. 当前 Skill 总览
+## 3. 总入口维护表
 
-当前 `维表智联` 的 Skill 体系已落地 8 个正式技能：
+### 3.1 全局统一流程
+
+在进入任何子 Skill 之前，先统一遵守下面两条总规则：
+
+1. 所有更新类操作统一按“拿数据 -> 改数据 -> 更新数据”执行
+2. 所有资源类更新统一按“先 upload 拿 url -> 把 url 写回当前业务数据 -> 再 update”执行
+
+这两条规则适用于项目、表格、字段、行、文档、报表、权限等所有更新型场景，不要把局部 patch 当成通用更新模式。
+
+### 3.2 Skill 总入口维护表
+
+| Skill / 模块 | 命令域 | 作用 | 细节说明 |
+| --- | --- | --- | --- |
+| `dimens-system-orchestrator` | 系统级编排命令、Skill 路由 | 负责系统搭建、模块拆解、执行顺序规划 | 适合“帮我搭一个系统/平台”这类总控任务，不直接替代具体资源命令 |
+| `dimens-workflow` | `flow_*`、`dimens-cli ai *` | 负责工作流定义、项目挂载、运行调用、模型边界 | 先分清团队定义、项目挂载、运行调用三层，不要混用结论 |
+| `dimens-key-auth` | `dimens-cli auth api-key-login`、`api_key_*` | 负责 Key 登录、token 复用、第三方接入边界 | 这是认证入口，不是资源更新入口；登录成功不代表自动有资源权限 |
+| `dimens-sdk` | SDK / HTTP 接入链路 | 负责 Node、Web、H5、App、BFF 的接入方式说明 | 适合端侧接入和 SDK 使用，不替代 CLI 资源运维主链 |
+| `dimens-team` | `team info`、`project list/info`、上下文切换 | 负责团队、项目、租户、默认上下文判断 | 很多问题先确认 `teamId/projectId`，上下文不对，后面所有结论都不稳 |
+| `dimens-project` | `project *`、`upload file`、`doc *`、`report *` 起始链路 | 负责项目创建、项目初始化、三驾马车入口 | 资源类更新默认先上传拿 `url`，项目和文档更新默认先读当前数据再提交 |
+| `dimens-table` | `sheet *`、`column *`、`view *`、`row *` | 负责工作表、字段、视图、行数据建模与更新 | `sheet/column/row` 的更新都走“先读再改再更”，字段设计还要考虑后续报表映射 |
+| `dimens-permission` | `role *`、`permission *`、`row-policy *`、`row-acl *` | 负责角色、项目权限、行级策略、单行 ACL | 权限类更新也走“先拿当前记录再更新”，CLI 成功不等于权限快照已全部收敛 |
+| `dimens-report` | `report *`、`widget-*`、`query*`、`preview` | 负责报表主资源、组件、查询和预检链路 | 报表和组件更新都默认先取当前数据，新增或修改组件前优先走 `preview` |
+
+### 3.3 强调细节
+
+- 所有 `update`、`widget-update`、`row update`、`column update`、`sheet update`、`permission update`、`role update`、`row-policy update` 一律不要直接盲传局部 patch。
+- 项目封面、图标、文档图片、文档附件、其他文件资源，一律先 `dimens-cli upload file` 拿到 `url`，再把 `url` 写回当前业务数据。
+- 文档更新默认先 `doc info` 拿当前内容和 `version`，再改内容后 `doc update`。
+- 报表更新默认先 `report info`；报表组件更新默认先拿当前报表和当前组件，再合并变更。
+- 表格链路里 `sheet update`、`column update`、`row update` 也统一按“先读当前数据，再改字段，再更新”处理。
+- 权限链路里 `role update`、`permission update`、`row-policy update` 也统一按同一模型处理，不要例外化。
+
+## 4. 当前 Skill 总览
+
+当前 `维表智联` 的 Skill 体系已落地 9 个正式技能：
 
 | Skill | 业务域 | 什么时候优先用 |
 | --- | --- | --- |
 | `dimens-system-orchestrator` | 系统级总控编排、模块拆解、Skill 路由、执行顺序 | 处理“生成一个 XX 系统 / 平台 / 管理系统 / 业务系统” |
 | `dimens-workflow` | 工作流、模型路由、项目挂载、OpenAI 兼容聊天 | 处理工作流、AI 分析、审批、自动化、默认模型问题 |
 | `dimens-key-auth` | API Key / Secret、换 token、鉴权边界 | 处理 `api-key-login`、第三方接入、token 复用问题 |
+| `dimens-sdk` | Node.js SDK 与 Web/H5/App HTTP 对接、端侧接入路径与调用边界 | 处理 Web 端、移动端、BFF、Node 服务端接入维表智联 SDK / HTTP API |
 | `dimens-team` | 团队、成员、部门、项目、租户隔离、默认上下文 | 处理团队/项目上下文、看不到项目、上下文切换问题 |
 | `dimens-project` | 项目创建、项目初始化、建表前置、默认公开视图补齐 | 处理从 `teamId` 开始落项目，再衔接表和权限主链 |
 | `dimens-table` | 工作表、字段、视图、行数据、系统视图字段 | 处理多维表格、字段、行写入、系统视图映射问题 |
 | `dimens-permission` | 准入、表级、列级、行级、协同权限、公开访问者 | 处理权限、只读、越权同步、公开访问问题 |
 | `dimens-report` | 报表主资源、图表组件、参数联动、数据源与查询链路 | 处理报表、图表、参数筛选、数据源查询与创建前预检问题 |
 
-## 4. 首页先记住的统一规则
+## 5. 首页先记住的统一规则
 
 在进入任意子 Skill 之前，先统一记住下面几条产品级规则：
 
-### 4.1 项目资源默认按“三驾马车”理解
+### 5.1 项目资源默认按“三驾马车”理解
 
 项目初始化或系统搭建时，默认不要只想到表格。
 
@@ -95,7 +130,27 @@ pnpm add @bintel/dimens-cli
 
 `doc versions -> doc version -> doc restore`
 
-### 4.2 字段里有几类特殊情况，不能按普通下拉糊过去
+当用户提出“帮我创建一个项目 / 系统 / 平台”这类需求时，默认不要直接开始执行命令，而要先按维表特性完成建模设计，再进入创建流程。
+
+默认标准引导路径是：
+
+1. 创建项目
+2. 创建多表格
+3. 创建多字段
+4. 设计 `1 对多 / 多对一` 关联数据
+5. 补案例数据
+6. 看需求补项目文档
+7. 看需求补项目报表
+8. 看需求补角色
+9. 看需求补权限
+
+其中：
+
+- 多表、多字段、关联、案例数据属于基础建模路径，默认不应跳过
+- 文档、报表、角色、权限属于按需补齐的后置模块
+- 项目创建不是结束，而是后续持续修改表格、文档、报表的起点
+
+### 5.2 字段里有几类特殊情况，不能按普通下拉糊过去
 
 如果字段语义本身就是下面这些：
 
@@ -113,7 +168,7 @@ pnpm add @bintel/dimens-cli
 
 否则后续在权限、筛选、统计、报表映射上都容易出问题。
 
-### 4.3 报表不是“建一个空资源”就结束
+### 5.3 报表不是“建一个空资源”就结束
 
 如果问题已经落到报表，默认要先记住两件事：
 
@@ -132,20 +187,24 @@ pnpm add @bintel/dimens-cli
 
 不要跳过这条链，直接从 `widget-add` 开始。
 
-### 4.4 首页级高风险跑偏点
+### 5.4 首页级高风险跑偏点
 
 - 不要把系统搭建理解成“只建几张表”
 - 不要把项目初始化理解成“只创建项目壳子”或“只补一种资源”
+- 不要在维表建模方案还没明确前，直接跳到命令执行
+- 不要跳过多表、多字段、关联和案例数据这条基础路径
 - 不要把人员字段、部门字段误建成普通下拉
 - 不要让下拉选项 `id` 重复
 - 不要把报表理解成只有一个空主资源
 - 不要跳过固定预检链直接创建图表组件
+- 不要把任何更新命令理解成“直接发局部 patch 就行”；统一按“先拿当前数据 -> 修改目标字段 -> 再提交 update”执行
+- 不要把文件、图片、封面直接塞进更新请求；统一先 `upload file` 拿 `url`，再把 `url` 写回当前业务数据后更新
 
-## 5. 默认路由顺序
+## 6. 默认路由顺序
 
 很多问题不是单 Skill 能独立解释的，建议按下面顺序判断。
 
-### 5.1 系统级任务优先
+### 6.1 系统级任务优先
 
 如果用户的问题是：
 
@@ -156,7 +215,7 @@ pnpm add @bintel/dimens-cli
 
 优先从 `dimens-system-orchestrator` 入手。
 
-### 5.2 上下文优先
+### 6.2 上下文优先
 
 如果用户的问题里没有明确：
 
@@ -168,7 +227,7 @@ pnpm add @bintel/dimens-cli
 
 如果用户已经明确要“创建项目 / 初始化项目 / 建一个能直接继续搭表的项目”，优先进入 `dimens-project`。
 
-### 5.3 资源域优先
+### 6.3 资源域优先
 
 如果资源对象已经明确，再切到具体业务 Skill：
 
@@ -177,6 +236,7 @@ pnpm add @bintel/dimens-cli
 | 系统建设 / 平台规划 / 管理系统 | `dimens-system-orchestrator` |
 | 工作流 / AI 分析 / 审批 / 自动化 | `dimens-workflow` |
 | API Key / token / 第三方鉴权 | `dimens-key-auth` |
+| Web 接入 / 移动端接入 / SDK 封装 / HTTP 对接 | `dimens-sdk` |
 | 项目创建 / 项目初始化 / 默认公开视图补齐 | `dimens-project` |
 | 工作表 / 字段 / 行 / 视图 | `dimens-table` |
 | 权限 / 公开访问 / 协同越权 | `dimens-permission` |
@@ -200,7 +260,7 @@ pnpm add @bintel/dimens-cli
 - 不要只写 `sheetId` 就认为多维表格数据源已完整；通常还需要 `columns`、`fieldIds`、`previewMapping`
 - 不要假设 Skill 文档说得通，CLI 就一定能创建成功；必须结合 `preview` 或 `query-widget` 验证
 
-## 6. 技能目录结构
+## 7. 技能目录结构
 
 当前目录结构遵循“主 Skill + README + rules + assets + references”的组织方式：
 

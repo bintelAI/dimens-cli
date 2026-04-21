@@ -23,6 +23,7 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 - ✅ 默认节奏是“先方案，后执行”，不能在系统边界没拆清时直接开始落地
 - ✅ 它负责系统拆解、Skill 路由、执行顺序，不负责把所有业务细节都写死在一个 Skill 里
 - ✅ 当用户只提“生成一个 XX 系统”时，默认优先识别项目、表、文档、报表、字段、关联关系、示例数据和查询方式
+- ✅ 当用户要求“创建项目 / 创建系统”时，默认先按维表特性设计多表、多字段、`1 对多 / 多对一` 关联和案例数据，再进入文档、报表、角色、权限这些后置模块
 - ✅ 系统资源默认按项目“三驾马车”理解：表格、文档、报表；不要只拆表，不拆文档和报表
 - ✅ 当用户直接给出 `https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/` 这类链接时，默认解析为当前维表上下文；其中第一段是 `teamId`，第二段是 `projectId`
 - ✅ 权限、工作流、报表、外部对接默认是后置扩展模块，不是第一步
@@ -31,6 +32,8 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 高风险跑偏点：
 
 - 不要把系统拆解误收缩成“只有几张表”
+- 不要在基础建模还没明确前，直接给创建命令
+- 不要跳过多表、多字段、关联和案例数据，直接进入文档、报表、权限
 - 不要漏掉项目内的文档资源和报表资源
 - 不要把在线文档误当成只创建不维护的一次性资源
 - 不要在系统级方案还没稳定时，直接下钻到报表组件细节
@@ -63,11 +66,11 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 
 1. 系统目标
 2. 核心业务对象
-3. 项目与表结构
-4. 项目内文档 / 说明页
-5. 项目内报表 / 看板
-6. 字段设计与关联关系
-7. 示例行数据
+3. 项目与多表结构
+4. 多字段设计与关联关系
+5. 示例行数据
+6. 项目内文档 / 说明页
+7. 项目内报表 / 看板
 8. 常用查询 / 视图 / 筛选案例
 9. 需要调用的子 Skill
 10. 推荐执行顺序
@@ -168,10 +171,23 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 
 1. `dimens-project`
 2. `dimens-table`
-3. `dimens-project` 的文档维护主链：`doc create / doc info / doc update / doc delete`
-4. `dimens-project` 的文档版本主链：`doc versions / doc version / doc restore`
-5. `dimens-report`
-6. `dimens-permission` / `dimens-workflow` / `dimens-key-auth` 作为扩展模块
+3. 先明确多字段、`1 对多 / 多对一` 关联和案例数据
+4. `dimens-project` 的文档维护主链：`doc create / doc info / doc update / doc delete`
+5. `dimens-project` 的文档版本主链：`doc versions / doc version / doc restore`
+6. `dimens-report`
+7. `dimens-permission` / `dimens-workflow` / `dimens-key-auth` 作为扩展模块
+
+也可以直接统一成下面这条用户引导路径：
+
+1. 创建项目
+2. 创建多表格
+3. 创建多字段
+4. 设计 `1 对多 / 多对一` 关联数据
+5. 补案例数据
+6. 看需求补项目文档
+7. 看需求补项目报表
+8. 看需求补角色
+9. 看需求补权限
 
 ### 第三步补充：当用户明确要求报表时，不要只停在“加一个报表”
 

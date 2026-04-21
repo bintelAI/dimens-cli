@@ -28,23 +28,61 @@ vi.mock('../../src/core/config', () => {
   };
 });
 
+const sheetSdkSpies = {
+  list: vi.fn(async () => ({ code: 1000, message: 'success', data: [{ id: 'S1', name: '表1' }] })),
+  tree: vi.fn(async () => ({ code: 1000, message: 'success', data: [] })),
+  info: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: { id: 'S1', name: '旧名称' },
+  })),
+  structure: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      id: 'S1',
+      columns: [
+        {
+          id: 'F_MULTI',
+          label: '旧多选',
+          type: 'multiSelect',
+          config: {
+            options: [{ id: 'opt_old', label: '旧选项', color: 'bg-slate-100 text-slate-700' }],
+            dataSourceType: 'manual',
+            dictionaryId: null,
+          },
+        },
+      ],
+    },
+  })),
+  create: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'S1', name: '表1' } })),
+  update: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'S1', name: '表1' } })),
+  delete: vi.fn(async () => ({ code: 1000, message: 'success', data: true })),
+};
+
 vi.mock('../../src/sdk/sheet', () => {
   return {
     SheetSDK: class {
-      async list() {
-        return { code: 1000, message: 'success', data: [{ id: 'S1', name: '表1' }] };
+      async list(...args: unknown[]) {
+        return sheetSdkSpies.list(...args);
       }
-      async structure() {
-        return { code: 1000, message: 'success', data: { id: 'S1', columns: [] } };
+      async tree(...args: unknown[]) {
+        return sheetSdkSpies.tree(...args);
       }
-      async create() {
-        return { code: 1000, message: 'success', data: { id: 'S1', name: '表1' } };
+      async info(...args: unknown[]) {
+        return sheetSdkSpies.info(...args);
       }
-      async update() {
-        return { code: 1000, message: 'success', data: { id: 'S1', name: '表1' } };
+      async structure(...args: unknown[]) {
+        return sheetSdkSpies.structure(...args);
       }
-      async delete() {
-        return { code: 1000, message: 'success', data: true };
+      async create(...args: unknown[]) {
+        return sheetSdkSpies.create(...args);
+      }
+      async update(...args: unknown[]) {
+        return sheetSdkSpies.update(...args);
+      }
+      async delete(...args: unknown[]) {
+        return sheetSdkSpies.delete(...args);
       }
     },
   };
@@ -57,6 +95,25 @@ const viewSdkSpies = {
 
 const projectSdkSpies = {
   create: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'P1', name: '客户管理系统' } })),
+  info: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      id: 'P1',
+      name: '项目1',
+      remark: '旧备注',
+      icon: 'https://api.example.com/old-icon.png',
+      coverImage: 'https://api.example.com/old-cover.png',
+    },
+  })),
+  update: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      id: 'P1',
+      name: '项目1',
+    },
+  })),
 };
 
 vi.mock('../../src/sdk/view', () => {
@@ -78,14 +135,14 @@ vi.mock('../../src/sdk/project', () => {
       async page() {
         return { code: 1000, message: 'success', data: { list: [{ id: 'P1', name: '项目1' }], pagination: { page: 1, size: 20, total: 1 } } };
       }
-      async info() {
-        return { code: 1000, message: 'success', data: { id: 'P1', name: '项目1' } };
+      async info(...args: unknown[]) {
+        return projectSdkSpies.info(...args);
       }
       async create(...args: unknown[]) {
         return projectSdkSpies.create(...args);
       }
-      async update() {
-        return { code: 1000, message: 'success', data: { id: 'P1', name: '项目1' } };
+      async update(...args: unknown[]) {
+        return projectSdkSpies.update(...args);
       }
       async trash() {
         return { code: 1000, message: 'success', data: true };
@@ -121,6 +178,15 @@ const columnSdkSpies = {
 };
 
 const rowSdkSpies = {
+  info: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      id: 'R1',
+      fld_customer: '旧客户',
+      fld_status: '待跟进',
+    },
+  })),
   create: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'R1' } })),
   update: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'R1' } })),
   updateCell: vi.fn(async () => ({ code: 1000, message: 'success', data: true })),
@@ -189,6 +255,23 @@ const documentSdkSpies = {
   })),
 };
 
+const uploadSdkSpies = {
+  uploadFile: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      fileId: 'FILE_1',
+      key: '/upload/20260421/demo.txt',
+      url: 'https://api.example.com/upload/20260421/demo.txt',
+      name: 'demo.txt',
+      size: 5,
+      type: 'text/plain',
+      mimeType: 'text/plain',
+      ext: '.txt',
+    },
+  })),
+};
+
 const reportSdkSpies = {
   list: vi.fn(async () => ({
     code: 1000,
@@ -202,6 +285,16 @@ const reportSdkSpies = {
     code: 1000,
     message: 'success',
     data: { reportId: 'REPORT_1' },
+  })),
+  info: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      reportId: 'REPORT_1',
+      name: '销售漏斗',
+      description: '旧描述',
+      type: 1,
+    },
   })),
   update: vi.fn(async () => ({
     code: 1000,
@@ -299,6 +392,9 @@ vi.mock('../../src/sdk/row', () => {
       async page() {
         return { code: 1000, message: 'success', data: { list: [{ id: 'R1' }], total: 1 } };
       }
+      async info(...args: unknown[]) {
+        return rowSdkSpies.info(...args);
+      }
       async create(...args: unknown[]) {
         return rowSdkSpies.create(...args);
       }
@@ -340,11 +436,24 @@ vi.mock('../../src/sdk/document', () => {
   };
 });
 
+vi.mock('../../src/sdk/upload', () => {
+  return {
+    UploadSDK: class {
+      async uploadFile(...args: unknown[]) {
+        return uploadSdkSpies.uploadFile(...args);
+      }
+    },
+  };
+});
+
 vi.mock('../../src/sdk/report', () => {
   return {
     ReportSDK: class {
       async list(...args: unknown[]) {
         return reportSdkSpies.list(...args);
+      }
+      async info(...args: unknown[]) {
+        return reportSdkSpies.info(...args);
       }
       async create(...args: unknown[]) {
         return reportSdkSpies.create(...args);
@@ -406,8 +515,18 @@ describe('Sheet Column Row Commands', () => {
     clearCommands();
     vi.clearAllMocks();
     projectSdkSpies.create.mockClear();
+    projectSdkSpies.info.mockClear();
+    projectSdkSpies.update.mockClear();
+    sheetSdkSpies.list.mockClear();
+    sheetSdkSpies.tree.mockClear();
+    sheetSdkSpies.info.mockClear();
+    sheetSdkSpies.structure.mockClear();
+    sheetSdkSpies.create.mockClear();
+    sheetSdkSpies.update.mockClear();
+    sheetSdkSpies.delete.mockClear();
     columnSdkSpies.create.mockClear();
     rowSdkSpies.create.mockClear();
+    rowSdkSpies.info.mockClear();
     rowSdkSpies.update.mockClear();
     rowSdkSpies.updateCell.mockClear();
     documentSdkSpies.createWithSheet.mockClear();
@@ -417,8 +536,10 @@ describe('Sheet Column Row Commands', () => {
     documentSdkSpies.versions.mockClear();
     documentSdkSpies.version.mockClear();
     documentSdkSpies.restore.mockClear();
+    uploadSdkSpies.uploadFile.mockClear();
     reportSdkSpies.list.mockClear();
     reportSdkSpies.create.mockClear();
+    reportSdkSpies.info.mockClear();
     reportSdkSpies.update.mockClear();
     reportSdkSpies.copy.mockClear();
     reportSdkSpies.archive.mockClear();
@@ -647,6 +768,140 @@ describe('Sheet Column Row Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should execute doc attach-file command by uploading file and appending attachment node', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    documentSdkSpies.info.mockResolvedValueOnce({
+      code: 1000,
+      message: 'success',
+      data: {
+        documentId: 'DOC_1',
+        title: '在线文档',
+        content: '<h1>项目说明</h1>',
+        format: 'richtext',
+        version: 3,
+      },
+    });
+
+    registerCommands();
+    const attachCommand = getCommandGroup('doc')?.commands.find(command => command.name === 'attach-file');
+    await attachCommand?.handler([
+      '--team-id',
+      'TEAM1',
+      '--project-id',
+      'PROJ1',
+      '--document-id',
+      'DOC_1',
+      '--file',
+      '/tmp/demo.txt',
+      '--title',
+      '发布清单.pdf',
+    ]);
+
+    expect(uploadSdkSpies.uploadFile).toHaveBeenCalledWith('/tmp/demo.txt', {
+      projectId: 'PROJ1',
+      scene: 'document-attachment',
+      teamId: 'TEAM1',
+    });
+    expect(documentSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'DOC_1');
+    expect(documentSdkSpies.update).toHaveBeenCalledWith(
+      'TEAM1',
+      'PROJ1',
+      expect.objectContaining({
+        documentId: 'DOC_1',
+        version: 3,
+        createVersion: true,
+      })
+    );
+
+    const updatePayload = documentSdkSpies.update.mock.calls.at(-1)?.[2] as {
+      content: string;
+      changeSummary?: string;
+    };
+    expect(updatePayload.content).toContain('data-attachment="true"');
+    expect(updatePayload.content).toContain('发布清单.pdf');
+    expect(updatePayload.content).toContain('https://api.example.com/upload/20260421/demo.txt');
+    expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  it('should execute doc append-image command by uploading image and appending image node', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    documentSdkSpies.info.mockResolvedValueOnce({
+      code: 1000,
+      message: 'success',
+      data: {
+        documentId: 'DOC_1',
+        title: '在线文档',
+        content: '<h1>项目封面</h1>',
+        format: 'richtext',
+        version: 4,
+      },
+    });
+
+    uploadSdkSpies.uploadFile.mockResolvedValueOnce({
+      code: 1000,
+      message: 'success',
+      data: {
+        fileId: 'FILE_IMG_1',
+        key: '/upload/20260421/cover.png',
+        url: 'https://api.example.com/upload/20260421/cover.png',
+        name: 'cover.png',
+        size: 1024,
+        type: 'image/png',
+        mimeType: 'image/png',
+        ext: '.png',
+      },
+    });
+
+    registerCommands();
+    const appendImageCommand = getCommandGroup('doc')?.commands.find(
+      command => command.name === 'append-image'
+    );
+    await appendImageCommand?.handler([
+      '--team-id',
+      'TEAM1',
+      '--project-id',
+      'PROJ1',
+      '--document-id',
+      'DOC_1',
+      '--file',
+      '/tmp/cover.png',
+      '--alt',
+      '系统封面图',
+    ]);
+
+    expect(uploadSdkSpies.uploadFile).toHaveBeenCalledWith('/tmp/cover.png', {
+      projectId: 'PROJ1',
+      scene: 'document-image',
+      teamId: 'TEAM1',
+    });
+    expect(documentSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'DOC_1');
+    expect(documentSdkSpies.update).toHaveBeenCalledWith(
+      'TEAM1',
+      'PROJ1',
+      expect.objectContaining({
+        documentId: 'DOC_1',
+        version: 4,
+        createVersion: true,
+      })
+    );
+
+    const updatePayload = documentSdkSpies.update.mock.calls.at(-1)?.[2] as {
+      content: string;
+      changeSummary?: string;
+    };
+    expect(updatePayload.content).toContain('<img src="https://api.example.com/upload/20260421/cover.png"');
+    expect(updatePayload.content).toContain('alt="系统封面图"');
+    expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
   it('should execute report create command', async () => {
     const { registerCommands } = await import('../../src/commands');
     const { getCommandGroup } = await import('../../src/commands/registry');
@@ -698,6 +953,7 @@ describe('Sheet Column Row Commands', () => {
       '2',
     ]);
 
+    expect(reportSdkSpies.info).toHaveBeenCalledWith('PROJ1', 'REPORT_1');
     expect(reportSdkSpies.update).toHaveBeenCalledWith('PROJ1', {
       reportId: 'REPORT_1',
       name: '销售漏斗-更新',
@@ -1041,6 +1297,7 @@ describe('Sheet Column Row Commands', () => {
       '{"nameKey":"名称","valueKey":"销售额"}',
     ]);
 
+    expect(reportSdkSpies.info).toHaveBeenCalledWith('PROJ1', 'REPORT_1');
     expect(reportSdkSpies.updateWidget).toHaveBeenCalledWith('PROJ1', {
       widgetId: 'widget_1',
       title: '销售趋势',
@@ -1058,6 +1315,34 @@ describe('Sheet Column Row Commands', () => {
         },
       },
       dataMapping: { nameKey: '名称', valueKey: '销售额' },
+    });
+    expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  it('should execute sheet update by loading current sheet before merging changed fields', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const updateSheet = getCommandGroup('sheet')?.commands.find(
+      command => command.name === 'update'
+    );
+    await updateSheet?.handler([
+      '--team-id',
+      'TEAM1',
+      '--project-id',
+      'PROJ1',
+      '--sheet-id',
+      'S1',
+      '--name',
+      '客户中心',
+    ]);
+
+    expect(sheetSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1');
+    expect(sheetSdkSpies.update).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      name: '客户中心',
     });
     expect(logSpy).toHaveBeenCalled();
     logSpy.mockRestore();
@@ -1190,6 +1475,35 @@ describe('Sheet Column Row Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should execute project update by loading current project before merging changed fields', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const updateProject = getCommandGroup('project')?.commands.find(
+      command => command.name === 'update'
+    );
+    await updateProject?.handler([
+      '--team-id',
+      'TEAM1',
+      '--id',
+      'P1',
+      '--cover-image',
+      'https://api.example.com/new-cover.png',
+    ]);
+
+    expect(projectSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'P1');
+    expect(projectSdkSpies.update).toHaveBeenCalledWith('TEAM1', {
+      id: 'P1',
+      name: '项目1',
+      remark: '旧备注',
+      icon: 'https://api.example.com/old-icon.png',
+      coverImage: 'https://api.example.com/new-cover.png',
+    });
+    logSpy.mockRestore();
+  });
+
   it('should register and execute sheet list command', async () => {
     const { registerCommands } = await import('../../src/commands');
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
@@ -1221,6 +1535,62 @@ describe('Sheet Column Row Commands', () => {
     ]);
 
     expect(createSpy).toHaveBeenCalledWith('PXWXBJQ', { name: '客户表' });
+    createSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should execute sheet create command with folder type payload', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { SheetSDK } = await import('../../src/sdk/sheet');
+    const createSpy = vi.spyOn(SheetSDK.prototype, 'create');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createSheet = getCommandGroup('sheet')?.commands.find(
+      command => command.name === 'create'
+    );
+    await createSheet?.handler([
+      '--project-id',
+      'PROJ1',
+      '--name',
+      '客户中心',
+      '--type',
+      'folder',
+    ]);
+
+    expect(createSpy).toHaveBeenCalledWith('PROJ1', {
+      name: '客户中心',
+      type: 'folder',
+    });
+    createSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should execute sheet create command with folder parent payload', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { SheetSDK } = await import('../../src/sdk/sheet');
+    const createSpy = vi.spyOn(SheetSDK.prototype, 'create');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createSheet = getCommandGroup('sheet')?.commands.find(
+      command => command.name === 'create'
+    );
+    await createSheet?.handler([
+      '--project-id',
+      'PROJ1',
+      '--name',
+      '客户表',
+      '--folder-id',
+      'folder_customer',
+    ]);
+
+    expect(createSpy).toHaveBeenCalledWith('PROJ1', {
+      name: '客户表',
+      folderId: 'folder_customer',
+    });
     createSpy.mockRestore();
     logSpy.mockRestore();
   });
@@ -1472,6 +1842,190 @@ describe('Sheet Column Row Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should execute multiSelect column update command with options config', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { ColumnSDK } = await import('../../src/sdk/column');
+    const updateSpy = vi
+      .spyOn(ColumnSDK.prototype, 'update')
+      .mockImplementation((...args: unknown[]) => {
+        columnSdkSpies.create(...args);
+        return Promise.resolve({ code: 1000, message: 'success', data: { id: 'F6' } });
+      });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const updateColumn = getCommandGroup('column')?.commands.find(
+      command => command.name === 'update'
+    );
+    await updateColumn?.handler([
+      '--sheet-id',
+      'S1',
+      '--field-id',
+      'F_MULTI',
+      '--current-type',
+      'multiSelect',
+      '--options',
+      '[{"id":"opt_pending","label":"待处理","color":"bg-slate-100 text-slate-700"},{"id":"opt_brand","label":"品牌态","color":"custom:{\\"bg\\":\\"#e0e7ff\\",\\"text\\":\\"#3730a3\\"}"}]',
+    ]);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(sheetSdkSpies.structure).toHaveBeenCalledWith('S1');
+    expect(updateSpy).toHaveBeenCalledWith('S1', 'F_MULTI', {
+      label: '旧多选',
+      type: 'multiSelect',
+      config: {
+        options: [
+          {
+            id: 'opt_pending',
+            label: '待处理',
+            color: 'bg-slate-100 text-slate-700',
+          },
+          {
+            id: 'opt_brand',
+            label: '品牌态',
+            color: 'custom:{"bg":"#e0e7ff","text":"#3730a3"}',
+          },
+        ],
+        dataSourceType: 'manual',
+        dictionaryId: null,
+      },
+    });
+    updateSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should reject select column create command when builtin option color is outside whitelist', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { ColumnSDK } = await import('../../src/sdk/column');
+    const createSpy = vi
+      .spyOn(ColumnSDK.prototype, 'create')
+      .mockImplementation((...args: unknown[]) => {
+        columnSdkSpies.create(...args);
+        return Promise.resolve({ code: 1000, message: 'success', data: { id: 'F7' } });
+      });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createColumn = getCommandGroup('column')?.commands.find(
+      command => command.name === 'create'
+    );
+    await createColumn?.handler([
+      '--sheet-id',
+      'S1',
+      '--label',
+      '状态',
+      '--type',
+      'select',
+      '--options',
+      '[{"label":"已提交","color":"bg-teal-100 text-teal-700"}]',
+    ]);
+
+    expect(columnSdkSpies.create).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('select / multiSelect 字段选项颜色无效')
+    );
+    createSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should execute select column create command with extended builtin colors config', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { ColumnSDK } = await import('../../src/sdk/column');
+    const createSpy = vi
+      .spyOn(ColumnSDK.prototype, 'create')
+      .mockImplementation((...args: unknown[]) => {
+        columnSdkSpies.create(...args);
+        return Promise.resolve({ code: 1000, message: 'success', data: { id: 'F9' } });
+      });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createColumn = getCommandGroup('column')?.commands.find(
+      command => command.name === 'create'
+    );
+    await createColumn?.handler([
+      '--sheet-id',
+      'S1',
+      '--label',
+      '状态',
+      '--type',
+      'select',
+      '--options',
+      '[{"label":"已提交","color":"bg-emerald-100 text-emerald-700"},{"label":"已驳回","color":"bg-rose-100 text-rose-700"},{"label":"品牌态","color":"bg-indigo-100 text-indigo-700"},{"label":"普通态","color":"bg-gray-100 text-gray-700"}]',
+    ]);
+
+    expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      label: '状态',
+      type: 'select',
+      config: {
+        options: [
+          {
+            id: expect.any(String),
+            label: '已提交',
+            color: 'bg-emerald-100 text-emerald-700',
+          },
+          {
+            id: expect.any(String),
+            label: '已驳回',
+            color: 'bg-rose-100 text-rose-700',
+          },
+          {
+            id: expect.any(String),
+            label: '品牌态',
+            color: 'bg-indigo-100 text-indigo-700',
+          },
+          {
+            id: expect.any(String),
+            label: '普通态',
+            color: 'bg-gray-100 text-gray-700',
+          },
+        ],
+        dataSourceType: 'manual',
+        dictionaryId: null,
+      },
+    });
+    createSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should reject select column create command when custom option color payload is invalid', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { ColumnSDK } = await import('../../src/sdk/column');
+    const createSpy = vi
+      .spyOn(ColumnSDK.prototype, 'create')
+      .mockImplementation((...args: unknown[]) => {
+        columnSdkSpies.create(...args);
+        return Promise.resolve({ code: 1000, message: 'success', data: { id: 'F8' } });
+      });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createColumn = getCommandGroup('column')?.commands.find(
+      command => command.name === 'create'
+    );
+    await createColumn?.handler([
+      '--sheet-id',
+      'S1',
+      '--label',
+      '状态',
+      '--type',
+      'select',
+      '--options',
+      '[{"label":"品牌态","color":"custom:{\\"bg\\":\\"not-a-color\\",\\"text\\":\\"#3730a3\\"}"}]',
+    ]);
+
+    expect(columnSdkSpies.create).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('select / multiSelect 字段自定义颜色无效')
+    );
+    createSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
   it('should execute row set-cell command', async () => {
     const { registerCommands } = await import('../../src/commands');
     const { getCommandGroup } = await import('../../src/commands/registry');
@@ -1544,12 +2098,11 @@ describe('Sheet Column Row Commands', () => {
     ]);
 
     expect(logSpy).toHaveBeenCalled();
-    expect(rowSdkSpies.update).toHaveBeenCalledWith(
-      'S1',
-      'R1',
-      { fld_customer: '华东智造' },
-      3
-    );
+    expect(rowSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', 'R1');
+    expect(rowSdkSpies.update).toHaveBeenCalledWith('S1', 'R1', {
+      fld_customer: '华东智造',
+      fld_status: '待跟进',
+    }, 3);
     logSpy.mockRestore();
   });
 

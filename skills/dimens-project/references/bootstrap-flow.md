@@ -5,14 +5,28 @@
 把下面这条链路收成用户可直接执行的初始化顺序：
 
 1. 创建项目
-2. 创建核心表或在线文档
-3. 补默认公开视图
-4. 创建核心字段 / relation
-5. 创建角色
-6. 配项目权限
-7. 分配角色
+2. 看需求补 SVG 动态封面
+3. 创建项目菜单目录
+4. 创建多表格
+5. 创建多字段
+6. 设计 `1 对多 / 多对一` 关联数据
+7. 补案例数据
+8. 看需求补项目文档
+9. 看需求补项目报表
+10. 看需求补角色
+11. 看需求补权限
 
 ## 2. 推荐顺序
+
+在执行命令前，默认先按维表特性把下面几件事设计清楚：
+
+- 需要几张核心表
+- 每张表的核心字段是什么
+- 哪些表之间存在 `1 对多 / 多对一` 关系
+- 准备写入哪些案例数据
+- 是否需要文档、报表、角色、权限这些后置模块
+- 是否需要先生成一个符合项目主题、具备动态动画效果的 SVG 封面
+- 是否需要先规划项目菜单目录，以及目录下要挂哪些表格/文档/报表资源
 
 ### 2.1 创建项目
 
@@ -24,13 +38,98 @@ dimens-cli project create \
   --project-type spreadsheet
 ```
 
-### 2.2 创建第一张核心表
+补充建议：
+
+- 如果项目强调品牌感、对外展示、模板销售、知识库入口或市场封面，建议在执行 `project create` 之前先补一张 SVG 封面
+- 这张封面建议由 SVG 工具生成，要求：
+  - 符合项目主题
+  - 有动态动画效果
+  - 可直接作为项目封面图使用
+- 封面处理链路建议固定为：
+  1. SVG 工具生成封面
+  2. `dimens-cli upload file --file ./project-cover.svg`
+  3. 拿到上传返回的 URL
+  4. 再进入项目创建流程
+
+### 2.1.1 创建项目菜单目录
+
+项目创建完成后，不要只开始堆资源，建议先把项目菜单目录规划出来。
+
+默认至少考虑下面 4 类菜单节点：
+
+1. 目录 `folder`
+2. 表格 `sheet`
+3. 文档 `document`
+4. 报表 `report`
+
+推荐做法：
+
+- 先按业务域规划目录，例如：
+  - 客户中心
+  - 经营分析
+  - 项目文档
+- 再把表格、文档、报表分别挂到对应目录下
+- 创建完成后，用下面命令回查菜单树：
+
+```bash
+dimens-cli sheet tree --project-id PROJECT_ID
+```
+
+说明：
+
+- 目录功能不是可有可无的 UI 装饰，而是项目菜单分层能力的一部分
+- 如果项目里会同时出现多张表、多份文档、多份报表，建议优先先建目录
+- 当前 CLI 已有 `sheet tree`，可用于回查项目菜单树是否完整
+
+### 2.2 创建多张核心表
 
 ```bash
 dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 客户表
+dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 联系人表
 ```
 
-### 2.2.1 创建第一份在线文档
+### 2.3 创建多字段
+
+```bash
+dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id CUSTOMER_SHEET_ID --label 客户名称 --type text
+dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id CUSTOMER_SHEET_ID --label 客户等级 --type select --options '[{"id":"customer-level-a","label":"A级","color":"bg-blue-100 text-blue-700"},{"id":"customer-level-b","label":"B级","color":"bg-slate-100 text-slate-700"},{"id":"customer-level-c","label":"C级","color":"bg-amber-100 text-amber-700"}]'
+```
+
+说明：
+
+- 普通下拉字段推荐直接传 JSON 数组选项，显式补齐 `id / label / color`
+- 同一个字段下每个选项 `id` 必须唯一，不能重复
+- 人员字段、部门字段属于特殊情况，不要退化成普通下拉
+- 当项目本身已有用户体系、部门体系和内置角色体系时，人员下拉优先直接配置为人员字段，部门下拉优先直接配置为部门字段
+
+### 2.4 创建 `1 对多 / 多对一` 关联字段
+
+```bash
+dimens-cli column create \
+  --team-id TEAM_ID \
+  --project-id PROJECT_ID \
+  --sheet-id CONTACT_SHEET_ID \
+  --label 所属客户 \
+  --type relation \
+  --target-sheet-id CUSTOMER_SHEET_ID \
+  --display-column-id CUSTOMER_NAME_FIELD_ID
+```
+
+说明：
+
+- 联系人表到客户表通常是“多对一”
+- 从客户视角回看联系人通常是“一对多”
+- 这类关系字段应建立在多表和主显示字段都已明确的前提下
+
+### 2.5 补案例数据
+
+在字段和关联关系落好以后，默认继续准备并写入案例数据，用于验证：
+
+- 表结构是否合理
+- 关联关系是否能正确回查
+- 后续文档描述和报表统计是否有可用样例
+
+### 2.6 看需求创建第一份在线文档
 
 如果项目需要文档说明页、知识沉淀页、协作文档，而不是先建表，可以直接创建在线文档：
 
@@ -50,7 +149,7 @@ dimens-cli doc create \
 - 如果是文档型项目，建议先补 `doc create`，再决定是否继续建表
 - 文档资源不是一次性资源，创建后默认还要继续支持查询、修改、删除
 
-### 2.2.2 文档闭环维护
+### 2.6.1 文档闭环维护
 
 文档创建成功后，推荐继续掌握下面这条文档主链：
 
@@ -82,7 +181,7 @@ dimens-cli doc delete \
 - `doc delete` 用于清理误建或废弃的文档资源
 - 如果项目是文档型项目，不要停在 `doc create`，而要把 `info/update` 一起视作默认维护链路
 
-### 2.2.3 文档版本管理
+### 2.6.2 文档版本管理
 
 如果在线文档承担制度页、说明页、知识沉淀页，建议继续掌握版本链：
 
@@ -114,7 +213,7 @@ dimens-cli doc restore \
 - `doc restore` 用于恢复到指定历史版本，并生成新的当前版本
 - 不要在误修改后直接继续 `doc update` 覆盖当前内容；先看版本链，再决定是否恢复
 
-### 2.3 检查并补默认公开视图
+### 2.7 检查并补默认公开视图
 
 ```bash
 dimens-cli view list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID
@@ -133,32 +232,32 @@ dimens-cli view create \
   --config '{"filters":[],"filterMatchType":"and","sortRule":null,"groupBy":[],"hiddenColumnIds":[],"rowHeight":"medium"}'
 ```
 
-### 2.4 创建字段
+### 2.8 看需求创建报表
+
+如果项目还需要经营看板、统计分析或仪表盘，建议继续走报表固定预检链：
+
+1. `dimens-cli report create`
+2. `dimens-cli report preview`
+3. `dimens-cli report widget-add`
+4. `dimens-cli report query-widget`
+5. `dimens-cli report query`
+
+### 2.8.1 菜单层回查
+
+资源创建完成后，建议再回查一次项目菜单树：
 
 ```bash
-dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 客户名称 --type text
-dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 客户等级 --type select --options '[{"label":"A级","color":"bg-blue-100 text-blue-700"},{"label":"B级","color":"bg-slate-100 text-slate-700"},{"label":"C级","color":"bg-amber-100 text-amber-700"}]'
+dimens-cli sheet tree --project-id PROJECT_ID
 ```
 
-说明：
+重点确认：
 
-- `--options` 现在推荐直接传 JSON 数组对象，这样可以一次补齐 `label / color / id`
-- 旧的逗号分隔写法仍兼容，但只适合最简单的文本选项
+- 是否已经存在目录节点
+- 表格是否归到正确目录
+- 文档是否归到正确目录
+- 报表是否归到正确目录
 
-### 2.5 创建 relation 字段
-
-```bash
-dimens-cli column create \
-  --team-id TEAM_ID \
-  --project-id PROJECT_ID \
-  --sheet-id CONTACT_SHEET_ID \
-  --label 所属客户 \
-  --type relation \
-  --target-sheet-id CUSTOMER_SHEET_ID \
-  --display-column-id CUSTOMER_NAME_FIELD_ID
-```
-
-### 2.6 创建角色并配置项目权限
+### 2.9 创建角色并配置项目权限
 
 权限主链推荐直接沿用 `dimens-permission/references/command-mapping.md` 的 `--app-url` 写法，这样其他产品接技能时不需要先拆上下文。
 
@@ -180,7 +279,7 @@ dimens-cli permission create \
   --can-write true
 ```
 
-### 2.7 给用户分配角色
+### 2.10 给用户分配角色
 
 ```bash
 dimens-cli role assign-user \

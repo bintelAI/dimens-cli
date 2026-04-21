@@ -27,20 +27,32 @@ tags: [permission, access-control, acl, row-policy, dimens-cli]
 - ✅ 行分页读取正常不代表 `yjs-socket` 一定正常；协同问题仍要回到权限快照和广播过滤去判断
 - ✅ 角色创建和权限写入后，不代表前端立即等价生效；真实系统里还要联动缓存失效、`notifyPermissionChanged` 和前端权限快照刷新
 
-## 快速索引：意图 → 命令 → 必填参数
+## 命令维护表
 
-| 用户意图 | 工具 / 命令 | 必填参数 | 常用可选 | 说明 |
+| 命令 | 作用 | 必填参数 | 常用可选 | 细节说明 |
 | --- | --- | --- | --- | --- |
-| 创建自定义角色 | `dimens-cli role create` | `projectId`, `name` | `description`, `canManageSheets`, `canEditSchema`, `canEditData`, `app-url` | 角色是整个权限底盘入口 |
-| 给用户绑定角色 | `dimens-cli role assign-user` | `projectId`, `roleId`, `userId` | `sheetId`, `app-url` | 可做项目级，也可做表级绑定 |
-| 查询权限配置 | `dimens-cli permission list` | `projectId` | `sheetId`, `app-url` | 用于看角色当前项目/表级权限 |
-| 创建项目/表级权限 | `dimens-cli permission create` | `projectId`, `roleId` | `sheetId`, `dataAccess`, `canRead`, `canWrite`, `columnVisibility`, `columnReadonly` | 这是角色对应的资源权限配置 |
-| 设置文档/报表/页面资源权限 | `dimens-cli permission set-resource` | `projectId`, `roleId`, `resourceId`, `resourceType`, `visible`, `editable` | `app-url` | 用于非表资源授权 |
-| 创建行级策略 | `dimens-cli row-policy create` | `projectId`, `sheetId`, `name`, `effect`, `actions`, `conditions` | `roleId`, `priority`, `matchType`, `active`, `app-url` | 规则型行权限 |
-| 启用 / 禁用行级策略 | `dimens-cli row-policy enable/disable` | `projectId`, `id`, `sheetId` | `app-url` | 用于策略切换 |
-| 授予单行 ACL | `dimens-cli row-acl grant-user/grant-role/grant-dept` | `sheetId`, `rowId`, `permission`, `target` | `expiresAt`, `canTransfer` | 例外型单行授权 |
-| 移除单行 ACL | `dimens-cli row-acl revoke-role` | `sheetId`, `rowId`, `roleId` | - | 当前已封装角色撤销主链 |
-| 排查协同越权广播 | `yjs_permission_snapshot` | `projectId`, `sheetId`, `userId` | `rowFilters`, `columnFilters` | 这是诊断型能力，不是 CLI 主命令 |
+| `dimens-cli role create` | 创建项目下自定义角色 | `projectId`, `name` | `description`, `canManageSheets`, `canEditSchema`, `canEditData`, `app-url` | 角色只是权限底盘入口，创建后不代表用户已经有权限 |
+| `dimens-cli role update` | 更新角色基础配置 | `projectId`, `roleId` | `name`, `description`, `canManageSheets`, `canEditSchema`, `canEditData`, `app-url` | 默认先读取当前角色数据，再改字段后 update，避免覆盖已有角色能力 |
+| `dimens-cli role assign-user` | 给用户绑定角色 | `projectId`, `roleId`, `userId` | `sheetId`, `app-url` | 可做项目级或表级绑定，绑定后还要看缓存刷新和权限快照是否收敛 |
+| `dimens-cli permission list` | 查询角色当前权限配置 | `projectId` | `sheetId`, `app-url` | 用于确认角色在项目级或表级的真实权限记录 |
+| `dimens-cli permission create` | 创建项目级或表级权限 | `projectId`, `roleId` | `sheetId`, `dataAccess`, `canRead`, `canWrite`, `columnVisibility`, `columnReadonly` | 创建后还要回看前端权限快照和后端有效权限结果 |
+| `dimens-cli permission update` | 更新项目级或表级权限 | `projectId`, `id` 或 `roleId` | `sheetId`, `dataAccess`, `canRead`, `canWrite`, `columnVisibility`, `columnReadonly`, `app-url` | 默认先拿当前权限记录，再改字段后 update，不直接盲写局部 patch |
+| `dimens-cli permission set-resource` | 设置文档、报表、页面等非表资源权限 | `projectId`, `roleId`, `resourceId`, `resourceType`, `visible`, `editable` | `app-url` | 用于非表资源授权，提交前要先确认资源归属和角色边界 |
+| `dimens-cli row-policy create` | 创建行级策略 | `projectId`, `sheetId`, `name`, `effect`, `actions`, `conditions` | `roleId`, `priority`, `matchType`, `active`, `app-url` | 规则型行权限，条件表达式需要和真实字段 ID 对齐 |
+| `dimens-cli row-policy update` | 更新行级策略 | `projectId`, `id`, `sheetId` | `name`, `effect`, `actions`, `conditions`, `priority`, `matchType`, `active`, `app-url` | 默认先读当前策略，再改目标字段后更新，避免把原有条件或动作覆盖丢失 |
+| `dimens-cli row-policy enable` | 启用行级策略 | `projectId`, `id`, `sheetId` | `app-url` | 策略切换后还要联动确认缓存和权限快照刷新 |
+| `dimens-cli row-policy disable` | 禁用行级策略 | `projectId`, `id`, `sheetId` | `app-url` | 禁用后可能影响分页读取和协同结果，要做回归确认 |
+| `dimens-cli row-acl grant-user/grant-role/grant-dept` | 授予单行 ACL 例外权限 | `sheetId`, `rowId`, `permission`, `target` | `expiresAt`, `canTransfer` | 用于单行例外授权，不替代通用角色权限设计 |
+| `dimens-cli row-acl revoke-role` | 撤销单行 ACL | `sheetId`, `rowId`, `roleId` | - | 当前已封装角色撤销主链，撤销后要看真实生效结果 |
+| `yjs_permission_snapshot` | 排查协同越权广播 | `projectId`, `sheetId`, `userId` | `rowFilters`, `columnFilters` | 这是诊断能力，不是标准业务写接口 |
+
+### 强调细节
+
+- 角色、权限、行级策略的更新命令统一遵循“拿数据 -> 改数据 -> 更新数据”，不要把局部 patch 当成通用模式。
+- `role create` 不会自动给用户赋权；权限设计的默认顺序仍然是 `role -> permission -> row-policy -> row-acl`。
+- `permission update` 和 `row-policy update` 前默认先读取当前记录，避免把原有字段、动作、条件、列权限覆盖丢失。
+- CLI 命令执行成功，不等于前端权限快照、后端有效权限、协同权限快照都已收敛；更新后要结合 `myPermissions`、`permissionStore`、协同快照一起判断。
+- 涉及文档、报表、页面的资源权限时，先确认资源归属和项目上下文，再写资源权限。
 
 ## 核心约束
 

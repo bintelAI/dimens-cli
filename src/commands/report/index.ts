@@ -353,7 +353,33 @@ export function registerReportCommands(): void {
             payload.type = Number.isNaN(Number(flags.type)) ? flags.type : Number(flags.type);
           }
           const sdk = new ReportSDK(createClient(context));
-          const result = await sdk.update(projectId, payload);
+          const currentReportResult = await sdk.info(projectId, reportId);
+          const currentReport = currentReportResult.data;
+          const mergedPayload: {
+            reportId: string;
+            name?: string;
+            description?: string;
+            type?: number | string;
+          } = { reportId };
+          if (currentReport && typeof currentReport.name === 'string') {
+            mergedPayload.name = currentReport.name;
+          }
+          if (currentReport && typeof currentReport.description === 'string') {
+            mergedPayload.description = currentReport.description;
+          }
+          if (currentReport && currentReport.type !== undefined) {
+            mergedPayload.type = currentReport.type;
+          }
+          if (payload.name) {
+            mergedPayload.name = payload.name;
+          }
+          if (payload.description) {
+            mergedPayload.description = payload.description;
+          }
+          if (payload.type !== undefined) {
+            mergedPayload.type = payload.type;
+          }
+          const result = await sdk.update(projectId, mergedPayload);
           printSuccess(context, '报表更新成功', result.data);
         } catch (error) {
           printError(context, error);
@@ -775,7 +801,24 @@ export function registerReportCommands(): void {
             validateSheetDataSource(payload.dataSource, payload.dataMapping);
           }
           const sdk = new ReportSDK(createClient(context));
-          const result = await sdk.updateWidget(projectId, payload);
+          const currentReportResult = await sdk.info(projectId, flags['report-id'] || 'REPORT_1');
+          const currentReport = currentReportResult.data;
+          const currentWidget = Array.isArray(currentReport?.widgets)
+            ? currentReport.widgets.find(
+                widget =>
+                  Boolean(widget) &&
+                  typeof widget === 'object' &&
+                  (widget as Record<string, unknown>).widgetId === widgetId
+              )
+            : undefined;
+          const mergedPayload = {
+            ...(currentWidget && typeof currentWidget === 'object'
+              ? (currentWidget as Record<string, unknown>)
+              : {}),
+            ...payload,
+            widgetId,
+          };
+          const result = await sdk.updateWidget(projectId, mergedPayload);
           printSuccess(context, '报表组件更新成功', result.data);
         } catch (error) {
           printError(context, error);

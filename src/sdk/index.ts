@@ -11,6 +11,7 @@ import { RowAclSDK } from './row-acl';
 import { RowPolicySDK } from './row-policy';
 import { RoleSDK } from './role';
 import { SheetSDK } from './sheet';
+import { UploadSDK } from './upload';
 import { ViewSDK } from './view';
 
 export type { APIResponse, DimensClientOptions };
@@ -32,6 +33,7 @@ export class DimensSDK {
   readonly rowPolicy: RowPolicySDK;
   readonly rowAcl: RowAclSDK;
   readonly ai: FlowChatSDK;
+  readonly upload: UploadSDK;
 
   constructor(config: SDKConfig) {
     this.client = new DimensClient(config);
@@ -48,6 +50,7 @@ export class DimensSDK {
     this.rowPolicy = new RowPolicySDK(this.client);
     this.rowAcl = new RowAclSDK(this.client);
     this.ai = new FlowChatSDK(this.client);
+    this.upload = new UploadSDK(this.client);
   }
 }
 
@@ -69,3 +72,4 @@ export { RowSDK } from './row';
 export { RowPolicySDK } from './row-policy';
 export { RowAclSDK } from './row-acl';
 export { FlowChatSDK } from './flow-chat';
+export { UploadSDK } from './upload';

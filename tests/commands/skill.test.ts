@@ -114,7 +114,9 @@ describe('Skill Commands', () => {
     expect(output).toContain('doc versions');
     expect(output).toContain('doc version');
     expect(output).toContain('doc restore');
+    expect(output).toContain('upload file');
     expect(output).toContain('ProjectSDK');
+    expect(output).toContain('UploadSDK');
     expect(output).toContain('bootstrap-flow.md');
     logSpy.mockRestore();
   });

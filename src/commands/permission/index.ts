@@ -65,10 +65,16 @@ export function registerPermissionCommands(): void {
           throw new Error('缺少 id、sheetId 或 roleId，请传入 --id --sheet-id --role-id');
         }
         const sdk = new PermissionSDK(createClient(context));
+        const currentPermissionResult = await sdk.info(projectId, id, sheetId);
+        const currentPermission = currentPermissionResult.data;
+        const data = {
+          ...currentPermission,
+          ...buildPermissionPayload(flags, roleId),
+        };
         const result = await sdk.update(projectId, {
           id,
           sheetId,
-          data: buildPermissionPayload(flags, roleId),
+          data,
         });
         printSuccess(context, '权限更新成功', result.data);
       } catch (error) {

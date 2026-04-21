@@ -21,6 +21,10 @@ https://dimens.bintelai.com/api
 
 - `auth`
 - `project`
+- `doc`
+- `view`
+- `report`
+- `upload`
 - `role`
 - `permission`
 - `sheet`
@@ -36,6 +40,10 @@ https://dimens.bintelai.com/api
 
 - `sdk.auth`
 - `sdk.project`
+- `sdk.document`
+- `sdk.view`
+- `sdk.report`
+- `sdk.upload`
 - `sdk.role`
 - `sdk.permission`
 - `sdk.sheet`
@@ -103,6 +111,10 @@ dimens-cli help
 ```bash
 node ./bin/dimens-cli.js help
 node ./bin/dimens-cli.js help auth
+node ./bin/dimens-cli.js help doc
+node ./bin/dimens-cli.js help upload
+node ./bin/dimens-cli.js help report
+node ./bin/dimens-cli.js help view
 node ./bin/dimens-cli.js help role
 node ./bin/dimens-cli.js help permission
 node ./bin/dimens-cli.js help row-policy
@@ -215,6 +227,67 @@ node ./bin/dimens-cli.js auth use-team TEAM1
 ```bash
 node ./bin/dimens-cli.js project list --team-id TEAM1
 ```
+
+上传本地文件：
+
+```bash
+node ./bin/dimens-cli.js upload file --path ./demo.txt
+node ./bin/dimens-cli.js upload file --path ./cover.png --key docs/cover.png
+node ./bin/dimens-cli.js upload file --path ./project-cover.png --team-id TEAM1 --project-id PROJ1 --scene project-cover
+node ./bin/dimens-cli.js upload mode
+```
+
+统一规则：
+
+- 所有文件、图片、封面都统一先走 `upload file`
+- 上传接口返回 `fileId`、`key`、`url`
+- 业务命令只消费上传后的 `url`，不再各自实现一套独立的存储逻辑
+- 典型场景包括：项目封面、文档图片、文档附件
+- 所有更新命令统一按“先拿当前数据 -> 修改目标字段 -> 再提交 update”执行，避免只传局部字段造成数据丢失
+- 如果上传资源明确归属于某个团队或项目，建议同时传 `--team-id`、`--project-id`，必要时补充 `--scene`
+
+项目初始化与菜单骨架示例：
+
+```bash
+node ./bin/dimens-cli.js project create --team-id TEAM1 --name 客户管理系统 --description 客户全生命周期管理 --project-type spreadsheet
+node ./bin/dimens-cli.js upload file --path ./project-cover.svg --key covers/project-cover.svg
+node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 客户中心 --type folder
+node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 项目文档 --type folder
+node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 经营分析 --type folder
+node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 客户表 --folder-id FOLDER_SHEET_ID
+node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 联系人表 --folder-id FOLDER_SHEET_ID
+node ./bin/dimens-cli.js doc create --team-id TEAM1 --project-id PROJ1 --title 项目说明文档 --parent-id FOLDER_SHEET_ID --format richtext
+node ./bin/dimens-cli.js report create --project-id PROJ1 --name 销售漏斗
+node ./bin/dimens-cli.js sheet tree --project-id PROJ1
+```
+
+说明：
+
+- 如果项目需要封面表达，建议先用 SVG 工具生成一张符合项目主题、具备动态动画效果的 SVG，再上传拿 URL
+- 项目封面更新建议按“先上传，再把返回的 URL 传给 `project update --cover-image`”执行
+- 项目菜单骨架默认至少包含：目录、表格、文档、报表
+- `sheet create --type folder` 用于创建目录节点
+- `sheet create --folder-id <folderSheetId>` 用于把资源挂到目录下
+- 文档当前挂目录走 `doc create --parent-id <folderSheetId>`
+- 创建完成后用 `sheet tree` 回查目录和资源归位
+- 如果要查看命令级帮助，直接执行 `node ./bin/dimens-cli.js help sheet`、`node ./bin/dimens-cli.js help sheet create`、`node ./bin/dimens-cli.js help sheet tree`
+
+文档主链示例：
+
+```bash
+node ./bin/dimens-cli.js doc create --team-id TEAM1 --project-id PROJ1 --title 在线文档 --content '<p>Hello TipTap</p>' --format richtext
+node ./bin/dimens-cli.js doc info --team-id TEAM1 --project-id PROJ1 --document-id DOC_1
+node ./bin/dimens-cli.js doc update --team-id TEAM1 --project-id PROJ1 --document-id DOC_1 --content '<p>更新后的内容</p>' --version 1
+node ./bin/dimens-cli.js doc attach-file --team-id TEAM1 --project-id PROJ1 --document-id DOC_1 --file ./release.pdf --title 发布清单.pdf
+node ./bin/dimens-cli.js doc append-image --team-id TEAM1 --project-id PROJ1 --document-id DOC_1 --file ./cover.png --alt 封面图
+node ./bin/dimens-cli.js doc versions --team-id TEAM1 --project-id PROJ1 --document-id DOC_1
+```
+
+说明：
+
+- `doc attach-file` 和 `doc append-image` 本质上也是“先上传，再把返回的 URL 写入文档内容”
+- 如果只是想拿上传后的 URL 给其他业务命令复用，可以直接先执行 `upload file`
+- `doc update` 只负责提交文档内容和版本，不直接接收本地文件
 
 分页读取行数据：
 
