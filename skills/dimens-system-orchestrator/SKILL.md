@@ -22,10 +22,10 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 - ✅ 这是系统级总控 Skill，不直接替代 `dimens-team`、`dimens-table`、`dimens-permission` 等业务 Skill
 - ✅ 默认节奏是“先方案，后执行”，不能在系统边界没拆清时直接开始落地
 - ✅ 它负责系统拆解、Skill 路由、执行顺序，不负责把所有业务细节都写死在一个 Skill 里
-- ✅ 当用户只提“生成一个 XX 系统”时，默认优先识别项目、表、文档、报表、字段、关联关系、示例数据和查询方式
+- ✅ 当用户只提“生成一个 XX 系统”时，默认优先识别项目、目录、表、文档、报表、字段、关联关系、示例数据和查询方式，角色以及权限
 - ✅ 当用户要求“创建项目 / 创建系统”时，默认先按维表特性设计多表、多字段、`1 对多 / 多对一` 关联和案例数据，再进入文档、报表、角色、权限这些后置模块
 - ✅ 系统资源默认按项目“三驾马车”理解：表格、文档、报表；不要只拆表，不拆文档和报表
-- ✅ 当用户直接给出 `https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/` 这类链接时，默认解析为当前维表上下文；其中第一段是 `teamId`，第二段是 `projectId`
+- ✅ 当用户直接给出 `https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/` 这类链接时，默认解析为当前维表上下文；其中第一段是 `teamId`，第二段是 `projectId`，这是让对项目进行处理工作
 - ✅ 权限、工作流、报表、外部对接默认是后置扩展模块，不是第一步
 - ✅ 只有当系统拆解结果稳定后，才进入下游子 Skill 处理
 
@@ -34,29 +34,35 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 - 不要把系统拆解误收缩成“只有几张表”
 - 不要在基础建模还没明确前，直接给创建命令
 - 不要跳过多表、多字段、关联和案例数据，直接进入文档、报表、权限
-- 不要漏掉项目内的文档资源和报表资源
+- 不要漏掉项目内的文档资源和报表资源(根据用户需求来定)
 - 不要把在线文档误当成只创建不维护的一次性资源
 - 不要在系统级方案还没稳定时，直接下钻到报表组件细节
 - 不要把“用户说要看板”翻译成“马上创建图表”
 - 不要跳过数据对象、字段和查询方式设计，直接给报表命令
 
-## 快速索引：系统目标 → 优先子 Skill → 主要职责
+## 命令维护表
 
-| 用户目标 / 子系统 | 优先子 Skill | 主要职责 | 备注 |
-| --- | --- | --- | --- |
-| 团队、空间、成员、项目上下文 | `dimens-team` | 确认团队/项目隔离、成员和默认上下文 | 所有系统建设的上游基础 |
-| 项目创建、项目初始化、默认公开视图补齐 | `dimens-project` | 创建项目，补建表前置资源，把链路推进到可直接搭表 | 系统落地的容器初始化层 |
-| 客户表、订单表、联系人表、跟进记录表、在线文档 | `dimens-table` | 设计表结构、字段、关联、示例数据、筛选与查询案例；若是在线文档入口则继续联动 `dimens-project` 的文档维护主链 `doc create / doc info / doc update / doc delete`，以及版本主链 `doc versions / doc version / doc restore` | 默认主力 Skill |
-| 角色、项目权限、表/列/行可见范围、公开访问、协同限制 | `dimens-permission` | 设计权限边界、角色分配与权限落地链路 | 用户提到权限时应直接进入 |
-| 审批、自动化、AI 分析、流程节点 | `dimens-workflow` | 设计流程编排与模型能力 | 处理流程型系统能力 |
-| 经营看板、漏斗分析、统计图表、仪表盘 | `dimens-report` | 设计报表、参数、数据源和展示，并联动 `report create -> report preview -> report widget-add -> report query-widget -> report query` 固定预检链 | 处理管理层视角输出 |
-| 第三方接入、开放登录、脚本调用 | `dimens-key-auth` | 处理 API Key / token 复用能力 | 处理外部系统对接 |
+| 命令 / Skill 路由 | 作用 | 必填参数 | 常用可选 | 细节说明 |
+| --- | --- | --- | --- | --- |
+| `dimens-team` | 先确认团队、成员、项目上下文 | `teamId` 或项目链接上下文 | `projectId` | 所有系统建设的上游基础；上下文不对，后面所有资源结论都不稳 |
+| `dimens-project` | 创建项目并推进到可直接搭表的初始化阶段 | `teamId`, `name` | `description`, `projectType` | 系统落地先有项目容器，项目资源更新也遵循“先读再改再更” |
+| `dimens-table` | 设计表、字段、关联、示例数据、视图、查询案例 | `projectId`, `sheetId` 视场景而定 | `teamId`, `viewId` | 这是系统搭建主力 Skill；表、字段、行更新都先拿当前数据再更新 |
+| `dimens-project` 文档主链 | 创建并维护在线文档 | `teamId`, `projectId`, `documentId` 视场景而定 | `version`, `content` | 文档默认不是一次性资源，更新前先 `doc info`，涉及附件/图片先上传拿 `url` |
+| `dimens-permission` | 设计角色、权限、行级策略、公开访问边界 | `projectId` | `sheetId`, `roleId` | 权限更新类操作也统一先读当前记录再更新 |
+| `dimens-workflow` | 处理审批、自动化、AI 分析、流程节点 | `teamId` | `projectId`, `flowId`, `label` | 先分清团队定义、项目挂载、运行调用三层 |
+| `dimens-report` | 设计报表、组件、参数、数据源和查询链路 | `projectId` | `reportId`, `widgetId`, `dataSource` | 固定预检链是 `report create -> preview -> widget-add -> query-widget -> query`，更新也先拿当前数据 |
+| `dimens-key-auth` | 处理第三方接入、Key 登录、token 复用 | `apiKey`, `apiSecret` | `baseUrl` | 这是外部接入入口，不改变内部资源更新流程 |
+
+### 强调细节
+
+- 系统级总控不直接替代具体资源命令，但必须把统一流程讲清楚：所有更新类操作都走“拿数据 -> 改数据 -> 更新数据”。
+- 系统里只要涉及封面、图片、附件、文件资源，就统一先上传拿 `url`，再把 `url` 写回项目、文档或其他业务数据。
+- 总控 Skill 的职责是先拆清项目、表、文档、报表、权限等模块，再把命令链路路由到对应子 Skill，不是直接跳到某个局部命令。
+- 如果用户直接说“帮我搭系统”，默认先输出系统拆解、表结构、关联、案例数据，再决定要不要进入文档、报表、权限、工作流等后置模块。
 
 ## 核心约束
 
 ### 1. 这是编排 Skill，不是模板 Skill
-
-- 不要把“客户管理系统”的全部实现细节硬编码在这个 Skill 里
 - 它的职责是识别系统建设任务，并把任务拆给合适的业务 Skill
 - 同一个系统需求，可以根据业务复杂度路由到不同的 Skill 组合
 
@@ -246,6 +252,32 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 - “系统搭建到角色 / 项目权限落地”的默认主链是 `角色 -> 项目/表级权限 -> 用户绑定 -> 行级策略`
 - `row-acl` 属于精细化例外授权，不应替代角色和项目权限主链
 
+### 第三步补充：图片与文件上传需求
+
+当用户提到图片上传、附件管理、合同附件等需求时：
+
+1. 路由到 `dimens-table`
+2. 使用命令：`dimens-cli file --file 文件路径`
+
+返回的字段：
+```
+{
+  "fileId": "5a680bc1-3d8c-11f1-ad14-e986c295229d",
+  "storageType": "local",
+  "url": "/upload/20260421/5a680bc0-3d8c-11f1-ad14-e986c295229d.png",
+  "name": "35ebba90-3cbe-11f1-a6a1-c96f4f9f4e56.png",
+  "size": 37101,
+  "type": "image/png",
+  "mimeType": "image/png",
+  "ext": ".png"
+}
+```
+
+说明：
+用户将放回的数据获取 url，将 url 存储到业务需要的字段中
+项目封面 250-150 像素图片等等这种要求
+
+
 ### 第四步：输出系统方案
 
 输出内容至少包括：
@@ -283,8 +315,8 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 默认动作：
 
 1. 识别这是系统级建设任务
-2. 先拆出客户、联系人、跟进、商机四张核心表
-3. 同时补出项目文档资源和经营看板资源，不要只有表
+2. 先拆出客户、联系人、跟进、商机四张核心表以及目录结构
+3. 同时补出项目文档资源和经营看板资源，不要只有表，要一个完善的菜单体系
 4. 先补字段设计、关联关系、示例行数据和常用查询案例
 5. 默认优先路由到 `dimens-team`、`dimens-project`、`dimens-table`
 6. 如果用户要求项目闭环，再继续补文档主链和 `dimens-report`
@@ -311,7 +343,11 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 
 5. 售后制度、处理规范、操作说明默认走在线文档资源，不要只靠表备注字段代替
 
-### 场景 3：用户直接给一个维表链接
+### 场景 3：用户需要修改项目或者查看项目数据
+
+
+#### 项目级别操作
+这个操作是要对这个项目进行处理工作，而不是直接给创建命令
 
 例如：
 
@@ -326,6 +362,23 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 3. 把这组上下文交给 `dimens-team`、`dimens-project` 和 `dimens-table`
 4. 后续命令示例默认显式带上这两个 ID，避免上下文漂移
 
+#### 菜单 表 报表 文档级别操作 
+
+> 数据修改原则，先拉取数据，分析数据，处理数据 在更新数据 。
+
+用户用于获取数据分析， 修改数据，删除数据等等操作
+
+https://dimens.bintelai.com/#/TTFFEN/PLVHYDW/sh_Md3EwjVIgzwuH8Ji?view=view_6Xl9H4sqdsB3
+
+1. 直接解析 `teamId=TTFFEN`
+2. 直接解析 `projectId=PXWXBJQ`
+3. 菜单 ID 为 `sheetId=sh_Md3EwjVIgzwuH8Ji`
+3. 把这组上下文交给 `dimens-team`、`dimens-project` 和 `dimens-table`
+4. 后续命令示例默认显式带上这三个 ID，避免上下文漂移
+
+
+
+
 ## 常见错误与排查
 
 | 错误现象 | 根本原因 | 解决方案 |
@@ -337,6 +390,7 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 路由到报表后直接给 `widget-add` | 跳过了固定预检链 | 至少补上 `report preview` 和 `report query-widget` |
 | 用户只问一个具体问题却触发总控 Skill | 触发范围过宽 | 判断是否真的是“系统建设需求” |
 | 方案还没确认就开始执行 | 违背“先方案，后执行” | 先输出模块和子 Skill 方案，再等确认 |
+｜ 修改数据直接修改｜ 违背先获取数据 在修改数据 ｜ 先获取数据，再根据获取的数据进行替换修改｜
 
 ## 参考文档
 

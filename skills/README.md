@@ -317,18 +317,18 @@ skills/
     └── references/
 ```
 
-### 6.1 `SKILL.md` 的职责
+### 7.1 `SKILL.md` 的职责
 
 每个主 `SKILL.md` 负责：
 
 - frontmatter 中定义 Skill 名称与触发条件
 - 给出执行前必读
-- 给出快速索引
+- 给出命令维护表
 - 给出核心约束
 - 给出必查 Skill
 - 给出高频使用场景
 
-### 6.2 `rules/` 与 `assets/` 的职责
+### 7.2 `rules/` 与 `assets/` 的职责
 
 - `rules/`：兼容 ClawHub / OpenClaw 等平台的规则目录扫描
 - `assets/`：兼容平台资源目录要求，并统一承接封面、图标、截图等视觉资源说明
@@ -339,7 +339,7 @@ skills/
 
 - `assets-命名规范.md`
 
-### 6.3 `references/` 的职责
+### 7.3 `references/` 的职责
 
 `references/` 用来承接：
 
@@ -349,7 +349,7 @@ skills/
 - 特定专题说明
 - 不适合塞进主 `SKILL.md` 的补充知识
 
-## 7. Skill 之间如何互相调用
+## 8. Skill 之间如何互相调用
 
 这是一个独立 Skill 体系，所以默认只允许 Skill 之间互相路由。
 
@@ -373,7 +373,7 @@ skills/
 3. 如果要生成组件，再看 `dimens-report/references/recharts-widget-guide.md`
 4. 如果要看接口和命令案例，再看 `dimens-report/references/examples.md`
 
-## 8. Skill 体系的产品统一口径
+## 9. Skill 体系的产品统一口径
 
 后续新增或修改 Skill 时，统一使用以下产品口径：
 
@@ -383,7 +383,7 @@ skills/
 
 不要再混用模糊名称作为主产品名。
 
-## 9. 当前推荐阅读顺序
+## 10. 当前推荐阅读顺序
 
 当前建议按下面顺序查：
 
@@ -396,7 +396,7 @@ skills/
 7. 如果是报表生成类需求，优先先看 `dimens-report`，并按 `report create -> report preview -> report widget-add -> report query-widget -> report query` 的固定预检链执行
 8. 需要接口级细节时，再继续看对应 Skill 下的 `references/*.md`
 
-### 9.1 报表类需求的默认防跑偏规则
+### 10.1 报表类需求的默认防跑偏规则
 
 如果问题落到报表：
 
@@ -405,9 +405,9 @@ skills/
 3. 如果是多维表格数据源，不要直接输出组件命令，先确认 `sheet.columns + fieldIds + previewMapping + dataMapping`
 4. 如果用户要求“直接生成”，也必须优先给预检步骤，而不是只给最终创建命令
 
-## 10. 发布兼容说明
+## 11. 发布兼容说明
 
-当前 8 个正式技能目录都已经补齐：
+当前 9 个正式技能目录都已经补齐：
 
 - `SKILL.md`
 - `README.md`

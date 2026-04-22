@@ -30,17 +30,28 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ 涉及文件、图片、封面时，统一先走上传接口拿 `url`，再把 `url` 写回当前业务数据后更新
 - ✅ 如果用户目标是“生成系统并自动规划表、权限、报表”，优先回到 `dimens-system-orchestrator`，不要把 SDK 接入问题误当成系统设计问题
 
-## 快速索引：接入意图 → 推荐路径 → 关键参数 / 说明
+## 命令维护表
 
-| 接入意图 | 优先路径 | 关键参数 | 说明 |
-| --- | --- | --- | --- |
-| Node 服务端 / Next.js Route Handler / BFF 调用维表 | `@bintel/dimens-cli` SDK | `baseUrl`, `token`, `teamId`, `projectId` | 适合封装服务层，避免在客户端暴露密钥 |
-| 前端项目接入 SDK | 前端二次封装 SDK | `token`, `teamId`, `projectId` | 推荐初始化时写入 `teamId/projectId`，页面后续直接调用封装方法 |
-| Web/H5 已拿到用户 token，直接请求接口 | HTTP 直连 | `Authorization`, `teamId`, `projectId` | 适合少量直连接口；如果要长期维护，优先继续封装 SDK 层 |
-| App / 小程序 / H5 用 API Key 对接 | `服务端换 token + 客户端用 token` | `apiKey`, `apiSecret` | 不建议在端上直接存 `apiSecret` |
-| 第三方系统接入表格 / 文档 / 报表 | SDK 或 HTTP 均可 | `teamId`, `projectId`, 资源 ID | 先分清资源域再选接口 |
-| AI 对话 / 工作流聊天兼容调用 | `sdk.ai.completions` 或 HTTP | `teamId`, `messages`, `model` | 这是工作流兼容入口，不等于全部工作流管理能力 |
-| 文件上传再写入文档 | `sdk.upload` + `sdk.document` 或 HTTP | `file`, `teamId`, `projectId`, `documentId` | 统一先上传拿 `url`，再读取当前文档数据并写回 |
+| 命令 / 路径 | 作用 | 必填参数 | 常用可选 | 细节说明 |
+| --- | --- | --- | --- | --- |
+| `createSDK` / `@bintel/dimens-cli` SDK | 在 Node、BFF、SSR 场景创建统一 SDK 客户端 | `baseUrl`, `token` | `teamId`, `projectId` | 更适合服务端聚合层，不建议默认把高权限密钥直接放浏览器端 |
+| 前端二次封装 SDK | 在前端项目里封一层应用级 SDK | `token`, `teamId`, `projectId` | `refresh`, `retry`, `logout` | 推荐初始化时固化 `teamId/projectId`，页面只调用业务封装方法 |
+| HTTP 直连业务接口 | 已拿到用户 token 时直接调接口 | `Authorization` | `teamId`, `projectId`, 资源 ID | 适合少量直连；长期维护建议继续封装 SDK 或 BFF |
+| `dimens-cli auth api-key-login` / API Key 换 token | 第三方或服务端通过 API Key 换 token | `apiKey`, `apiSecret` | `baseUrl` | 不建议在端上直接保存 `apiSecret`，优先放到服务端或 BFF |
+| `sdk.ai.completions` / `/app/flow/:teamId/v1/chat/completions` | 调用 AI 聊天兼容接口 | `teamId`, `messages` | `model`, `temperature`, `stream` | 这是工作流兼容入口，不等于完整工作流管理能力 |
+| `sdk.upload` / `/app/base/comm/upload` | 上传文件、图片、封面并获取 `url` | `file` | `teamId`, `projectId`, `scene` | 资源类更新统一先上传拿 `url`，再写回业务数据 |
+| `sdk.document.info` + `sdk.document.update` | 读取并更新在线文档 | `teamId`, `projectId`, `documentId` | `content`, `version` | 文档更新统一先读当前内容和 `version`，再修改后更新 |
+| `sdk.project.info` + `sdk.project.update` | 读取并更新项目信息 | `teamId`, `projectId` | `name`, `description`, `cover`, `icon` | 项目资源更新也统一遵循“先读再改再更” |
+| `sdk.sheet.info` / `sdk.column.list` / `sdk.row.page` + 对应 update | 读取并更新表、字段、行 | `teamId`, `projectId`, 资源 ID | `version`, `config`, `data` | 行和单元格更新链路有 `version`，不能跳过并发控制 |
+| `sdk.report.info` + `sdk.report.update` / `sdk.report.widgetUpdate` | 读取并更新报表与组件 | `projectId`, `reportId` 或 `widgetId` | `dataSource`, `dataMapping`, `chartConfig` | 报表和组件更新都先拿当前数据，再合并目标变更 |
+
+### 强调细节
+
+- SDK 和 HTTP 接入只是调用方式不同，不改变业务更新模型；所有更新类接口统一按“拿数据 -> 改数据 -> 更新数据”设计调用链。
+- 所有文件、图片、封面、文档附件类资源都统一先走上传拿 `url`，再把 `url` 写回当前业务数据。
+- 文档、行、单元格等更新链路要注意 `version`，不能跳过并发控制。
+- `apiKey + apiSecret` 只是换 token 的登录方式，不是独立权限体系；登录成功后仍然按用户原权限裁决。
+- 前端如果要“初始化一次，后面直接调”，推荐自己再包一层应用级 SDK，不要把底层显式参数调用直接散落在页面里。
 
 ## 核心约束
 
