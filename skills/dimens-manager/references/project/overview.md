@@ -28,7 +28,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - ✅ 如果用户只是查团队、成员、租户隔离，优先回到 `dimens-manager/references/team/overview.md`
 - ✅ 如果用户已经明确要建表和字段，项目创建完成后应继续路由到 `dimens-manager/references/table/overview.md`
 - ✅ 项目初始化时不要只想到多维表格和报表，文档也是项目内的核心资源；在线文档走 TipTap 富文本链路，文档主链默认是 `doc create -> doc info -> doc update -> doc delete`
-- ✅ 在线文档默认不是纯文本备注，而是 TipTap 富文本内容；技能输出文档内容时，要主动考虑标题层级、提示色块、状态标签、正文样式和附件区
+- ✅ 在线文档默认不是纯文本备注，而是 TipTap 富文本内容；用户创建文档时，默认要具备标题层级、彩色状态标签、淡色提示块/摘要卡片、正文样式和附件区，避免只有黑白文字的单调文档
 - ✅ 富文本编辑器已支持 Mermaid 数据；业务流程图、审批流、状态流转、系统对接链路可以直接写入文档，不必截图上传
 - ✅ 当前服务端文档内容允许保留 `class`、`style`、`data-video`、`data-attachment`、`data-file-name`、`data-file-size` 等属性，适合承接富文本样式和附件节点
 - ✅ 文件/图片上传在产品侧已存在 `/app/base/comm/upload` 上传接口，`dimens-cli` 也已支持 `upload file / upload mode`；如果目标是把文件继续写入在线文档，优先走 `doc attach-file / doc append-image`
@@ -52,7 +52,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - 不要只建表格，不补文档和报表入口
 - 不要漏掉项目菜单和目录；只创建资源、不做目录归位，后续导航和展示会很乱
 - 不要把在线文档误解成只创建一次、不需要维护的资源
-- 不要把 TipTap 文档写成没有层级、没有状态、没有颜色语义的一整块纯文本
+- 不要把 TipTap 文档写成没有层级、没有状态、没有颜色语义的一整块纯文本；默认至少补 2-3 处有意义的颜色表达
 - 不要把上传能力和文档写回能力混为一谈；当前应明确区分 `upload file / upload mode` 与 `doc attach-file / doc append-image`
 - 不要把任何 update 命令理解成只传改动字段就够了；默认先读取当前数据，再合并目标变更
 - 不要在创建项目时忽略封面表达；如果项目是对外展示型、模板型、知识库型、品牌型项目，优先补 SVG 动态封面再创建
@@ -142,7 +142,8 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
   1. 用 SVG 工具生成封面
   2. 上传 SVG，拿到 URL
   3. 再进入项目创建主链
-- TipTap 文档内容建议至少按“标题 / 段落 / 状态提示 / 清单 / 附件”组织，不要退化成一整段 HTML
+- TipTap 文档内容建议至少按“标题 / 段落 / 彩色摘要卡片 / 状态标签 / 提示块 / 清单 / 附件”组织，不要退化成一整段 HTML 或黑白纯文本
+- 彩色表达必须服务于信息语义：蓝色用于说明或进行中，绿色用于完成或正常，橙色用于待确认或警告，红色用于风险或异常，紫色用于分类或强调
 - 如果文档内容涉及流程、审批、状态流转、系统对接或数据流，默认补一个 Mermaid 图表块，例如 `flowchart TD`、`sequenceDiagram` 或 `stateDiagram-v2`
 - 如果文档里包含图片、附件、视频，先区分两层：
   1. 上传能力层：`upload file / upload mode`

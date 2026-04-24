@@ -48,17 +48,17 @@
 
 1. 主标题
 2. 简介段落
-3. 状态区或提示区
+3. 彩色摘要卡片 / 状态区 / 提示区
 4. 小节标题
 5. 列表或步骤
 6. 附件 / 图片 / 相关链接
 7. 业务流程图 / 数据流图 / 审批流图（Mermaid）
 
-不要直接输出一大段没有层次的正文。
+不要直接输出一大段没有层次的正文，也不要生成只有黑白文字的单调文档。
 
 ## 4. 颜色与状态要怎么控
 
-文档里如果有“状态”“风险”“提示”“类型”等语义，建议显式带颜色语义。
+文档里如果有“状态”“风险”“提示”“类型”等语义，必须显式带颜色语义。用户创建文档时，默认要生成更生动的富文本，而不是纯黑白文本。
 
 推荐语义如下：
 
@@ -70,12 +70,26 @@
 | 警告 / 待确认 | `yellow` 或 `orange` |
 | 驳回 / 风险 / 异常 | `rose` 或 `red` |
 | 分类标签 / 辅助强调 | `purple` / `indigo` / `pink` |
+| 背景卡片 / 信息摘要 | 淡色背景 + 深色文字，例如 `#eff6ff/#1d4ed8`、`#f5f3ff/#6d28d9` |
 
 要求：
 
 - 同一篇文档内，颜色语义要稳定
 - 不要一段一个色，颜色必须服务于信息层级
 - 状态类内容最好采用标签、提示块、卡片摘要，而不是只靠文字描述
+- 默认至少包含 2-3 处有意义的颜色表达：一个状态标签、一个提示块或摘要卡片、一个重点/风险区
+- 色彩比例建议控制在“正文为主、彩色点缀”，不要整篇大面积高饱和背景
+- 背景优先用淡色系，文字使用对应深色，保证可读性
+
+推荐组件写法：
+
+| 组件 | 适合内容 | 写法提示 |
+| --- | --- | --- |
+| 彩色状态标签 | 发布中、已完成、待确认、风险 | `span` + 淡色背景 + 圆角 |
+| 摘要卡片 | 项目目标、当前进度、关键结论 | `div` + 淡色背景 + 左边框 |
+| 风险提示块 | 注意事项、阻塞、权限风险 | 橙/红淡色背景，文字简洁 |
+| 信息提示块 | 操作提示、使用说明、下一步 | 蓝/紫淡色背景 |
+| Mermaid 图表块 | 流程、审批、状态流转 | `pre data-type="mermaid"` |
 
 ## 5. 文档内容类型建议
 
@@ -86,6 +100,7 @@ Skill 生成文档时，建议至少控制下面几类内容：
 | 标题 | `h1/h2/h3` 层级 |
 | 正文说明 | 段落 |
 | 关键状态 | 彩色标签或提示块 |
+| 项目摘要 / 关键结论 | 彩色摘要卡片 |
 | 步骤说明 | 有序列表 |
 | 注意事项 | 警示块 / 加粗提示 |
 | 示例数据 | 列表、表格、代码块 |
@@ -176,6 +191,8 @@ flowchart TD
 - 有标题
 - 有正文
 - 有一个带颜色语义的状态区或提示区
+- 至少有一个彩色摘要卡片或提示块，避免整篇黑白单调
+- 状态、风险、提示、结论要使用不同但稳定的颜色语义
 - 如果内容涉及流程、审批、状态流转或系统对接，优先补一个 Mermaid 图表块
 
 如果是操作手册、制度、知识库页面，建议再补：
@@ -191,6 +208,9 @@ flowchart TD
 ```html
 <h1>项目发布说明</h1>
 <p>本文档用于说明本次版本的上线范围、状态和附件资料。</p>
+<div style="background:#eff6ff;color:#1d4ed8;border-left:4px solid #60a5fa;padding:12px 14px;border-radius:10px;margin:12px 0;">
+  <strong>发布摘要：</strong>本次发布聚焦文档富文本、字段颜色规范和附件能力补齐。
+</div>
 <p>
   <span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:999px;">发布中</span>
   <span style="background:#ecfdf5;color:#047857;padding:2px 8px;border-radius:999px;margin-left:8px;">已校验</span>
@@ -205,7 +225,29 @@ flowchart TD
 <p data-attachment="true" data-file-name="发布清单.pdf" data-file-size="245760">发布清单.pdf</p>
 ```
 
-### 9.1 带 Mermaid 的业务流程片段
+### 9.1 生动文档片段模板
+
+```html
+<h1>客户管理系统说明</h1>
+<div style="background:#f5f3ff;color:#6d28d9;border-left:4px solid #a78bfa;padding:12px 14px;border-radius:10px;margin:12px 0;">
+  <strong>系统定位：</strong>统一沉淀客户资料、跟进过程、商机转化和合同结果。
+</div>
+<p>
+  <span style="background:#ecfdf5;color:#047857;padding:2px 8px;border-radius:999px;">适合销售团队</span>
+  <span style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:999px;margin-left:8px;">需补权限策略</span>
+</p>
+<h2>核心模块</h2>
+<ul>
+  <li><strong style="color:#2563eb;">客户资料：</strong>客户基础信息、联系人、来源渠道。</li>
+  <li><strong style="color:#7c3aed;">销售过程：</strong>跟进记录、商机阶段、合同结果。</li>
+  <li><strong style="color:#059669;">经营分析：</strong>客户来源、转化漏斗、合同趋势。</li>
+</ul>
+<div style="background:#fff7ed;color:#c2410c;border-left:4px solid #fb923c;padding:12px 14px;border-radius:10px;margin:12px 0;">
+  <strong>注意：</strong>上线前请确认角色权限、行级可见范围和报表数据源。
+</div>
+```
+
+### 9.2 带 Mermaid 的业务流程片段
 
 ```html
 <h1>客户管理流程</h1>
@@ -222,6 +264,8 @@ flowchart TD
 
 - 不要把在线文档当成纯文本备注字段
 - 不要完全不写颜色语义，导致状态信息不可视
+- 不要生成只有黑白文字的单调文档；默认至少补状态标签、摘要卡片或提示块
+- 不要为了“好看”乱用颜色；颜色必须对应状态、风险、提示、模块或结论
 - 不要忽略 `upload file / upload mode / doc attach-file / doc append-image` 这条现成主链
 - 不要只放图片 URL，不说明图片/附件在文档中的用途
 - 不要把 Mermaid 图当截图上传；能用 Mermaid 数据表达的业务流程图，优先写入文档内容，便于后续编辑和版本管理

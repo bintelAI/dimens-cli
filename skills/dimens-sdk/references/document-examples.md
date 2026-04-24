@@ -5,7 +5,10 @@
 ```ts
 const result = await sdk.document.createWithSheet('TEAM1', 'PROJ1', {
   title: '项目说明',
-  content: '<h1>项目说明</h1><p>这里是项目介绍。</p>',
+  content:
+    '<h1>项目说明</h1>' +
+    '<div style="background:#eff6ff;color:#1d4ed8;border-left:4px solid #60a5fa;padding:12px 14px;border-radius:10px;margin:12px 0;"><strong>项目摘要：</strong>这里是项目目标、范围和当前状态。</div>' +
+    '<p><span style="background:#ecfdf5;color:#047857;padding:2px 8px;border-radius:999px;">已初始化</span><span style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:999px;margin-left:8px;">待补权限</span></p>',
   format: 'richtext',
 });
 ```
@@ -14,6 +17,7 @@ const result = await sdk.document.createWithSheet('TEAM1', 'PROJ1', {
 
 - 适合项目初始化时补一份在线说明
 - 返回结果里同时包含文档和挂载的 sheet 信息
+- 创建文档时不要只写黑白正文，默认加入淡色摘要卡片、状态标签或提示块，让文档更生动
 
 ## 2. 查询文档详情
 
@@ -39,6 +43,7 @@ await sdk.document.update('TEAM1', 'PROJ1', {
 
 - 文档更新默认不要直接手填旧 `version`
 - 统一先 `info` 读取当前数据，再修改内容，再调用 `update`
+- 富文本内容建议用颜色表达状态、风险和提示，但颜色要服务于信息语义
 
 ## 4. 先查详情再更新，避免版本冲突
 
@@ -134,3 +139,4 @@ await fetch(
 - 不要跳过“先拿数据 -> 改数据 -> 更新数据”这条统一更新流程
 - 不要上传完文件后直接假设业务数据已更新；要把返回的 `url` 写回当前文档内容后再 update
 - 不要把 Mermaid 业务流程图截图上传；优先写入 Mermaid 数据，方便版本维护
+- 不要生成只有黑白文字的单调文档；默认至少补状态标签、摘要卡片或提示块

@@ -201,7 +201,8 @@ dimens-cli doc restore \
 
 - 文档维护主链是 `doc create / doc info / doc update / doc delete`
 - 如果要回看历史版本或恢复旧内容，继续走 `doc versions / doc version / doc restore`
-- 文档内容默认按 TipTap 富文本理解，不要退化成纯文本备注
+- 文档内容默认按 TipTap 富文本理解，不要退化成纯文本备注或黑白单调页面
+- 用户创建文档时，默认至少补状态标签、淡色摘要卡片或提示块，让文档更生动但保持可读
 - 如果文档涉及业务流程、审批流、状态流转或系统对接，优先用 Mermaid 图表块写入文档内容，不要截图上传
 - 如果文档里要放状态标签、提示色块、图片或附件，先参考 `doc-richtext-guidelines.md`
 
@@ -215,13 +216,14 @@ dimens-cli doc update \
   --version 1 \
   --create-version true \
   --change-summary 补充发布状态 \
-  --content '<h1>项目发布说明</h1><p>本次发布包含字段颜色规范与文档规范。</p><p><span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:999px;">发布中</span><span style="background:#ecfdf5;color:#047857;padding:2px 8px;border-radius:999px;margin-left:8px;">已校验</span></p>'
+  --content '<h1>项目发布说明</h1><div style="background:#eff6ff;color:#1d4ed8;border-left:4px solid #60a5fa;padding:12px 14px;border-radius:10px;margin:12px 0;"><strong>发布摘要：</strong>本次发布包含字段颜色规范、文档规范和附件能力。</div><p><span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:999px;">发布中</span><span style="background:#ecfdf5;color:#047857;padding:2px 8px;border-radius:999px;margin-left:8px;">已校验</span></p>'
 ```
 
 说明：
 
 - 这是当前 CLI 已能直接承接的能力，因为 `doc update` 支持直接传富文本内容
 - 样式要服务于状态语义，不要把整篇文档写满颜色
+- 建议使用淡色背景卡片、状态标签和提示块点缀，不要只生成黑白正文
 
 ## 5.2 带 Mermaid 业务流程图的文档更新示例
 
