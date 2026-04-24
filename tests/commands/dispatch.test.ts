@@ -134,8 +134,8 @@ describe('CLI Dispatch', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('相关 Skill');
-    expect(output).toContain('dimens-team');
-    expect(output).toContain('dimens-project');
+    expect(output).toContain('dimens-manager');
+    expect(output).toContain('dimens-manager');
     logSpy.mockRestore();
   });
 
@@ -150,8 +150,8 @@ describe('CLI Dispatch', () => {
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('"success": false');
     expect(output).toContain('"relatedSkills"');
-    expect(output).toContain('"dimens-team"');
-    expect(output).toContain('"dimens-project"');
+    expect(output).toContain('"dimens-manager"');
+    expect(output).toContain('"dimens-manager"');
     logSpy.mockRestore();
   });
 
@@ -173,7 +173,7 @@ describe('CLI Dispatch', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('执行前建议关注 Skill');
-    expect(output).toContain('dimens-workflow');
+    expect(output).toContain('dimens-manager');
     logSpy.mockRestore();
   });
 
@@ -219,7 +219,7 @@ describe('CLI Dispatch', () => {
     expect(exitCode).toBe(0);
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
-    expect(output).toContain('# 工作流技能（dimens-workflow）');
+    expect(output).toContain('# 维表智联业务管理技能（dimens-manager）');
     expect(output).toContain('执行前建议关注 Skill');
     logSpy.mockRestore();
   });

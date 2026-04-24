@@ -17,10 +17,10 @@ dimens-cli auth api-key-login \
   --api-secret sk_xxx
 ```
 
-如果还不清楚认证边界，先进入 `dimens-key-auth` 技能目录，再看：
+如果还不清楚认证边界，先进入 `dimens-manager/references/key-auth/overview.md`，再看：
 
-- `dimens-key-auth/references/login-flow.md`
-- `dimens-key-auth/references/examples.md`
+- `dimens-manager/references/key-auth/references/login-flow.md`
+- `dimens-manager/references/key-auth/references/examples.md`
 
 ### 2.2 再确认上下文
 
@@ -47,9 +47,12 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 系统搭建步骤 | 优先命令 | 说明 |
 | --- | --- | --- |
 | 确认团队与项目上下文 | `dimens-cli project list --team-id TEAM_ID` | 系统建设前先确认项目归属 |
-| 创建项目 | `dimens-cli project create --team-id TEAM_ID --name 项目名 [--description 描述] [--project-type spreadsheet]` | 从 `dimens-project` 主链进入，所有表都挂在项目下 |
+| 创建项目 | `dimens-cli project create --team-id TEAM_ID --name 项目名 [--description 描述] [--project-type spreadsheet]` | 从 `dimens-manager/references/project/overview.md` 主链进入，所有表都挂在项目下 |
 | 查看项目详情 | `dimens-cli project info --team-id TEAM_ID --project-id PROJECT_ID` | 校验上下文是否正确 |
-| 创建工作表 | `dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 表名` | 新系统一般先建核心表 |
+| 上传 SVG 封面/图标 | `dimens-cli upload file --path ./project-cover.svg --key covers/project-cover.svg --biz-type project --scene project-cover` | SVG 默认 `250x150px`、淡色背景、轻量动态效果；文件名必须保留 `.svg`，CLI 会按 `image/svg+xml` 上传，上传后再把 URL 写回项目或文档 |
+| 创建目录 | `dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 目录名 --type folder` | 只创建目录节点，不会自动移动其他菜单 |
+| 创建工作表 | `dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 表名 [--folder-id FOLDER_SHEET_ID]` | 新系统一般先建核心表；要进入目录必须显式带 `--folder-id` |
+| 移动已有菜单资源到目录 | `dimens-cli sheet update SHEET_OR_REPORT_ID --team-id TEAM_ID --project-id PROJECT_ID --folder-id FOLDER_SHEET_ID` | 已创建的表格/报表等资源不会因目录创建自动归位，必须单独移动 |
 | 创建在线文档 | `dimens-cli doc create --team-id TEAM_ID --project-id PROJECT_ID --title 文档名 [--content <html>] [--format richtext]` | 在线文档走 TipTap 富文本链路 |
 | 获取在线文档详情 | `dimens-cli doc info --team-id TEAM_ID --project-id PROJECT_ID --document-id DOCUMENT_ID` | 回查文档是否创建成功，或读取当前文档详情 |
 | 更新在线文档 | `dimens-cli doc update --team-id TEAM_ID --project-id PROJECT_ID --document-id DOCUMENT_ID --content '<p>新内容</p>' --version 1 [--create-version true] [--change-summary 说明]` | TipTap 在线文档修改走这里，必须显式带版本号 |
@@ -57,7 +60,7 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 查看文档版本列表 | `dimens-cli doc versions --team-id TEAM_ID --project-id PROJECT_ID --document-id DOCUMENT_ID [--page 1] [--size 20]` | 回查历史版本元数据列表 |
 | 查看指定文档版本 | `dimens-cli doc version --team-id TEAM_ID --project-id PROJECT_ID --document-id DOCUMENT_ID --version 3` | 读取指定历史版本内容 |
 | 恢复文档到指定版本 | `dimens-cli doc restore --team-id TEAM_ID --project-id PROJECT_ID --document-id DOCUMENT_ID --version 3` | 用于错误覆盖后的版本回滚，并生成新的当前版本 |
-| 创建报表 | `dimens-cli report create --project-id PROJECT_ID --name 报表名 [--description 描述] [--type 1]` | 报表属于项目资源，适合经营看板和统计分析 |
+| 创建报表 | `dimens-cli report create --project-id PROJECT_ID --name 报表名 [--description 描述]` | 报表属于项目菜单资源；底层创建 `type=report` 的 sheet，返回 `reportId=sheetId`，适合经营看板和统计分析 |
 | 查看表详情 | `dimens-cli sheet info --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 校验表结构 |
 | 查看报表列表 | `dimens-cli report list --project-id PROJECT_ID` | 校验报表主资源是否已落地 |
 | 查询报表数据 | `dimens-cli report query --project-id PROJECT_ID --report-id REPORT_ID [--params <json>]` | 用于验证报表查询链路 |
@@ -80,40 +83,66 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 - 需要公开访问或外部协同
 - 需要限制协同编辑或资源可见范围
 
-总控 Skill 不应只停留在“可选扩展”，而应直接把路由切到 `dimens-permission`，并给出下面这条命令主链：
+总控 Skill 不应只停留在“可选扩展”，而应直接把路由切到 `dimens-manager/references/permission/overview.md`，并给出下面这条命令主链：
 
 | 系统搭建权限步骤 | 优先命令 | 下一跳 reference |
 | --- | --- | --- |
-| 创建角色 | `dimens-cli role create --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --name 角色名 --description 说明 --can-manage-sheets false --can-edit-schema false --can-edit-data true` | `dimens-permission/references/command-mapping.md` |
-| 给用户绑定项目角色 | `dimens-cli role assign-user --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --role-id ROLE_ID --user-id USER_ID` | `dimens-permission/references/command-mapping.md` |
-| 给用户绑定表级角色 | `dimens-cli role assign-user --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --role-id ROLE_ID --user-id USER_ID --sheet-id SHEET_ID` | `dimens-permission/references/command-mapping.md` |
-| 创建项目 / 表权限 | `dimens-cli permission create --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --role-id ROLE_ID --sheet-id SHEET_ID --data-access private_rw --can-read true --can-write true` | `dimens-permission/references/command-mapping.md` |
-| 设置资源权限 | `dimens-cli permission set-resource --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --role-id ROLE_ID --resource-id RESOURCE_ID --resource-type document --visible true --editable false` | `dimens-permission/references/command-mapping.md` |
-| 增加行级策略 | `dimens-cli row-policy create --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --sheet-id SHEET_ID --role-id ROLE_ID --name 策略名 --effect allow --actions view --conditions '[{\"columnId\":\"createdBy\",\"operator\":\"equals\",\"value\":\"{{currentUser}}\"}]' --priority 10 --match-type and --active true` | `dimens-permission/references/command-mapping.md` |
+| 创建角色 | `dimens-cli role create --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --name 角色名 --description 说明 --can-manage-sheets false --can-edit-schema false --can-edit-data true` | `dimens-manager/references/permission/references/command-mapping.md` |
+| 给用户绑定项目角色 | `dimens-cli role assign-user --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --role-id ROLE_ID --user-id USER_ID` | `dimens-manager/references/permission/references/command-mapping.md` |
+| 给用户绑定表级角色 | `dimens-cli role assign-user --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --role-id ROLE_ID --user-id USER_ID --sheet-id SHEET_ID` | `dimens-manager/references/permission/references/command-mapping.md` |
+| 创建项目 / 表权限 | `dimens-cli permission create --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --role-id ROLE_ID --sheet-id SHEET_ID --data-access private_rw --can-read true --can-write true` | `dimens-manager/references/permission/references/command-mapping.md` |
+| 设置资源权限 | `dimens-cli permission set-resource --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --role-id ROLE_ID --resource-id RESOURCE_ID --resource-type document --visible true --editable false` | `dimens-manager/references/permission/references/command-mapping.md` |
+| 增加行级策略 | `dimens-cli row-policy create --app-url https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/ --sheet-id SHEET_ID --role-id ROLE_ID --name 策略名 --effect allow --actions view --conditions '[{\"columnId\":\"createdBy\",\"operator\":\"equals\",\"value\":\"{{currentUser}}\"}]' --priority 10 --match-type and --active true` | `dimens-manager/references/permission/references/command-mapping.md` |
 
 补充说明：
 
 - 系统搭建落权限时，默认主链是 `role create -> permission create -> role assign-user -> row-policy create`
 - `permission set-resource` 用于文档、报表、页面等资源，不替代表/列/行权限
-- 更完整的参数案例继续看 `dimens-permission/references/examples.md`
-- 更严格的判断边界继续看 `dimens-permission/references/matrix.md`
+- 更完整的参数案例继续看 `dimens-manager/references/key-auth/references/examples.md`
+- 更严格的判断边界继续看 `dimens-manager/references/permission/references/matrix.md`
 
 ## 4. CRM 最小可执行链路
 
 ### 4.1 创建项目
 
 ```bash
+dimens-cli upload file \
+  --path ./project-cover.svg \
+  --key covers/customer-crm.svg \
+  --biz-type project \
+  --scene project-cover \
+  --team-id TEAM_ID
+
 dimens-cli project create \
   --team-id TEAM_ID \
   --name 客户管理系统 \
   --description 客户全生命周期管理 \
   --project-type spreadsheet
+
+dimens-cli project info --team-id TEAM_ID --project-id PROJECT_ID
 ```
+
+`project-cover.svg` 生成要求：`width="250" height="150" viewBox="0 0 250 150"`，淡色背景，使用轻量 `animate` / `animateTransform` 做动态效果，视觉元素与项目主题一致。
+
+如果项目创建后才拿到封面 URL，必须按 `project info -> project update` 写回 URL；不要把“上传成功”当成“项目封面已生效”。
 
 ### 4.2 创建客户表
 
 ```bash
-dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 客户表
+dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 客户中心 --type folder
+
+dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 客户表 --folder-id FOLDER_CUSTOMER_ID
+
+dimens-cli sheet tree --team-id TEAM_ID --project-id PROJECT_ID
+```
+
+`sheet tree` 必须能看到 `客户表` 位于 `客户中心` 目录下，否则还要执行：
+
+```bash
+dimens-cli sheet update SHEET_ID \
+  --team-id TEAM_ID \
+  --project-id PROJECT_ID \
+  --folder-id FOLDER_CUSTOMER_ID
 ```
 
 ### 4.3 创建字段
@@ -141,6 +170,8 @@ dimens-cli column create \
 - `select`、`multiSelect` 等字段在技能链路里必须直接补齐选项值，不要只创空字段
 - 系统初始化不要只考虑表格，默认还要同时判断是否需要在线文档和报表
 - 在线文档走文档主链 `doc create / doc info / doc update / doc delete`，报表走 `report create`；这两类资源都不要误建成普通表
+- 创建目录后必须用 `sheet tree` 验证归位；没有看到子资源在目录下，就不能说菜单整理完成
+- 上传 SVG 后必须确认 URL 已写回项目封面/图标或文档内容；只上传不写回不算完成
 - 如果用户提到历史版本、回滚恢复、旧内容比对，在线文档继续走版本主链 `doc versions / doc version / doc restore`
 - 如果项目本身已经有用户体系、部门体系、内置角色，而字段需求本质是“负责人 / 成员 / 处理人 / 审批人”这类人员选择，则优先使用 `person`
 - 如果字段需求本质是“所属部门 / 负责部门 / 发起部门 / 归属组织”这类组织选择，则优先使用 `department`
@@ -157,8 +188,8 @@ dimens-cli column create \
   --options '[{"label":"A 级客户","color":"bg-blue-100 text-blue-700"},{"label":"B 级客户","color":"bg-slate-100 text-slate-700"}]'
 ```
 
-- relation 字段目前 CLI 只支持基础参数透传，复杂 `relationConfig.displayColumnId / bidirectional` 仍应优先参考 API 结构与 `dimens-table/references/field-design-patterns.md`
-- 如需确认字段结构，优先回看 `dimens-table/references/field-design-patterns.md`
+- relation 字段目前 CLI 只支持基础参数透传，复杂 `relationConfig.displayColumnId / bidirectional` 仍应优先参考 API 结构与 `dimens-manager/references/table/references/field-design-patterns.md`
+- 如需确认字段结构，优先回看 `dimens-manager/references/table/references/field-design-patterns.md`
 - `--options` 推荐传 JSON 数组对象，以便一次补齐颜色等展示配置；逗号分隔字符串仅兼容基础场景
 - 如果遇到“人员下拉”或“部门下拉”这类说法，先判断业务语义，不要直接套用 `--options`
 

@@ -173,10 +173,9 @@ export async function uploadAttachment(token: string, filePath: string) {
 export async function createSalesReport(token: string, projectId: string) {
   const sdk = createDimensService(token);
 
-  const report = await sdk.report.create(projectId, {
+  const report = await sdk.report.createProjectReport(projectId, {
     name: '销售汇总',
     description: '销售核心指标看板',
-    type: 'dashboard',
   });
 
   await sdk.report.preview(projectId, {
@@ -189,6 +188,8 @@ export async function createSalesReport(token: string, projectId: string) {
   return report.data;
 }
 ```
+
+注意：当前新建项目报表走项目菜单 `sheet/create type=report` 链路，SDK 会把服务端返回的 `sheetId` 兼容成 `reportId`。不要在 BFF 新建报表时继续调用旧 `sdk.report.create()` 并期待后端直接返回 `data.reportId`。
 
 ## 10. BFF 调用 AI 聊天兼容接口
 

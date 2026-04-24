@@ -212,4 +212,4 @@ await fetch(`https://dimens.bintelai.com/api/app/flow/${teamId}/v1/chat/completi
 说明：
 
 - 适合对话型页面
-- 如果要处理工作流挂载问题，回到 `dimens-workflow`
+- 如果要处理工作流挂载问题，回到 `dimens-manager/references/workflow/overview.md`

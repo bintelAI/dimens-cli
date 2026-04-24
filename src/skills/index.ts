@@ -91,10 +91,25 @@ function listReferenceFiles(referencesDir: string): string[] {
     return [];
   }
 
-  return readdirSync(referencesDir)
-    .filter(file => file.endsWith('.md'))
-    .sort()
-    .map(file => join(referencesDir, file));
+  const files: string[] = [];
+  const walk = (dir: string) => {
+    readdirSync(dir)
+      .sort()
+      .forEach(entry => {
+        const entryPath = join(dir, entry);
+        const stat = statSync(entryPath);
+        if (stat.isDirectory()) {
+          walk(entryPath);
+          return;
+        }
+        if (stat.isFile() && entry.endsWith('.md')) {
+          files.push(entryPath);
+        }
+      });
+  };
+
+  walk(referencesDir);
+  return files;
 }
 
 function loadSkillFromDirectory(skillDir: string): Skill | undefined {

@@ -286,6 +286,11 @@ const reportSdkSpies = {
     message: 'success',
     data: { reportId: 'REPORT_1' },
   })),
+  createProjectReport: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: { reportId: 'sh_report_1', sheetId: 'sh_report_1', name: '销售漏斗' },
+  })),
   info: vi.fn(async () => ({
     code: 1000,
     message: 'success',
@@ -458,6 +463,9 @@ vi.mock('../../src/sdk/report', () => {
       async create(...args: unknown[]) {
         return reportSdkSpies.create(...args);
       }
+      async createProjectReport(...args: unknown[]) {
+        return reportSdkSpies.createProjectReport(...args);
+      }
       async update(...args: unknown[]) {
         return reportSdkSpies.update(...args);
       }
@@ -539,6 +547,7 @@ describe('Sheet Column Row Commands', () => {
     uploadSdkSpies.uploadFile.mockClear();
     reportSdkSpies.list.mockClear();
     reportSdkSpies.create.mockClear();
+    reportSdkSpies.createProjectReport.mockClear();
     reportSdkSpies.info.mockClear();
     reportSdkSpies.update.mockClear();
     reportSdkSpies.copy.mockClear();
@@ -661,6 +670,42 @@ describe('Sheet Column Row Commands', () => {
       version: 1,
       createVersion: true,
       changeSummary: '补充说明',
+    });
+    expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  it('should execute doc update command with mermaid richtext content', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const content = '<h1>审批流程</h1><pre data-type="mermaid"><code>flowchart TD\nA[提交] --> B[审批]</code></pre>';
+
+    registerCommands();
+    const updateDoc = getCommandGroup('doc')?.commands.find(command => command.name === 'update');
+    await updateDoc?.handler([
+      '--team-id',
+      'TEAM1',
+      '--project-id',
+      'PROJ1',
+      '--document-id',
+      'DOC_1',
+      '--content',
+      content,
+      '--version',
+      '2',
+      '--create-version',
+      'true',
+      '--change-summary',
+      '补充 Mermaid 流程图',
+    ]);
+
+    expect(documentSdkSpies.update).toHaveBeenCalledWith('TEAM1', 'PROJ1', {
+      documentId: 'DOC_1',
+      content,
+      version: 2,
+      createVersion: true,
+      changeSummary: '补充 Mermaid 流程图',
     });
     expect(logSpy).toHaveBeenCalled();
     logSpy.mockRestore();
@@ -918,16 +963,18 @@ describe('Sheet Column Row Commands', () => {
       '销售漏斗',
       '--description',
       '月度销售漏斗',
-      '--type',
-      '1',
     ]);
 
-    expect(reportSdkSpies.create).toHaveBeenCalledWith('PROJ1', {
+    expect(reportSdkSpies.create).not.toHaveBeenCalled();
+    expect(reportSdkSpies.createProjectReport).toHaveBeenCalledWith('PROJ1', {
       name: '销售漏斗',
       description: '月度销售漏斗',
-      type: 1,
+      dashboardId: expect.any(String),
+      createdAt: expect.any(Number),
     });
     expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('reportId');
     logSpy.mockRestore();
   });
 
@@ -1343,6 +1390,35 @@ describe('Sheet Column Row Commands', () => {
     expect(sheetSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1');
     expect(sheetSdkSpies.update).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
       name: '客户中心',
+    });
+    expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  it('should execute sheet update with folder move payload', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const updateSheet = getCommandGroup('sheet')?.commands.find(
+      command => command.name === 'update'
+    );
+    await updateSheet?.handler([
+      '--team-id',
+      'TEAM1',
+      '--project-id',
+      'PROJ1',
+      '--sheet-id',
+      'S1',
+      '--folder-id',
+      'folder_customer',
+    ]);
+
+    expect(sheetSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1');
+    expect(sheetSdkSpies.update).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      name: '旧名称',
+      folderId: 'folder_customer',
     });
     expect(logSpy).toHaveBeenCalled();
     logSpy.mockRestore();

@@ -173,25 +173,29 @@ export function registerSheetCommands(): void {
           const sdk = new SheetSDK(createClient(context));
           const currentSheetResult = await sdk.info(teamId, projectId, sheetId);
           const currentSheet = currentSheetResult.data;
-          const payload: { name?: string } = {};
+          const payload: { name?: string; folderId?: string } = {};
           if (typeof currentSheet.name === 'string') {
             payload.name = currentSheet.name;
           }
           if (flags.name) {
             payload.name = flags.name;
           }
+          if (flags['folder-id']) {
+            payload.folderId = flags['folder-id'];
+          }
           const result = await sdk.update(teamId, projectId, sheetId, payload);
-          printSuccess(context, '表更新成功', result.data);
+          printSuccess(context, '资源节点更新成功', result.data);
         } catch (error) {
           printError(context, error);
         }
       },
       {
         usage:
-          'sheet update <sheetId> [--name <name>] [--project-id <projectId>] [--team-id <teamId>] [--app-url <url>]',
+          'sheet update <sheetId> [--name <name>] [--folder-id <folderSheetId>] [--project-id <projectId>] [--team-id <teamId>] [--app-url <url>]',
         examples: [
           'sheet update folder_customer --team-id TEAM1 --project-id PROJ1 --name 客户中心',
           'sheet update sheet_customer --team-id TEAM1 --project-id PROJ1 --name 客户主表',
+          'sheet update sheet_customer --team-id TEAM1 --project-id PROJ1 --folder-id folder_customer',
         ],
       }
     )

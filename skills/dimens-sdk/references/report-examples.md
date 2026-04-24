@@ -3,15 +3,19 @@
 ## 1. 创建报表主资源
 
 ```ts
-const report = await sdk.report.create('PROJ1', {
+const report = await sdk.report.createProjectReport('PROJ1', {
   name: '销售漏斗看板',
   description: '用于查看客户转化情况',
-  type: 'dashboard',
 });
+
+const reportId = report.data.reportId;
 ```
 
 说明：
 
+- 当前产品创建报表走项目菜单资源链路：`/app/mul/project/:projectId/sheet/create`
+- 请求体固定使用 `type: 'report'`，SDK 会自动组装 `config.dashboardConfig`
+- 服务端返回的是 `sheetId`，SDK 会兼容补齐 `reportId = sheetId`
 - 这里只是创建报表主资源
 - 还不代表组件和查询链路已可用
 
@@ -117,11 +121,12 @@ await fetch(`https://dimens.bintelai.com/api/app/report/query/${projectId}/widge
 ## 11. 报表接入推荐顺序
 
 ```text
-report.create -> report.preview -> report.addWidget -> report.queryWidget -> report.query
+report.createProjectReport -> report.preview -> report.addWidget -> report.queryWidget -> report.query
 ```
 
 ## 12. 报表接入高风险误区
 
 - 不要只创建空报表就认为看板完成
+- 不要在新建项目报表时继续使用旧 `report.create` 示例并期待后端返回 `data.reportId`
 - 不要跳过 `preview` 直接加组件
 - 不要把主资源链、组件链、查询链混成一个接口理解

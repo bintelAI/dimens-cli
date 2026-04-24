@@ -38,7 +38,15 @@ export interface ReportCreatePayload {
 
 export interface ReportCreateResult {
   reportId: string;
+  sheetId?: string;
   [key: string]: unknown;
+}
+
+export interface ProjectReportCreatePayload {
+  name: string;
+  description?: string;
+  dashboardId?: string;
+  createdAt?: number;
 }
 
 export interface ReportUpdatePayload {
@@ -152,6 +160,22 @@ export interface ReportWidgetResult {
 export class ReportSDK {
   constructor(private readonly client: DimensClient) {}
 
+  private normalizeProjectReport(data: Record<string, unknown>): ReportCreateResult {
+    const reportId =
+      typeof data.reportId === 'string'
+        ? data.reportId
+        : typeof data.sheetId === 'string'
+          ? data.sheetId
+          : typeof data.id === 'string'
+            ? data.id
+            : '';
+    return {
+      ...data,
+      reportId,
+      sheetId: typeof data.sheetId === 'string' ? data.sheetId : reportId,
+    } as ReportCreateResult;
+  }
+
   list(
     projectId: string,
     payload: ReportListPayload
@@ -168,6 +192,33 @@ export class ReportSDK {
     payload: ReportCreatePayload
   ): Promise<APIResponse<ReportCreateResult>> {
     return this.client.post<ReportCreateResult>(`/app/report/${projectId}/add`, payload);
+  }
+
+  async createProjectReport(
+    projectId: string,
+    payload: ProjectReportCreatePayload
+  ): Promise<APIResponse<ReportCreateResult>> {
+    const response = await this.client.post<Record<string, unknown>>(
+      `/app/mul/project/${projectId}/sheet/create`,
+      {
+        name: payload.name,
+        type: 'report',
+        config: {
+          dashboardConfig: {
+            id: payload.dashboardId || `dashboard_${Date.now()}`,
+            title: payload.name,
+            ...(payload.description ? { description: payload.description } : {}),
+            widgets: [],
+            parameters: [],
+            createdAt: payload.createdAt || Date.now(),
+          },
+        },
+      }
+    );
+    return {
+      ...response,
+      data: this.normalizeProjectReport((response.data || {}) as Record<string, unknown>),
+    };
   }
 
   update(

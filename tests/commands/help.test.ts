@@ -19,8 +19,8 @@ describe('Help Command', () => {
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('命令组: project');
     expect(output).toContain('相关 Skill');
-    expect(output).toContain('dimens-team');
-    expect(output).toContain('dimens-project');
+    expect(output).toContain('dimens-manager');
+    expect(output).toContain('dimens-manager');
     logSpy.mockRestore();
   });
 
@@ -47,7 +47,7 @@ describe('Help Command', () => {
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('命令组: upload');
     expect(output).toContain('file');
-    expect(output).toContain('dimens-project');
+    expect(output).toContain('dimens-manager');
     logSpy.mockRestore();
   });
 
@@ -60,7 +60,7 @@ describe('Help Command', () => {
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('命令: ai chat-completions');
     expect(output).toContain('相关 Skill');
-    expect(output).toContain('dimens-workflow');
+    expect(output).toContain('dimens-manager');
     logSpy.mockRestore();
   });
 

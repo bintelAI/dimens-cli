@@ -48,7 +48,7 @@ pnpm add @bintel/dimens-cli
 
 ### 3.1 全局统一流程
 
-在进入任何子 Skill 之前，先统一遵守下面两条总规则：
+在进入任何 `dimens-manager` 章节 之前，先统一遵守下面两条总规则：
 
 1. 所有更新类操作统一按“拿数据 -> 改数据 -> 更新数据”执行
 2. 所有资源类更新统一按“先 upload 拿 url -> 把 url 写回当前业务数据 -> 再 update”执行
@@ -60,14 +60,14 @@ pnpm add @bintel/dimens-cli
 | Skill / 模块 | 命令域 | 作用 | 细节说明 |
 | --- | --- | --- | --- |
 | `dimens-system-orchestrator` | 系统级编排命令、Skill 路由 | 负责系统搭建、模块拆解、执行顺序规划 | 适合“帮我搭一个系统/平台”这类总控任务，不直接替代具体资源命令 |
-| `dimens-workflow` | `flow_*`、`dimens-cli ai *` | 负责工作流定义、项目挂载、运行调用、模型边界 | 先分清团队定义、项目挂载、运行调用三层，不要混用结论 |
-| `dimens-key-auth` | `dimens-cli auth api-key-login`、`api_key_*` | 负责 Key 登录、token 复用、第三方接入边界 | 这是认证入口，不是资源更新入口；登录成功不代表自动有资源权限 |
+| `dimens-manager/references/workflow/overview.md` | `flow_*`、`dimens-cli ai *` | 负责工作流定义、项目挂载、运行调用、模型边界 | 先分清团队定义、项目挂载、运行调用三层，不要混用结论 |
+| `dimens-manager/references/key-auth/overview.md` | `dimens-cli auth api-key-login`、`api_key_*` | 负责 Key 登录、token 复用、第三方接入边界 | 这是认证入口，不是资源更新入口；登录成功不代表自动有资源权限 |
 | `dimens-sdk` | SDK / HTTP 接入链路 | 负责 Node、Web、H5、App、BFF 的接入方式说明 | 适合端侧接入和 SDK 使用，不替代 CLI 资源运维主链 |
-| `dimens-team` | `team info`、`project list/info`、上下文切换 | 负责团队、项目、租户、默认上下文判断 | 很多问题先确认 `teamId/projectId`，上下文不对，后面所有结论都不稳 |
-| `dimens-project` | `project *`、`upload file`、`doc *`、`report *` 起始链路 | 负责项目创建、项目初始化、三驾马车入口 | 资源类更新默认先上传拿 `url`，项目和文档更新默认先读当前数据再提交 |
-| `dimens-table` | `sheet *`、`column *`、`view *`、`row *` | 负责工作表、字段、视图、行数据建模与更新 | `sheet/column/row` 的更新都走“先读再改再更”，字段设计还要考虑后续报表映射 |
-| `dimens-permission` | `role *`、`permission *`、`row-policy *`、`row-acl *` | 负责角色、项目权限、行级策略、单行 ACL | 权限类更新也走“先拿当前记录再更新”，CLI 成功不等于权限快照已全部收敛 |
-| `dimens-report` | `report *`、`widget-*`、`query*`、`preview` | 负责报表主资源、组件、查询和预检链路 | 报表和组件更新都默认先取当前数据，新增或修改组件前优先走 `preview` |
+| `dimens-manager/references/team/overview.md` | `team info`、`project list/info`、上下文切换 | 负责团队、项目、租户、默认上下文判断 | 很多问题先确认 `teamId/projectId`，上下文不对，后面所有结论都不稳 |
+| `dimens-manager/references/project/overview.md` | `project *`、`upload file`、`doc *`、`report *` 起始链路 | 负责项目创建、项目初始化、三驾马车入口 | 资源类更新默认先上传拿 `url`，项目和文档更新默认先读当前数据再提交 |
+| `dimens-manager/references/table/overview.md` | `sheet *`、`column *`、`view *`、`row *` | 负责工作表、字段、视图、行数据建模与更新 | `sheet/column/row` 的更新都走“先读再改再更”，字段设计还要考虑后续报表映射 |
+| `dimens-manager/references/permission/overview.md` | `role *`、`permission *`、`row-policy *`、`row-acl *` | 负责角色、项目权限、行级策略、单行 ACL | 权限类更新也走“先拿当前记录再更新”，CLI 成功不等于权限快照已全部收敛 |
+| `dimens-manager/references/report/overview.md` | `report *`、`widget-*`、`query*`、`preview` | 负责报表主资源、组件、查询和预检链路 | 报表和组件更新都默认先取当前数据，新增或修改组件前优先走 `preview` |
 
 ### 3.3 强调细节
 
@@ -80,23 +80,29 @@ pnpm add @bintel/dimens-cli
 
 ## 4. 当前 Skill 总览
 
-当前 `维表智联` 的 Skill 体系已落地 9 个正式技能：
+当前 `维表智联` 的顶层 Skill 体系收敛为 3 个正式技能：
 
 | Skill | 业务域 | 什么时候优先用 |
 | --- | --- | --- |
-| `dimens-system-orchestrator` | 系统级总控编排、模块拆解、Skill 路由、执行顺序 | 处理“生成一个 XX 系统 / 平台 / 管理系统 / 业务系统” |
-| `dimens-workflow` | 工作流、模型路由、项目挂载、OpenAI 兼容聊天 | 处理工作流、AI 分析、审批、自动化、默认模型问题 |
-| `dimens-key-auth` | API Key / Secret、换 token、鉴权边界 | 处理 `api-key-login`、第三方接入、token 复用问题 |
+| `dimens-system-orchestrator` | 系统级总控编排、模块拆解、执行顺序 | 处理“生成一个 XX 系统 / 平台 / 管理系统 / 业务系统” |
+| `dimens-manager` | 项目内业务资源管理：Key 鉴权、团队上下文、项目、表格、权限、工作流、报表 | 处理维表智联项目内创建、配置、维护和排查 |
 | `dimens-sdk` | Node.js SDK 与 Web/H5/App HTTP 对接、端侧接入路径与调用边界 | 处理 Web 端、移动端、BFF、Node 服务端接入维表智联 SDK / HTTP API |
-| `dimens-team` | 团队、成员、部门、项目、租户隔离、默认上下文 | 处理团队/项目上下文、看不到项目、上下文切换问题 |
-| `dimens-project` | 项目创建、项目初始化、建表前置、默认公开视图补齐 | 处理从 `teamId` 开始落项目，再衔接表和权限主链 |
-| `dimens-table` | 工作表、字段、视图、行数据、系统视图字段 | 处理多维表格、字段、行写入、系统视图映射问题 |
-| `dimens-permission` | 准入、表级、列级、行级、协同权限、公开访问者 | 处理权限、只读、越权同步、公开访问问题 |
-| `dimens-report` | 报表主资源、图表组件、参数联动、数据源与查询链路 | 处理报表、图表、参数筛选、数据源查询与创建前预检问题 |
+
+`dimens-manager` 内部按 references 分域承载业务章节：
+
+| 章节 | 入口 | 什么时候优先看 |
+| --- | --- | --- |
+| Key 鉴权 | `dimens-manager/references/key-auth/overview.md` | API Key / Secret、换 token、鉴权边界 |
+| 团队上下文 | `dimens-manager/references/team/overview.md` | 团队、成员、部门、项目、租户隔离、默认上下文 |
+| 项目初始化 | `dimens-manager/references/project/overview.md` | 项目创建、项目初始化、建表前置、默认公开视图补齐 |
+| 多维表格 | `dimens-manager/references/table/overview.md` | 工作表、字段、视图、行数据、系统视图字段 |
+| 权限管理 | `dimens-manager/references/permission/overview.md` | 准入、表级、列级、行级、协同权限、公开访问者 |
+| 工作流 | `dimens-manager/references/workflow/overview.md` | 工作流、AI 分析、审批、自动化、默认模型问题 |
+| 报表 | `dimens-manager/references/report/overview.md` | 报表、图表、参数筛选、数据源查询与创建前预检 |
 
 ## 5. 首页先记住的统一规则
 
-在进入任意子 Skill 之前，先统一记住下面几条产品级规则：
+在进入任意 `dimens-manager` 章节之前，先统一记住下面几条产品级规则：
 
 ### 5.1 项目资源默认按“三驾马车”理解
 
@@ -223,28 +229,28 @@ pnpm add @bintel/dimens-cli
 - `projectId`
 - 资源归属
 
-优先从 `dimens-team` 入手。
+优先从 `dimens-manager/references/team/overview.md` 入手。
 
-如果用户已经明确要“创建项目 / 初始化项目 / 建一个能直接继续搭表的项目”，优先进入 `dimens-project`。
+如果用户已经明确要“创建项目 / 初始化项目 / 建一个能直接继续搭表的项目”，优先进入 `dimens-manager/references/project/overview.md`。
 
 ### 6.3 资源域优先
 
-如果资源对象已经明确，再切到具体业务 Skill：
+如果资源对象已经明确，再切到具体 `dimens-manager` 业务章节：
 
 | 资源类型 | 优先 Skill |
 | --- | --- |
 | 系统建设 / 平台规划 / 管理系统 | `dimens-system-orchestrator` |
-| 工作流 / AI 分析 / 审批 / 自动化 | `dimens-workflow` |
-| API Key / token / 第三方鉴权 | `dimens-key-auth` |
+| 工作流 / AI 分析 / 审批 / 自动化 | `dimens-manager/references/workflow/overview.md` |
+| API Key / token / 第三方鉴权 | `dimens-manager/references/key-auth/overview.md` |
 | Web 接入 / 移动端接入 / SDK 封装 / HTTP 对接 | `dimens-sdk` |
-| 项目创建 / 项目初始化 / 默认公开视图补齐 | `dimens-project` |
-| 工作表 / 字段 / 行 / 视图 | `dimens-table` |
-| 权限 / 公开访问 / 协同越权 | `dimens-permission` |
-| 报表 / 图表 / 参数 / 数据源 | `dimens-report` |
+| 项目创建 / 项目初始化 / 默认公开视图补齐 | `dimens-manager/references/project/overview.md` |
+| 工作表 / 字段 / 行 / 视图 | `dimens-manager/references/table/overview.md` |
+| 权限 / 公开访问 / 协同越权 | `dimens-manager/references/permission/overview.md` |
+| 报表 / 图表 / 参数 / 数据源 | `dimens-manager/references/report/overview.md` |
 
 补充说明：
 
-- 如果已经进入 `dimens-report`，不要只理解成“加一个图表”
+- 如果已经进入 `dimens-manager/references/report/overview.md`，不要只理解成“加一个图表”
 - 当前报表 Skill 默认覆盖三条主链：
   1. 主资源链：`report create/update/copy/publish/delete/archive/validate/sort/move`
   2. 组件链：`widget-add/update/delete/batch/sort`
@@ -273,43 +279,43 @@ skills/
 │   ├── rules/
 │   ├── assets/
 │   └── references/
-├── dimens-workflow/
+├── dimens-manager/
 │   ├── SKILL.md
 │   ├── README.md
 │   ├── rules/
 │   ├── assets/
 │   └── references/
-├── dimens-key-auth/
+├── dimens-manager/
 │   ├── SKILL.md
 │   ├── README.md
 │   ├── rules/
 │   ├── assets/
 │   └── references/
-├── dimens-team/
+├── dimens-manager/
 │   ├── SKILL.md
 │   ├── README.md
 │   ├── rules/
 │   ├── assets/
 │   └── references/
-├── dimens-project/
+├── dimens-manager/
 │   ├── SKILL.md
 │   ├── README.md
 │   ├── rules/
 │   ├── assets/
 │   └── references/
-├── dimens-table/
+├── dimens-manager/
 │   ├── SKILL.md
 │   ├── README.md
 │   ├── rules/
 │   ├── assets/
 │   └── references/
-├── dimens-permission/
+├── dimens-manager/
 │   ├── SKILL.md
 │   ├── README.md
 │   ├── rules/
 │   ├── assets/
 │   └── references/
-└── dimens-report/
+└── dimens-manager/
     ├── SKILL.md
     ├── README.md
     ├── rules/
@@ -358,20 +364,20 @@ skills/
 | 当前问题 | 优先进入 |
 | --- | --- |
 | 先拆系统、再决定做哪些模块 | `dimens-system-orchestrator` |
-| 先确认团队、项目、上下文 | `dimens-team` |
-| 先创建项目并补齐默认公开视图 | `dimens-project` |
-| 先设计表、字段、关联、row/page | `dimens-table` |
-| 解释谁能看、谁能改、协同为什么异常 | `dimens-permission` |
-| 解释工作流、默认模型、AI 分析 | `dimens-workflow` |
-| 解释图表、看板、数据源、参数联动 | `dimens-report` |
-| 解释 Key 登录、token 复用、第三方接入 | `dimens-key-auth` |
+| 先确认团队、项目、上下文 | `dimens-manager/references/team/overview.md` |
+| 先创建项目并补齐默认公开视图 | `dimens-manager/references/project/overview.md` |
+| 先设计表、字段、关联、row/page | `dimens-manager/references/table/overview.md` |
+| 解释谁能看、谁能改、协同为什么异常 | `dimens-manager/references/permission/overview.md` |
+| 解释工作流、默认模型、AI 分析 | `dimens-manager/references/workflow/overview.md` |
+| 解释图表、看板、数据源、参数联动 | `dimens-manager/references/report/overview.md` |
+| 解释 Key 登录、token 复用、第三方接入 | `dimens-manager/references/key-auth/overview.md` |
 
-其中 `dimens-report` 的默认阅读顺序建议是：
+其中 `dimens-manager/references/report/overview.md`默认阅读顺序建议是：
 
-1. 先看 `dimens-report/SKILL.md`
-2. 再看 `dimens-report/references/capability-status.md`
-3. 如果要生成组件，再看 `dimens-report/references/recharts-widget-guide.md`
-4. 如果要看接口和命令案例，再看 `dimens-report/references/examples.md`
+1. 先看 `dimens-manager/SKILL.md`
+2. 再看 `dimens-manager/references/report/overview.md`
+3. 如果要生成组件，再看 `dimens-manager/references/report/references/recharts-widget-guide.md`
+4. 如果要看接口和命令案例，再看 `dimens-manager/references/report/references/examples.md`
 
 ## 9. Skill 体系的产品统一口径
 
@@ -389,12 +395,12 @@ skills/
 
 1. 先看本 README，确认问题落在哪个 Skill
 2. 如果是系统建设类需求，先看 `dimens-system-orchestrator`
-3. 如果是团队和项目边界问题，先看 `dimens-team`
-4. 如果是项目创建、项目初始化、建表前置问题，先看 `dimens-project`
-5. 如果是表、字段、row/page 问题，先看 `dimens-table`
-6. 如果是工作流、权限、报表、Key 接入问题，再进入对应业务 Skill
-7. 如果是报表生成类需求，优先先看 `dimens-report`，并按 `report create -> report preview -> report widget-add -> report query-widget -> report query` 的固定预检链执行
-8. 需要接口级细节时，再继续看对应 Skill 下的 `references/*.md`
+3. 如果是团队和项目边界问题，先看 `dimens-manager/references/team/overview.md`
+4. 如果是项目创建、项目初始化、建表前置问题，先看 `dimens-manager/references/project/overview.md`
+5. 如果是表、字段、row/page 问题，先看 `dimens-manager/references/table/overview.md`
+6. 如果是工作流、权限、报表、Key 接入问题，再进入对应 `dimens-manager` 业务章节
+7. 如果是报表生成类需求，优先先看 `dimens-manager/references/report/overview.md`，并按 `report create -> report preview -> report widget-add -> report query-widget -> report query` 的固定预检链执行
+8. 需要接口级细节时，再继续看 dimens-manager/references/{业务域}/references/*.md 或对应顶层技能的 `references/*.md`
 
 ### 10.1 报表类需求的默认防跑偏规则
 
@@ -407,17 +413,24 @@ skills/
 
 ## 11. 发布兼容说明
 
-当前 9 个正式技能目录都已经补齐：
+当前顶层正式技能目录已收敛为 3 个：
 
-- `SKILL.md`
-- `README.md`
-- `rules/`
-- `assets/`
+- `dimens-system-orchestrator`
+- `dimens-manager`
+- `dimens-sdk`
 
 发布到 ClawHub / OpenClaw 时，建议按下面口径理解：
 
-- 业务正文仍以每个技能目录下的 `SKILL.md` 和 `README.md` 为主
-- `references/` 保留接口级和场景级扩展资料
-- `rules/` 和 `assets/` 主要用于兼容平台目录规范
-- 封面、图标、截图的命名规范统一看 `assets-命名规范.md`
-- 如果平台不稳定支持相对链接，优先按技能目录名进入对应目录阅读，不依赖 `../...` 形式跳转
+- 顶层入口只暴露上述 3 个技能目录。
+- 业务正文以每个顶层技能目录下的 `SKILL.md` 和 `README.md` 为主。
+- `dimens-manager/references/` 按业务域保留接口级和场景级扩展资料。
+- 封面、图标、截图的命名规范统一看 `assets-命名规范.md`。
+- 如果平台不稳定支持深层相对链接，优先进入 `dimens-manager` 后再按业务域阅读。
+
+## 12. 技能开发标准
+
+新增或改动 Skill 前，先阅读：
+
+- `技能开发标准.md`
+
+该文档约束 3 个顶层 Skill 的边界、`SKILL.md` 写法、references 组织方式、发布验证和高风险错误。

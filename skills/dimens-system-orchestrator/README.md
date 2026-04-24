@@ -1,163 +1,63 @@
 # dimens-system-orchestrator
 
-## 技能简介
+`dimens-system-orchestrator` 是维表智联的系统级总控技能，用于把“生成一个 XX 系统 / 平台 / 管理应用”这类需求先拆成项目、目录、表格、文档、报表、权限、工作流和对接模块，再路由到 `dimens-manager` 的具体业务章节。
 
-`dimens-system-orchestrator` 是维表智联的系统级总控技能，用于把“生成一个 XX 系统”这类需求先拆成模块，再路由到团队、表格、权限、工作流、报表或认证等子技能。
+当前顶层技能体系已经收敛为 3 个：
 
-它的职责不是把所有实现细节写死，而是先把系统拆清楚，再决定应该进入哪个子 Skill。
+| 顶层技能 | 职责 |
+| --- | --- |
+| `dimens-system-orchestrator` | 系统级拆解、执行顺序、章节路由 |
+| `dimens-manager` | 项目内业务管理：Key、团队、项目、表格、权限、工作流、报表 |
+| `dimens-sdk` | SDK、Node.js、Web、BFF、移动端集成 |
 
 ## 适用场景
 
-- 搭建 CRM、项目管理、售后、审批等完整系统
-- 还没明确项目、表结构、权限和流程边界
-- 需要给出模块清单、执行顺序和风险提示
-- 需要先判断项目内哪些资源必须补齐，避免只剩表结构
+优先使用本技能的典型问题：
 
-## 执行前先记住
+- “帮我生成一个客户管理系统”
+- “帮我搭一个售后管理平台”
+- “做一个项目管理系统，需要表格、报表和权限”
+- “基于这个项目链接，帮我规划业务系统”
 
-- 系统级任务默认先方案、后执行
-- 项目资源默认按“三驾马车”理解：表格、文档、报表
-- 总控 Skill 要先拆项目、表、文档、报表、字段、关联、示例数据和查询方式
-- 如果用户明确要求报表，总控层也必须把固定预检链交出去，不能只说“去建报表”
-- 如果系统里包含在线文档，总控层也要把文档主链交出去，不要只说 `doc create`
-- 如果系统里包含在线文档版本管理需求，总控层也要把版本主链交出去
+不适合使用本技能的情况：
 
-高风险跑偏点：
+- 只问单个 CLI 命令：直接进入 `dimens-manager` 对应章节。
+- 只问 SDK 代码：直接进入 `dimens-sdk`。
+- 只修一个具体表字段：直接进入 `dimens-manager/references/table/overview.md`。
 
-- 不要把系统拆解误收缩成“只有几张表”
-- 不要漏掉项目内文档资源和报表资源
-- 不要把在线文档误当成只创建不维护的一次性资源
-- 不要在表结构、字段、查询方式还没稳定时，直接下钻图表组件
-- 不要路由到报表后直接从 `widget-add` 开始
+## 默认工作流
 
-## 快速开始
+1. 判断是否为系统级需求。
+2. 解析或确认 `teamId / projectId / baseUrl`。
+3. 先拆项目资源：目录、表格、文档、报表。
+4. 再拆数据模型：表、字段、关联、示例数据、查询案例。
+5. 按需补权限、工作流、外部对接。
+6. 输出 `dimens-manager` 章节路由和执行顺序。
+7. 用户确认后再进入具体命令或落地步骤。
+8. 执行后必须回查：`project info` 验证上传 URL 写回，`sheet tree` 验证目录归位，报表链路至少跑到 `query-widget` 或 `query`。
 
-推荐执行顺序：
+## `dimens-manager` 章节入口
 
-1. 先确认认证和上下文
-2. 做系统拆解
-3. 路由到子技能
-4. 再落到具体命令或接口
+| 场景 | 章节入口 |
+| --- | --- |
+| Key 鉴权、第三方接入 | `dimens-manager/references/key-auth/overview.md` |
+| 团队、成员、项目上下文 | `dimens-manager/references/team/overview.md` |
+| 项目创建、初始化、文档资源 | `dimens-manager/references/project/overview.md` |
+| 表、字段、视图、行数据 | `dimens-manager/references/table/overview.md` |
+| 角色、权限、行级策略 | `dimens-manager/references/permission/overview.md` |
+| 工作流、AI、模型路由 | `dimens-manager/references/workflow/overview.md` |
+| 报表、组件、查询链 | `dimens-manager/references/report/overview.md` |
 
-如果用户要求的是“整体搭系统”，默认方案里建议显式写出：
+## 核心原则
 
-1. 团队 / 项目上下文
-2. 项目三驾马车资源清单
-3. 核心业务表
-4. 字段与关联关系
-5. 示例数据
-6. 常用查询 / 视图 / 筛选案例
-7. 后续权限、工作流、报表或对接的子 Skill 路由
-
-## 关键规则
-
-### 1. 系统方案不能只有表
-
-默认系统方案至少要覆盖：
-
-- 表格资源
-- 文档资源
-- 报表资源
-
-推荐理解方式：
-
-- 表格负责承接结构化业务对象
-- 文档负责承接 TipTap 在线说明、制度、知识沉淀
-- 报表负责承接经营统计、漏斗分析、仪表盘
-
-如果方案里只有表，没有文档和报表，通常还不算完整系统方案。
-
-如果方案里已经包含在线文档，默认还要考虑后续维护链路：
-
-- `doc info`
-- `doc update`
-- `doc delete`
-
-如果文档承担制度、知识库、说明页等长期演进内容，还要继续考虑版本链路：
-
-- `doc versions`
-- `doc version`
-- `doc restore`
-
-### 2. 子 Skill 路由要有顺序
-
-默认建议顺序：
-
-1. `dimens-team`
-2. `dimens-project`
-3. `dimens-table`
-4. `dimens-permission`
-5. `dimens-workflow`
-6. `dimens-report`
-7. `dimens-key-auth`
-
-实际是否进入后置 Skill，要看用户有没有明确提出对应需求。
-
-### 3. 报表一旦进入，就必须带固定预检链
-
-如果用户明确要求：
-
-- 看板
-- 仪表盘
-- 统计图表
-- 经营报表
-
-总控层至少要给出这条顺序：
-
-1. `report create`
-2. `report preview`
-3. `report widget-add`
-4. `report query-widget`
-5. `report query`
-
-不要只路由到 `dimens-report`，却不把这条链路说清楚。
-
-### 4. 在线文档一旦进入，也要带文档主链
-
-如果系统里明确包含：
-
-- 制度页
-- 操作手册
-- 产品说明
-- 知识沉淀
-
-总控层至少要提醒这条文档主链：
-
-1. `doc create`
-2. `doc info`
-3. `doc update`
-4. `doc delete`
-
-不要只告诉用户先创建一份文档，却不告诉后续怎么查、怎么改、怎么删。
-
-### 5. 在线文档如果涉及历史回滚，也要带版本主链
-
-如果用户继续提出：
-
-- 看历史版本
-- 回看旧内容
-- 恢复误删误改内容
-- 回滚到某个版本
-
-总控层至少要提醒这条版本主链：
-
-1. `doc versions`
-2. `doc version`
-3. `doc restore`
-
-## 目录说明
-
-- `SKILL.md`：平台识别入口和技能主体
-- `rules/`：发布平台兼容入口，当前用于指向原始规则文档
-- `references/`：系统拆解、接口导航、命令映射等补充资料
-  关系说明：`rules/` 面向发布平台规则扫描，`references/` 保持技能知识文档沉淀。
-
-如果只看本目录，推荐阅读顺序是：
-
-1. 先看 `SKILL.md`
-2. 再看 `references/system-decomposition.md`
-3. 再看 `references/skill-routing.md`
-4. 用户要求直接给命令时，再看 `references/command-mapping.md`
+- 先方案，后执行。
+- 系统搭建不要只建表，默认考虑表格、文档、报表。
+- 表格建模必须细到字段类型、关联、候选项、示例数据和视图。
+- 权限不是最后补丁，涉及角色、公开访问、部门可见、行级控制时要前置设计。
+- 报表不要直接从 `widget-add` 开始，先走 `report create -> preview -> widget-add -> query-widget -> query`。
+- 修改数据必须先读取当前数据，再分析修改，再提交更新。
+- 创建目录不会自动移动已有菜单；新资源用 `--folder-id`，已有资源用 `sheet update --folder-id`，最后用 `sheet tree` 验证。
+- SVG 封面/图标默认生成 `250x150px`、淡色背景、轻量动态效果的 SVG；必须保留 `.svg` 扩展名，上传后还要把返回 `url` 写回项目或文档。
 
 ## 参考资料
 

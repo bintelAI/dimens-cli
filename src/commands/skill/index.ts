@@ -62,40 +62,17 @@ const SKILL_RECOMMEND_EXAMPLES: Record<string, string[]> = {
     '帮我做一个项目管理平台',
     '生成一个审批系统',
   ],
-  'dimens-workflow': [
-    '工作流 默认模型 AI 分析',
-    '审批流程 自动化',
-    'flow chat completions',
-  ],
-  'dimens-key-auth': [
-    'api-key token',
-    'api secret 登录',
-    '第三方鉴权接入',
-  ],
-  'dimens-team': [
+  'dimens-manager': [
     '团队 项目 成员',
-    'teamId projectId',
-    '租户隔离 项目上下文',
-  ],
-  'dimens-project': [
-    '项目初始化 建表 默认视图',
-    'project create sheet create',
-    '从 teamId 创建项目',
-  ],
-  'dimens-table': [
-    '多维表格 字段 row',
-    'sheet column view',
-    '字段类型 系统视图',
-  ],
-  'dimens-permission': [
     '行级权限 公开访问 只读',
-    '列权限 协同越权',
-    'acl 权限',
-  ],
-  'dimens-report': [
     '报表 图表 参数筛选',
-    'dashboard 数据源',
-    '统计看板 导出',
+    '工作流 默认模型 AI 分析',
+    'api-key token 第三方鉴权',
+  ],
+  'dimens-sdk': [
+    'Web 前端 SDK 接入',
+    'BFF token refresh',
+    'Node.js HTTP API 调用',
   ],
 };
 
@@ -200,6 +177,22 @@ const PROJECT_INTENT_KEYWORDS = [
   '初始化',
 ];
 
+const SDK_INTENT_KEYWORDS = [
+  'sdk',
+  'http',
+  'api 调用',
+  'web 接入',
+  '前端接入',
+  '移动端',
+  'app',
+  '小程序',
+  'bff',
+  'node',
+  'node.js',
+  '集成',
+  '对接开发',
+];
+
 function getSystemOrchestratorBonus(
   skill: ReturnType<typeof getSkillOrThrow>,
   normalizedQuery: string
@@ -292,52 +285,36 @@ function getSkillMatchSignals(
     matchedBy.push('system-build-intent');
   }
 
-  if (
-    skill.name === 'dimens-project' &&
-    hasIntentKeyword(normalizedQuery, PROJECT_INTENT_KEYWORDS)
-  ) {
-    matchedBy.push('project-intent');
-    keywordScore += 3;
+  if (skill.name === 'dimens-manager') {
+    if (hasIntentKeyword(normalizedQuery, PROJECT_INTENT_KEYWORDS)) {
+      matchedBy.push('project-intent');
+      keywordScore += 3;
+    }
+    if (hasIntentKeyword(normalizedQuery, WORKFLOW_INTENT_KEYWORDS)) {
+      matchedBy.push('workflow-intent');
+      keywordScore += 3;
+    }
+    if (hasIntentKeyword(normalizedQuery, AUTH_INTENT_KEYWORDS)) {
+      matchedBy.push('auth-intent');
+      keywordScore += 3;
+    }
+    if (hasIntentKeyword(normalizedQuery, TABLE_INTENT_KEYWORDS)) {
+      matchedBy.push('table-intent');
+      keywordScore += 3;
+    }
+    if (hasIntentKeyword(normalizedQuery, PERMISSION_INTENT_KEYWORDS)) {
+      matchedBy.push('permission-intent');
+      keywordScore += 3;
+    }
+    if (hasIntentKeyword(normalizedQuery, REPORT_INTENT_KEYWORDS)) {
+      matchedBy.push('report-intent');
+      keywordScore += 3;
+    }
   }
 
-  if (
-    skill.name === 'dimens-workflow' &&
-    hasIntentKeyword(normalizedQuery, WORKFLOW_INTENT_KEYWORDS)
-  ) {
-    matchedBy.push('workflow-intent');
-    keywordScore += 3;
-  }
-
-  if (
-    skill.name === 'dimens-key-auth' &&
-    hasIntentKeyword(normalizedQuery, AUTH_INTENT_KEYWORDS)
-  ) {
-    matchedBy.push('auth-intent');
-    keywordScore += 3;
-  }
-
-  if (
-    skill.name === 'dimens-table' &&
-    hasIntentKeyword(normalizedQuery, TABLE_INTENT_KEYWORDS)
-  ) {
-    matchedBy.push('table-intent');
-    keywordScore += 3;
-  }
-
-  if (
-    skill.name === 'dimens-permission' &&
-    hasIntentKeyword(normalizedQuery, PERMISSION_INTENT_KEYWORDS)
-  ) {
-    matchedBy.push('permission-intent');
-    keywordScore += 3;
-  }
-
-  if (
-    skill.name === 'dimens-report' &&
-    hasIntentKeyword(normalizedQuery, REPORT_INTENT_KEYWORDS)
-  ) {
-    matchedBy.push('report-intent');
-    keywordScore += 3;
+  if (skill.name === 'dimens-sdk' && hasIntentKeyword(normalizedQuery, SDK_INTENT_KEYWORDS)) {
+    matchedBy.push('sdk-intent');
+    keywordScore += 4;
   }
 
   const score = keywordScore + phraseScore + systemBonus;
@@ -363,6 +340,9 @@ function getSkillMatchSignals(
   }
   if (matchedBy.includes('report-intent')) {
     reasonParts.push('命中报表意图');
+  }
+  if (matchedBy.includes('sdk-intent')) {
+    reasonParts.push('命中 SDK / 接入开发意图');
   }
   if (matchedBy.includes('name-keyword')) {
     reasonParts.push('匹配到技能名关键词');
@@ -465,7 +445,7 @@ export function registerSkillCommands(): void {
       },
       {
         usage: 'skill info <name>',
-        examples: ['dimens-cli skill info dimens-table'],
+        examples: ['dimens-cli skill info dimens-manager'],
       }
     )
   );
@@ -616,10 +596,10 @@ export function registerSkillCommands(): void {
         usage:
           'skill show <name> [--references] [--main-only] [--references-only] [--mapping-only]',
         examples: [
-          'dimens-cli skill show dimens-workflow',
-          'dimens-cli skill show dimens-workflow --references',
-          'dimens-cli skill show dimens-table --mapping-only',
-          'dimens-cli skill show dimens-key-auth --output json',
+          'dimens-cli skill show dimens-manager',
+          'dimens-cli skill show dimens-manager --references',
+          'dimens-cli skill show dimens-manager --mapping-only',
+          'dimens-cli skill show dimens-manager --output json',
         ],
       }
     )

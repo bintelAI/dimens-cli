@@ -1,239 +1,161 @@
-# dimens-system-orchestrator 示例
+# 系统总控输出案例
 
-## 场景 1：客户管理系统
+## 1. 案例：生成客户管理系统
 
-用户：
+用户需求：
 
 ```text
 帮我生成一个客户管理系统
 ```
 
-建议输出：
+推荐输出结构：
 
-1. 识别系统级任务
-2. 先拆客户、联系人、跟进、商机四张核心表
-3. 给出每张表的字段设计、关联关系和示例行数据
-4. 给出常用筛选和查询案例
-5. 路由子 Skill：
-   - `dimens-team`
-   - `dimens-project`
-   - `dimens-table`
-6. 只有用户继续要求时，再补：
-   - `dimens-permission`
-   - `dimens-workflow`
-   - `dimens-report`
-7. 先输出方案，再等待确认
+1. 判断为系统级建设任务，先由 `dimens-system-orchestrator` 拆解，不直接执行命令。
+2. 资源拆解：
+   - 项目：客户管理系统
+   - 目录：客户资料、销售过程、经营分析、制度文档
+   - 表格：客户、联系人、跟进记录、商机、合同
+   - 文档：客户管理制度、销售跟进规范
+   - 报表：客户来源分析、商机阶段漏斗、合同金额趋势
+3. 数据模型：
+   - 客户 1:N 联系人
+   - 客户 1:N 跟进记录
+   - 客户 1:N 商机
+   - 商机 1:N 合同
+4. 默认章节路由：
+   - `dimens-manager/references/team/overview.md`
+   - `dimens-manager/references/project/overview.md`
+   - `dimens-manager/references/table/overview.md`
+5. 按需章节路由：
+   - 权限：`dimens-manager/references/permission/overview.md`
+   - 报表：`dimens-manager/references/report/overview.md`
+   - 工作流：`dimens-manager/references/workflow/overview.md`
+6. 等用户确认方案后，再进入 `references/command-mapping.md` 和 `dimens-manager` 对应章节执行。
 
-如果用户在这一步已经明确提出“角色怎么配”“项目权限怎么落地”“谁能看谁的数据”，则不要只写成可选扩展，而要继续补：
+执行后验收必须补：
 
-- `dimens-permission/references/command-mapping.md`
-- 角色 / 项目权限主链：`role create -> permission create -> role assign-user -> row-policy create`
+- `project info`：确认项目名称、描述、封面/图标 URL 已写回。
+- `sheet tree`：确认客户资料、销售过程、经营分析、制度文档这些目录存在，且表格/文档/报表已在目标目录下。
+- `column list` / `view list`：确认核心表字段和默认视图可查。
+- `report preview` / `query-widget` / `query`：确认报表不是空壳。
 
-## 场景 2：通用系统级输出骨架
+## 2. 案例：生成售后工单平台
 
-用户：
-
-```text
-帮我生成一个 XX 系统
-```
-
-建议输出：
-
-1. 不要先假设用户要 CRM、项目管理、售后或审批模板。
-2. 先输出统一骨架，让用户看到“这个系统至少要拆到哪一层”。
-3. 默认先收口到：
-   - 项目
-   - 核心表
-   - 字段设计
-   - 关联关系
-   - 示例数据
-   - 查询案例
-4. 只有用户继续要求时，再补：
-   - 权限
-   - 工作流
-   - 报表
-   - 外部对接
-
-## 场景 3：系统级输出骨架示例
-
-用户：
+用户需求：
 
 ```text
-帮我生成一个 XX 系统
+帮我做一个售后管理平台，要有工单流转和满意度统计
 ```
 
-建议输出示例：
+推荐输出结构：
 
-```md
-这是一个系统级建设任务，建议先做系统拆解，再进入具体业务 Skill。
+1. 系统定位：售后工单与服务质量管理。
+2. 核心对象：客户、工单、处理记录、升级记录、满意度评价。
+3. 表格模型：
+   - `客户表`：客户名称、联系人、等级、所属区域
+   - `工单表`：工单编号、客户、问题类型、优先级、状态、负责人
+   - `处理记录表`：工单、处理人、处理说明、处理时间
+   - `满意度表`：工单、评分、评价内容、回访人
+4. 文档资源：售后处理规范、升级规则、服务 SLA。
+5. 报表资源：工单状态分布、平均处理时长、满意度趋势。
+6. 路由：
+   - 上下文与项目：`dimens-manager/references/team/overview.md`、`dimens-manager/references/project/overview.md`
+   - 表格建模：`dimens-manager/references/table/overview.md`
+   - 工作流：`dimens-manager/references/workflow/overview.md`
+   - 报表：`dimens-manager/references/report/overview.md`
+   - 权限：`dimens-manager/references/permission/overview.md`
 
-### 1. 系统定位
-- 这个系统要解决什么问题
-- 主要使用角色有哪些
-
-### 2. 核心业务对象
-- 主对象
-- 从对象
-- 关键关系
-
-### 3. 项目与表
-- 项目名称
-- 主表
-- 从表
-- 可选文档
-
-### 4. 字段与关联
-- 每张表都要标出主展示字段、状态字段、时间字段、关联字段
-- 表之间的 relation 关系
-
-### 5. 示例数据
-- 每张表至少给 3 条案例数据
-- 示例数据要覆盖主要状态和典型场景
-
-### 6. 查询案例
-- 查主对象
-- 查某状态
-- 查某时间范围
-- 查某负责人
-- 查某关联对象
-
-### 7. 推荐子 Skill 路由
-1. dimens-team
-2. dimens-project
-3. dimens-table
-4. dimens-permission（可选扩展）
-5. dimens-workflow（可选扩展）
-6. dimens-report（可选扩展）
-7. dimens-key-auth（可选扩展）
-
-### 8. 待确认项
-- 主对象和从对象分别是什么
-- 哪些字段必须支持搜索、筛选、排序
-- 是否需要多表关联
-- 是否需要文档或知识说明页
-```
-
-## 场景 4：系统级导航到接口目录
-
-用户：
+注意：如果用户要求“直接做满意度图表”，仍要提醒报表预检链：
 
 ```text
-帮我做一个 XX 系统，并把后面会用到的接口也指清楚
+report create -> report preview -> report widget-add -> report query-widget -> report query
 ```
 
-建议输出：
+如果前面还创建了目录，报表创建后要用返回的 `reportId`（也就是菜单资源 `sheetId`）执行 `sheet update --folder-id`，然后用 `sheet tree` 验证它进入经营分析目录。
 
-1. 先识别这是系统级建设任务。
-2. 先拆项目、核心表、字段、关联、示例数据、查询案例。
-3. 给出子 Skill 路由。
-4. 再明确接口目录落点：
-   - `dimens-project/references/examples.md`
-   - `dimens-table/references/examples.md`
-5. 优先提醒 `dimens-table/references/examples.md` 中查看：
-   - 字段案例
-   - relation 配置
-   - `row/page` 筛选案例
-6. 如用户后续继续扩展，再补：
-   - `dimens-permission/references/command-mapping.md`
-   - `dimens-permission/references/examples.md`
-   - `dimens-workflow/references/examples.md`
-   - `dimens-report/references/examples.md`
-   - `dimens-key-auth/references/examples.md`
-7. 最后提醒查看 `command-mapping.md` 和各子 Skill 的 `SKILL.md` 区分：
-   - 哪些已封装为 CLI
-   - 哪些仍是 `server-only`
-   - 哪些只是 `部分对齐`
+## 3. 案例：已有项目链接，修改表数据
 
-补充：
+用户输入：
 
-- 更细的接口导航现在统一收口到 `interface-navigation.md`。
-- `examples.md` 只保留场景化输出示例，不再继续承载完整导航规则。
-
-## 场景 5：带接口状态标记的系统级输出模板
-
-建议输出示例：
-
-```md
-这是一个系统级建设任务，建议先拆模块，再路由到接口级案例。
-
-### 1. 模块拆解
-- 团队 / 项目上下文
-- 核心业务对象
-- 字段设计与关联关系
-- 示例数据
-- 常用筛选与查询
-- 可选扩展：权限 / 流程 / 报表 / 对接
-
-### 2. 子 Skill 路由
-1. dimens-team
-2. dimens-project
-3. dimens-table
-4. 可选扩展：dimens-permission / dimens-workflow / dimens-report / dimens-key-auth
-
-### 3. 接口落点
-- 团队 / 上下文：`dimens-team/references/examples.md`
-- 项目初始化：`dimens-project/references/examples.md`
-- 表 / 字段 / 行：`dimens-table/references/examples.md`
-- 字段设计：`dimens-table/references/field-design-patterns.md`
-- 行筛选与排序：`dimens-table/references/row-filters.md`
-- 如需扩展权限 / 协同：`dimens-permission/references/command-mapping.md`、`examples.md`、`matrix.md`
-- 如需扩展工作流 / AI：`dimens-workflow/references/examples.md`
-- 如需扩展报表：`dimens-report/references/examples.md`
-- 如需扩展 Key / 外部登录：`dimens-key-auth/references/examples.md`
-
-### 4. 当前能力状态
-- 已封装：`auth api-key-login`、`project list/info`、`sheet list/tree/info`、`column list`、`row page/info`、`ai chat-completions`
-- server-only：大部分报表接口、工作流管理与挂载接口
-- 部分对齐：`row create`、`row update`、`row set-cell`
+```text
+https://dimens.bintelai.com/#/TTFFEN/PLVHYDW/sh_Md3EwjVIgzwuH8Ji?view=view_6Xl9H4sqdsB3
+帮我看看这个表的数据并修改状态字段
 ```
 
-补充：
+推荐处理：
 
-- 角色、项目权限、资源权限、行级策略的主链已应当优先视为 `dimens-permission` 内的已封装 CLI 能力，不应再在总控示例里笼统归为“权限管理接口都是 server-only”。
+1. 解析上下文：
+   - `teamId = TTFFEN`
+   - `projectId = PLVHYDW`
+   - `sheetId = sh_Md3EwjVIgzwuH8Ji`
+   - `viewId = view_6Xl9H4sqdsB3`
+2. 进入章节：
+   - `dimens-manager/references/team/overview.md`
+   - `dimens-manager/references/table/overview.md`
+3. 遵循更新安全链路：
+   - 先读取字段和行数据
+   - 分析状态字段和目标行
+   - 再提交更新
+4. 命令示例必须显式带 ID，避免上下文漂移。
 
-## 场景 6：CRM 作为单一案例
+## 4. 案例：权限需求前置
 
-说明：
+用户需求：
 
-- CRM 这里只是一个案例，不代表总控 Skill 默认就该生成 CRM 模板。
-- 当用户没有明确系统类型时，应先输出统一骨架，不要替用户决定业务域。
+```text
+做一个项目管理系统，成员只能看自己的任务，主管能看本部门，管理员能看全部
+```
 
-补充：
+推荐处理：
 
-- 更完整的默认主线拆解请看 `system-decomposition.md`。
-- 更完整的接口导航请看 `interface-navigation.md`。
+1. 识别为系统级需求，先拆项目、任务、成员、部门、进度、报表。
+2. 权限不是后置补丁，必须前置进入：
+   - `dimens-manager/references/permission/overview.md`
+   - `dimens-manager/references/permission/references/command-mapping.md`
+   - `dimens-manager/references/permission/references/scenario-routing.md`
+3. 推荐权限链路：
+   - 角色：成员、主管、管理员
+   - 项目权限：成员基础访问，主管管理部门任务，管理员管理全部
+   - 行级策略：成员只看负责人为自己的任务
+   - 部门策略：主管看本部门任务
+   - 单行 ACL：特殊协作任务例外授权
+4. 表格建模仍进入：
+   - `dimens-manager/references/table/overview.md`
 
-建议输出示例：
+## 5. 案例：第三方系统接入
 
-```md
-### 1. 项目
-- 项目名称：客户管理系统
+用户需求：
 
-### 2. 核心表
-- 客户表
-- 联系人表
-- 跟进记录表
-- 商机表
+```text
+我要让外部系统通过 API Key 调维表数据
+```
 
-### 3. 字段设计
-- 客户表：客户名称、客户等级、行业、负责人、跟进状态、最近跟进时间
-- 联系人表：联系人姓名、手机号、职位、所属客户
-- 跟进记录表：跟进主题、跟进时间、跟进方式、跟进结果、所属客户、所属联系人
-- 商机表：商机名称、阶段、预计金额、预计成交日期、所属客户
+推荐处理：
 
-### 4. 关联关系
-- 联系人 -> 客户
-- 跟进记录 -> 客户
-- 跟进记录 -> 联系人
-- 商机 -> 客户
+1. 判断这是接入问题，不是创建新权限体系。
+2. 进入：
+   - `dimens-manager/references/key-auth/overview.md`
+   - `dimens-manager/references/key-auth/references/login-flow.md`
+   - `dimens-manager/references/key-auth/references/integration-boundaries.md`
+3. 说明边界：
+   - API Key / Secret 只用于换现有用户 token
+   - 换到 token 后仍调用现有 `/app/*` 接口
+   - 数据可见性仍继承绑定用户权限
+4. 如果用户需要代码示例，再进入：
+   - `dimens-sdk/SKILL.md`
 
-### 5. 示例数据
-- 每张表至少写 3 条案例数据
+## 6. 最小输出模板
 
-### 6. 常用查询案例
-- 查 A 级客户
-- 查某销售负责人的客户
-- 查最近 30 天未跟进客户
-- 查某客户下所有联系人
-- 查某客户的全部商机
+```text
+这是一个系统级建设任务，建议先完成系统拆解，再进入业务章节落地。
+
+1. 系统定位：...
+2. 资源拆解：项目 / 目录 / 表格 / 文档 / 报表
+3. 数据模型：表、字段、关联、示例数据、查询方式
+4. 扩展模块：权限 / 工作流 / 报表 / 对接
+5. 下一步章节：
+   - dimens-manager/references/team/overview.md
+   - dimens-manager/references/project/overview.md
+   - dimens-manager/references/table/overview.md
+6. 完成后验证：project info / sheet tree / column list / view list / report query
 ```

@@ -81,6 +81,67 @@ describe('ReportSDK', () => {
     );
   });
 
+  it('should request sheet create endpoint for project menu report', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 1000,
+        message: 'success',
+        data: {
+          projectId: 'PROJ1',
+          name: '报表 4',
+          type: 'report',
+          sheetId: 'sh_0hT2MlWR6RGkYqaN',
+          config: {
+            dashboardConfig: {
+              id: 'dashboard-1',
+              title: '新报表',
+              widgets: [],
+              parameters: [],
+            },
+          },
+        },
+      }),
+    });
+
+    const sdk = new ReportSDK(
+      new DimensClient({
+        baseUrl: 'https://api.example.com',
+        token: 'token-1',
+      })
+    );
+
+    const result = await sdk.createProjectReport('PROJ1', {
+      name: '报表 4',
+      description: '项目菜单报表',
+      dashboardId: 'dashboard-1',
+      createdAt: 1776996510710,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/app/mul/project/PROJ1/sheet/create',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          name: '报表 4',
+          type: 'report',
+          config: {
+            dashboardConfig: {
+              id: 'dashboard-1',
+              title: '报表 4',
+              description: '项目菜单报表',
+              widgets: [],
+              parameters: [],
+              createdAt: 1776996510710,
+            },
+          },
+        }),
+      })
+    );
+    expect(result.data.reportId).toBe('sh_0hT2MlWR6RGkYqaN');
+    expect(result.data.sheetId).toBe('sh_0hT2MlWR6RGkYqaN');
+  });
+
   it('should request report update endpoint', async () => {
     fetchMock.mockResolvedValue({
       ok: true,

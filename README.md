@@ -133,10 +133,10 @@ node ./bin/dimens-cli.js skill list --output json
 查看技能详情：
 
 ```bash
-node ./bin/dimens-cli.js skill info dimens-workflow
+node ./bin/dimens-cli.js skill info dimens-manager
 node ./bin/dimens-cli.js skill info dimens-system-orchestrator
-node ./bin/dimens-cli.js skill show dimens-workflow --references
-node ./bin/dimens-cli.js skill show dimens-table --mapping-only
+node ./bin/dimens-cli.js skill show dimens-manager --references
+node ./bin/dimens-cli.js skill show dimens-manager --mapping-only
 ```
 
 说明：
@@ -193,7 +193,7 @@ JSON 输出示例：
 例如：
 
 ```bash
-node ./bin/dimens-cli.js skill info dimens-key-auth --output json
+node ./bin/dimens-cli.js skill info dimens-manager --output json
 ```
 
 返回结果中会包含类似：

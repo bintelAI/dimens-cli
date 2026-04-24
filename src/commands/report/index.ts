@@ -104,6 +104,14 @@ function validateWidgetPayload(
   }
 }
 
+function createDashboardId(): string {
+  const cryptoLike = globalThis.crypto as { randomUUID?: () => string } | undefined;
+  if (cryptoLike?.randomUUID) {
+    return cryptoLike.randomUUID();
+  }
+  return `dashboard_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function registerReportCommands(): void {
   createCommandGroup('report', '报表管理');
 
@@ -593,24 +601,24 @@ export function registerReportCommands(): void {
           const payload: {
             name: string;
             description?: string;
-            type?: number | string;
+            dashboardId: string;
+            createdAt: number;
           } = {
             name,
+            dashboardId: createDashboardId(),
+            createdAt: Date.now(),
           };
           if (flags.description) {
             payload.description = flags.description;
           }
-          if (flags.type) {
-            payload.type = Number.isNaN(Number(flags.type)) ? flags.type : Number(flags.type);
-          }
-          const result = await sdk.create(projectId, payload);
+          const result = await sdk.createProjectReport(projectId, payload);
           printSuccess(context, '报表创建成功', result.data);
         } catch (error) {
           printError(context, error);
         }
       },
       {
-        usage: 'report create --name <name> [--description <description>] [--type <type>] [--project-id <projectId>] [--app-url <url>]',
+        usage: 'report create --name <name> [--description <description>] [--project-id <projectId>] [--app-url <url>]',
       }
     )
   );

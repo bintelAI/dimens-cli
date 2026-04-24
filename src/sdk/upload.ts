@@ -90,6 +90,9 @@ function resolveMimeType(fileName: string): string {
   if (lowerFileName.endsWith('.gif')) {
     return 'image/gif';
   }
+  if (lowerFileName.endsWith('.svg')) {
+    return 'image/svg+xml';
+  }
   if (lowerFileName.endsWith('.csv')) {
     return 'text/csv';
   }

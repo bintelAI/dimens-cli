@@ -244,12 +244,12 @@
 
 ### 6.2 推荐优先路由
 
-1. `dimens-team`
-2. `dimens-table`
-3. `dimens-permission`
-4. `dimens-workflow`
-5. `dimens-report`
-6. `dimens-key-auth`
+1. `dimens-manager/references/team/overview.md`
+2. `dimens-manager/references/table/overview.md`
+3. `dimens-manager/references/permission/overview.md`
+4. `dimens-manager/references/workflow/overview.md`
+5. `dimens-manager/references/report/overview.md`
+6. `dimens-manager/references/key-auth/overview.md`
 
 ## 7. 不要直接省略的项
 
@@ -266,8 +266,20 @@
 一个合格的系统级输出，至少要形成下面闭环：
 
 1. 先拆出模块。
-2. 再给子 Skill 路由。
+2. 再给`dimens-manager` 章节 路由。
 3. 再给接口导航。
 4. 再标记哪些能力 `已封装`、哪些 `server-only`、哪些 `部分对齐`。
+5. 如果进入执行阶段，最后必须给验证证据：上传 URL 是否写回、目录资源是否归位、表格字段/视图是否可查、报表预检链是否跑通。
 
 如果缺最后两步，后续 AI 很容易继续用抽象描述代替真实接口。
+
+执行完成的最低验证口径：
+
+| 资源 | 最低验证 |
+| --- | --- |
+| 项目 | `project info` 能看到名称、描述、封面/图标等更新结果 |
+| 目录 | `sheet tree` 能看到表格、文档、报表处在目标目录下 |
+| 表格 | `sheet info`、`column list`、`view list` 能回查到结构 |
+| 数据 | `row page` 能查到示例数据，筛选/排序字段可用 |
+| 报表 | `report preview`、`query-widget` 或 `query` 有结果 |
+| 上传素材 | 上传返回 `url`，并已写回项目、文档或目标业务字段 |

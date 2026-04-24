@@ -42,9 +42,9 @@ describe('Skill Commands', () => {
 
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
-    expect(output).toContain('dimens-workflow');
-    expect(output).toContain('dimens-team');
-    expect(output).toContain('dimens-project');
+    expect(output).toContain('dimens-manager');
+    expect(output).toContain('dimens-manager');
+    expect(output).toContain('dimens-manager');
     logSpy.mockRestore();
   });
 
@@ -57,11 +57,11 @@ describe('Skill Commands', () => {
       item => item.name === 'info'
     );
 
-    await command?.handler(['dimens-table']);
+    await command?.handler(['dimens-manager']);
 
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
-    expect(output).toContain('dimens-table');
+    expect(output).toContain('dimens-manager');
     expect(output).toContain('references');
     expect(output).toContain('命令组');
     expect(output).toContain('column');
@@ -100,11 +100,11 @@ describe('Skill Commands', () => {
       item => item.name === 'info'
     );
 
-    await command?.handler(['dimens-project']);
+    await command?.handler(['dimens-manager']);
 
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
-    expect(output).toContain('dimens-project');
+    expect(output).toContain('dimens-manager');
     expect(output).toContain('project');
     expect(output).toContain('sheet create');
     expect(output).toContain('doc create');
@@ -117,7 +117,7 @@ describe('Skill Commands', () => {
     expect(output).toContain('upload file');
     expect(output).toContain('ProjectSDK');
     expect(output).toContain('UploadSDK');
-    expect(output).toContain('bootstrap-flow.md');
+    expect(output).toContain('dimens-manager/references/project/references/bootstrap-flow.md');
     logSpy.mockRestore();
   });
 
@@ -130,12 +130,12 @@ describe('Skill Commands', () => {
       item => item.name === 'show'
     );
 
-    await command?.handler(['dimens-workflow', '--references']);
+    await command?.handler(['dimens-manager', '--references']);
 
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
-    expect(output).toContain('工作流技能');
-    expect(output).toContain('references/model-routing.md');
+    expect(output).toContain('维表智联业务管理技能');
+    expect(output).toContain('dimens-manager/references/workflow/references/model-routing.md');
     logSpy.mockRestore();
   });
 
@@ -153,7 +153,7 @@ describe('Skill Commands', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('"success": true');
-    expect(output).toContain('"name": "dimens-workflow"');
+    expect(output).toContain('"name": "dimens-manager"');
     logSpy.mockRestore();
   });
 
@@ -166,15 +166,15 @@ describe('Skill Commands', () => {
       item => item.name === 'info'
     );
 
-    await command?.handler(['dimens-key-auth', '--output', 'json']);
+    await command?.handler(['dimens-manager', '--output', 'json']);
 
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
-    expect(output).toContain('"name": "dimens-key-auth"');
+    expect(output).toContain('"name": "dimens-manager"');
     expect(output).toContain('"commands"');
     expect(output).toContain('"sdkModules"');
     expect(output).toContain('"recommendExamples"');
-    expect(output).toContain('"api-key token"');
+    expect(output).toContain('"api-key token 第三方鉴权"');
     logSpy.mockRestore();
   });
 
@@ -187,7 +187,7 @@ describe('Skill Commands', () => {
       item => item.name === 'show'
     );
 
-    await command?.handler(['dimens-table', '--mapping-only']);
+    await command?.handler(['dimens-manager', '--mapping-only']);
 
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
@@ -206,12 +206,12 @@ describe('Skill Commands', () => {
       item => item.name === 'show'
     );
 
-    await command?.handler(['dimens-workflow', '--references-only']);
+    await command?.handler(['dimens-manager', '--references-only']);
 
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
-    expect(output).toContain('references/model-routing.md');
-    expect(output).not.toContain('# 工作流技能（dimens-workflow）');
+    expect(output).toContain('dimens-manager/references/workflow/references/model-routing.md');
+    expect(output).not.toContain('# 维表智联业务管理技能（dimens-manager）');
     logSpy.mockRestore();
   });
 
@@ -229,7 +229,7 @@ describe('Skill Commands', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('推荐 Skill');
-    expect(output).toContain('dimens-workflow');
+    expect(output).toContain('dimens-manager');
     logSpy.mockRestore();
   });
 
@@ -343,7 +343,7 @@ describe('Skill Commands', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
     const payload = JSON.parse(output);
-    expect(payload.data[0]?.skill?.name).toBe('dimens-workflow');
+    expect(payload.data[0]?.skill?.name).toBe('dimens-manager');
     expect(payload.data[0]?.matchedBy).toContain('workflow-intent');
     expect(payload.data[0]?.reason).toContain('工作流意图');
     logSpy.mockRestore();
@@ -363,7 +363,7 @@ describe('Skill Commands', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
     const payload = JSON.parse(output);
-    expect(payload.data[0]?.skill?.name).toBe('dimens-key-auth');
+    expect(payload.data[0]?.skill?.name).toBe('dimens-manager');
     expect(payload.data[0]?.matchedBy).toContain('auth-intent');
     expect(payload.data[0]?.reason).toContain('鉴权接入意图');
     logSpy.mockRestore();
@@ -383,7 +383,7 @@ describe('Skill Commands', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
     const payload = JSON.parse(output);
-    expect(payload.data[0]?.skill?.name).toBe('dimens-table');
+    expect(payload.data[0]?.skill?.name).toBe('dimens-manager');
     expect(payload.data[0]?.matchedBy).toContain('table-intent');
     expect(payload.data[0]?.reason).toContain('多维表格意图');
     logSpy.mockRestore();
@@ -403,7 +403,7 @@ describe('Skill Commands', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
     const payload = JSON.parse(output);
-    expect(payload.data[0]?.skill?.name).toBe('dimens-permission');
+    expect(payload.data[0]?.skill?.name).toBe('dimens-manager');
     expect(payload.data[0]?.matchedBy).toContain('permission-intent');
     expect(payload.data[0]?.reason).toContain('权限意图');
     logSpy.mockRestore();
@@ -423,7 +423,7 @@ describe('Skill Commands', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
     const payload = JSON.parse(output);
-    expect(payload.data[0]?.skill?.name).toBe('dimens-report');
+    expect(payload.data[0]?.skill?.name).toBe('dimens-manager');
     expect(payload.data[0]?.matchedBy).toContain('report-intent');
     expect(payload.data[0]?.reason).toContain('报表意图');
     logSpy.mockRestore();
@@ -443,7 +443,7 @@ describe('Skill Commands', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('"success": true');
-    expect(output).toContain('"dimens-key-auth"');
+    expect(output).toContain('"dimens-manager"');
     expect(output).toContain('"matchedBy"');
     expect(output).toContain('"reason"');
     logSpy.mockRestore();
