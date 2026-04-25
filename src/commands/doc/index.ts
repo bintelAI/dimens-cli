@@ -12,6 +12,62 @@ import {
 } from '../utils';
 import { toUploadArgs } from '../upload/shared';
 
+function isSheetIdLike(value: string): boolean {
+  return /^sh_[A-Za-z0-9_-]+$/.test(value.trim());
+}
+
+function getPositionalArgs(args: string[]): string[] {
+  const positionalArgs: string[] = [];
+
+  for (let index = 0; index < args.length; index += 1) {
+    const current = args[index];
+    if (!current) {
+      continue;
+    }
+    if (!current.startsWith('--')) {
+      positionalArgs.push(current);
+      continue;
+    }
+
+    const normalized = current.slice(2);
+    const equalIndex = normalized.indexOf('=');
+    if (equalIndex >= 0) {
+      continue;
+    }
+
+    const next = args[index + 1];
+    if (next && !next.startsWith('--')) {
+      index += 1;
+    }
+  }
+
+  return positionalArgs;
+}
+
+function resolveDocumentLookup(args: string[], flags: Record<string, string | boolean | undefined>): {
+  documentId?: string;
+  sheetId?: string;
+} {
+  const rawDocumentId = typeof flags['document-id'] === 'string' ? flags['document-id'] : undefined;
+  const rawSheetId = typeof flags['sheet-id'] === 'string' ? flags['sheet-id'] : undefined;
+  const positionalArgs = getPositionalArgs(args);
+  const positional = positionalArgs[0];
+
+  if (rawDocumentId) {
+    return { documentId: rawDocumentId };
+  }
+
+  if (rawSheetId) {
+    return { sheetId: rawSheetId };
+  }
+
+  if (positional) {
+    return isSheetIdLike(positional) ? { sheetId: positional } : { documentId: positional };
+  }
+
+  return {};
+}
+
 export function registerDocCommands(): void {
   createCommandGroup('doc', '文档管理');
 
@@ -218,7 +274,7 @@ export function registerDocCommands(): void {
     'doc',
     createCommand(
       'info',
-      '获取文档详情',
+      '获取文档详情，支持 documentId 或 sheetId',
       async args => {
         const flags = parseFlags(args);
         const context = getContext(flags);
@@ -226,13 +282,16 @@ export function registerDocCommands(): void {
         try {
           const teamId = requireTeamId(context, flags);
           const projectId = requireProjectId(context, flags);
-          const documentId = flags['document-id'] || args[0];
-          if (!documentId) {
-            throw new Error('缺少文档 ID，请传入 --document-id');
-          }
 
           const sdk = new DocumentSDK(createClient(context));
-          const result = await sdk.info(teamId, projectId, documentId);
+          const { documentId, sheetId } = resolveDocumentLookup(args, flags);
+          if (!documentId && !sheetId) {
+            throw new Error('缺少文档标识，请传入 --document-id、--sheet-id，或直接传入 doc_xxx / sh_xxx');
+          }
+
+          const result = documentId
+            ? await sdk.info(teamId, projectId, documentId)
+            : await sdk.getBySheetId(teamId, projectId, sheetId as string);
           printSuccess(context, '文档详情获取成功', result.data);
         } catch (error) {
           printError(context, error);
@@ -240,8 +299,12 @@ export function registerDocCommands(): void {
       },
       {
         usage:
-          'doc info --document-id <documentId> [--team-id <teamId>] [--project-id <projectId>] [--app-url <url>]',
-        examples: ['dimens-cli doc info --team-id TEAM1 --project-id PROJ1 --document-id DOC_1'],
+          'doc info [--document-id <documentId> | --sheet-id <sheetId> | <doc_xxx|sh_xxx>] [--team-id <teamId>] [--project-id <projectId>] [--app-url <url>]',
+        examples: [
+          'dimens-cli doc info --team-id TEAM1 --project-id PROJ1 --document-id DOC_1',
+          'dimens-cli doc info --team-id TEAM1 --project-id PROJ1 --sheet-id sh_abc123',
+          'dimens-cli doc info --team-id TEAM1 --project-id PROJ1 sh_abc123',
+        ],
       }
     )
   );

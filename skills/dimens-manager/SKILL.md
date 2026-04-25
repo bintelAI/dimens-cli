@@ -2,7 +2,7 @@
 name: dimens-manager
 slug: dimens-manager
 description: 用于维表智联项目内业务资源创建、配置、维护和排查，适合处理 Key、团队、项目、表格、权限、工作流、报表等落地问题。
-version: 1.0.0
+version: 1.0.1
 author: 方块智联工作室
 tags: [manager, project, table, permission, workflow, report, auth, dimens-cli]
 ---

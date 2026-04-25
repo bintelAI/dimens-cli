@@ -212,6 +212,18 @@ const documentSdkSpies = {
       version: 1,
     },
   })),
+  getBySheetId: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      documentId: 'DOC_1',
+      sheetId: 'sh_doc_1',
+      title: '在线文档',
+      content: '<p>hello tiptap</p>',
+      format: 'richtext',
+      version: 1,
+    },
+  })),
   update: vi.fn(async () => ({
     code: 1000,
     message: 'success',
@@ -422,6 +434,9 @@ vi.mock('../../src/sdk/document', () => {
       async info(...args: unknown[]) {
         return documentSdkSpies.info(...args);
       }
+      async getBySheetId(...args: unknown[]) {
+        return documentSdkSpies.getBySheetId(...args);
+      }
       async update(...args: unknown[]) {
         return documentSdkSpies.update(...args);
       }
@@ -539,6 +554,7 @@ describe('Sheet Column Row Commands', () => {
     rowSdkSpies.updateCell.mockClear();
     documentSdkSpies.createWithSheet.mockClear();
     documentSdkSpies.info.mockClear();
+    documentSdkSpies.getBySheetId.mockClear();
     documentSdkSpies.update.mockClear();
     documentSdkSpies.delete.mockClear();
     documentSdkSpies.versions.mockClear();
@@ -636,6 +652,36 @@ describe('Sheet Column Row Commands', () => {
     await infoDoc?.handler(['--team-id', 'TEAM1', '--project-id', 'PROJ1', '--document-id', 'DOC_1']);
 
     expect(documentSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'DOC_1');
+    expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  it('should execute doc info command by sheet id flag', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const infoDoc = getCommandGroup('doc')?.commands.find(command => command.name === 'info');
+    await infoDoc?.handler(['--team-id', 'TEAM1', '--project-id', 'PROJ1', '--sheet-id', 'sh_doc_1']);
+
+    expect(documentSdkSpies.getBySheetId).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'sh_doc_1');
+    expect(documentSdkSpies.info).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  it('should execute doc info command by positional sheet id', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const infoDoc = getCommandGroup('doc')?.commands.find(command => command.name === 'info');
+    await infoDoc?.handler(['--team-id', 'TEAM1', '--project-id', 'PROJ1', 'sh_doc_1']);
+
+    expect(documentSdkSpies.getBySheetId).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'sh_doc_1');
+    expect(documentSdkSpies.info).not.toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalled();
     logSpy.mockRestore();
   });

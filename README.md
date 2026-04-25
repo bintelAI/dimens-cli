@@ -161,6 +161,7 @@ node ./bin/dimens-cli.js skill recommend '生成一个审批系统' --output jso
 - 如果输入是“生成一个 XX 系统 / 平台 / 管理系统 / 业务系统”这类系统建设需求，当前会优先推荐 `dimens-system-orchestrator`
 - `--output json` 不会再污染推荐文本，参数值不会被拼进 query
 - `--output json` 下的推荐结果除了 `score`，还会额外返回 `matchedBy` 和 `reason`，用于解释“为什么命中这个 Skill”
+- 文档链接里常见的 `sh_xxx` 是菜单资源 `sheetId`，不是文档内容 `documentId`；如果用户给的是文档页面链接，优先用 `doc info --sheet-id sh_xxx` 或 `doc info sh_xxx`，拿到真实 `documentId` 后再继续 `doc update`
 
 JSON 输出示例：
 

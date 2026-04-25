@@ -70,6 +70,17 @@ export class DocumentSDK {
     );
   }
 
+  getBySheetId(
+    teamId: string,
+    projectId: string,
+    sheetId: string
+  ): Promise<APIResponse<DocumentInfo>> {
+    return this.client.get<DocumentInfo>(
+      `/app/documents/${teamId}/${projectId}/document/getBySheetId`,
+      { sheetId }
+    );
+  }
+
   update(
     teamId: string,
     projectId: string,

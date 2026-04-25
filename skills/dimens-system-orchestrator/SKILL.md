@@ -2,7 +2,7 @@
 name: dimens-system-orchestrator
 slug: dimens-system-orchestrator
 description: 用于维表智联系统级方案拆解与执行编排，适合“生成一个客户管理系统/平台”这类完整业务系统搭建需求。
-version: 1.0.0
+version: 1.0.1
 author: 方块智联工作室
 tags: [orchestrator, system-design, routing, planning, dimens-cli]
 ---
@@ -61,7 +61,7 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 
 | 动作 | 必做验证 | 不通过时 |
 | --- | --- | --- |
-| SVG 封面/图标上传 | 确认 SVG 为 `250x150px`、淡色背景、动态效果，文件保留 `.svg`，类型是 `image/svg+xml`，并拿到 `url` | 不要继续写回项目或文档 |
+| SVG 封面/图标上传 | 确认 SVG 为 `250x150px`、淡色背景、动态效果，文件保留 `.svg`，类型是 `image/svg+xml`，并拿到 `url` | 重新按“先读 -> 合并 URL -> update”执行 |
 | 项目封面/图标写回 | `project info` 回查目标字段是否已经是上传后的 `url` | 重新按“先读 -> 合并 URL -> update”执行 |
 | 创建目录 | 记录返回的目录 `sheetId`，后续子资源显式使用 `--folder-id` | 不要假设其他菜单自动进入目录 |
 | 移动已有菜单资源 | 执行 `sheet update RESOURCE_ID --folder-id FOLDER_ID` 后再 `sheet tree` | 未归位则继续修正 `folderId` |
@@ -75,7 +75,7 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 | 链接形态 | 解析结果 | 下一步 |
 | --- | --- | --- |
 | `https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/` | `teamId`、`projectId` | 进入团队与项目章节 |
-| `https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/SHEET_ID?view=VIEW_ID` | `teamId`、`projectId`、`sheetId`、`viewId` | 进入表格章节 |
+| `https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/SHEET_ID?view=VIEW_ID` | `teamId`、`projectId`、`sheetId`、`viewId` | 如果是表格页面，进入表格章节；如果是在线文档页面，先把 `sheetId` 当菜单资源 ID，优先走 `doc info --sheet-id SHEET_ID` 取真实 `documentId` |
 
 ## 高风险跑偏点
 
@@ -88,6 +88,7 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 - 不要让报表直接从 `widget-add` 开始；固定预检链是 `report create -> report preview -> report widget-add -> report query-widget -> report query`。
 - 不要把 SDK 接入问题混入系统拆解；代码接入交给 `dimens-sdk`。
 - 不要在没有 `sheet tree`、`project info`、报表 query 等回查证据时宣称“完成”。
+- 不要把文档页面链接里的 `sh_xxx` 误当成 `documentId`；在线文档页面 URL 默认先产出 `sheetId`，需要先通过 `getBySheetId` 或 `doc info --sheet-id` 换出真实 `documentId`。
 
 ## 常见错误与修正
 

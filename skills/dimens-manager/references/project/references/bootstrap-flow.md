@@ -162,6 +162,11 @@ dimens-cli doc info \
   --project-id PROJECT_ID \
   --document-id DOC_ID
 
+dimens-cli doc info \
+  --team-id TEAM_ID \
+  --project-id PROJECT_ID \
+  --sheet-id sh_xxx
+
 dimens-cli doc update \
   --team-id TEAM_ID \
   --project-id PROJECT_ID \
@@ -180,6 +185,7 @@ dimens-cli doc delete \
 说明：
 
 - `doc info` 用于回查文档详情，确认文档是否创建成功、当前版本是多少
+- 如果输入来自浏览器文档链接，URL 里通常拿到的是 `sheetId=sh_xxx` 这一层菜单资源 ID，不是 `documentId=doc_xxx`；这时先用 `doc info --sheet-id sh_xxx` 拿文档详情，再继续更新
 - `doc update` 用于修订 TipTap 在线文档内容，必须显式带 `version`
 - `doc delete` 用于清理误建或废弃的文档资源
 - 如果项目是文档型项目，不要停在 `doc create`，而要把 `info/update` 一起视作默认维护链路

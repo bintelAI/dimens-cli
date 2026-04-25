@@ -2,7 +2,7 @@
 name: dimens-sdk
 slug: dimens-sdk
 description: 用于维表智联 SDK、HTTP API、Web、BFF、Node.js 和移动端接入开发，适合处理认证、token、上下文传递与资源调用集成问题。
-version: 1.0.0
+version: 1.0.1
 author: 方块智联工作室
 tags: [sdk, http, web, mobile, integration, dimens-cli]
 ---

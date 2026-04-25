@@ -86,6 +86,38 @@ describe('DocumentSDK', () => {
     );
   });
 
+  it('should request document getBySheetId endpoint', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 1000,
+        message: 'success',
+        data: {
+          documentId: 'DOC_1',
+          sheetId: 'sh_1',
+          title: '在线文档',
+          version: 3,
+        },
+      }),
+    });
+
+    const sdk = new DocumentSDK(
+      new DimensClient({
+        baseUrl: 'https://api.example.com',
+        token: 'token-1',
+      })
+    );
+
+    await sdk.getBySheetId('TEAM1', 'PROJ1', 'sh_1');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/app/documents/TEAM1/PROJ1/document/getBySheetId?sheetId=sh_1',
+      expect.objectContaining({
+        method: 'GET',
+      })
+    );
+  });
+
   it('should request document update endpoint', async () => {
     fetchMock.mockResolvedValue({
       ok: true,

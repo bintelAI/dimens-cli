@@ -1,6 +1,6 @@
 {
   "name": "@bintel/dimens-cli",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Dimens CLI 与 Node.js SDK，提供维表智联项目的认证、项目、表格、行数据与 AI chat-completions 调用能力",
   "type": "module",
   "exports": {
