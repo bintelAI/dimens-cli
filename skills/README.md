@@ -68,6 +68,7 @@ pnpm add @bintel/dimens-cli
 | `dimens-manager/references/table/overview.md` | `sheet *`、`column *`、`view *`、`row *` | 负责工作表、字段、视图、行数据建模与更新 | `sheet/column/row` 的更新都走“先读再改再更”，字段设计还要考虑后续报表映射 |
 | `dimens-manager/references/permission/overview.md` | `role *`、`permission *`、`row-policy *`、`row-acl *` | 负责角色、项目权限、行级策略、单行 ACL | 权限类更新也走“先拿当前记录再更新”，CLI 成功不等于权限快照已全部收敛 |
 | `dimens-manager/references/report/overview.md` | `report *`、`widget-*`、`query*`、`preview` | 负责报表主资源、组件、查询和预检链路 | 报表和组件更新都默认先取当前数据，新增或修改组件前优先走 `preview` |
+| `dimens-manager/references/canvas/overview.md` | `canvas *`、`sheet create --type canvas` | 负责画布资源、AI 生成图数据、版本和组件资源市场 | 保存前先 `canvas info` 拿版本，再 `canvas save --base-version`，不要把画布当成可执行工作流 |
 
 ### 3.3 强调细节
 
@@ -80,7 +81,7 @@ pnpm add @bintel/dimens-cli
 
 ## 4. 当前 Skill 总览
 
-当前 `维表智联` 的顶层 Skill 体系收敛为 3 个正式技能：
+当前 `维表智联` 的顶层 Skill 体系只保留 3 个正式技能。画布属于 `dimens-manager` 下的业务章节，不再单独发布顶层 Skill：
 
 | Skill | 业务域 | 什么时候优先用 |
 | --- | --- | --- |
@@ -99,6 +100,9 @@ pnpm add @bintel/dimens-cli
 | 权限管理 | `dimens-manager/references/permission/overview.md` | 准入、表级、列级、行级、协同权限、公开访问者 |
 | 工作流 | `dimens-manager/references/workflow/overview.md` | 工作流、AI 分析、审批、自动化、默认模型问题 |
 | 报表 | `dimens-manager/references/report/overview.md` | 报表、图表、参数筛选、数据源查询与创建前预检 |
+| 画布 | `dimens-manager/references/canvas/overview.md` | 画布、白板、流程图、AI 生成画布、版本恢复、资源市场 |
+
+审批工作流 AI 自动生成属于 `dimens-manager/references/workflow/references/approval-generation.md`，负责把业务描述转换为审批蓝图、`pluginType=approval` 的工作流 JSON 草案和项目落地计划。
 
 ## 5. 首页先记住的统一规则
 
@@ -398,9 +402,10 @@ skills/
 3. 如果是团队和项目边界问题，先看 `dimens-manager/references/team/overview.md`
 4. 如果是项目创建、项目初始化、建表前置问题，先看 `dimens-manager/references/project/overview.md`
 5. 如果是表、字段、row/page 问题，先看 `dimens-manager/references/table/overview.md`
-6. 如果是工作流、权限、报表、Key 接入问题，再进入对应 `dimens-manager` 业务章节
-7. 如果是报表生成类需求，优先先看 `dimens-manager/references/report/overview.md`，并按 `report create -> report preview -> report widget-add -> report query-widget -> report query` 的固定预检链执行
-8. 需要接口级细节时，再继续看 dimens-manager/references/{业务域}/references/*.md 或对应顶层技能的 `references/*.md`
+6. 如果是工作流、权限、报表、画布、Key 接入问题，再进入对应 `dimens-manager` 业务章节。
+7. 如果是报表生成类需求，优先先看 `dimens-manager/references/report/overview.md`，并按 `report create -> report preview -> report widget-add -> report query-widget -> report query` 的固定预检链执行。
+8. 如果是 AI 一键生成画布、流程图、思维导图，直接进入 `dimens-manager/references/canvas/overview.md` 和 `dimens-manager/references/canvas/references/generation-guide.md`。
+9. 需要接口级细节时，再继续看 dimens-manager/references/{业务域}/references/*.md 或对应顶层技能的 `references/*.md`。
 
 ### 10.1 报表类需求的默认防跑偏规则
 
@@ -413,7 +418,7 @@ skills/
 
 ## 11. 发布兼容说明
 
-当前顶层正式技能目录已收敛为 3 个：
+当前顶层正式技能目录只包含 3 个主技能：
 
 - `dimens-system-orchestrator`
 - `dimens-manager`
@@ -421,7 +426,7 @@ skills/
 
 发布到 ClawHub / OpenClaw 时，建议按下面口径理解：
 
-- 顶层入口只暴露上述 3 个技能目录。
+- 顶层入口只暴露上述允许的技能目录。
 - 业务正文以每个顶层技能目录下的 `SKILL.md` 和 `README.md` 为主。
 - `dimens-manager/references/` 按业务域保留接口级和场景级扩展资料。
 - 封面、图标、截图的命名规范统一看 `assets-命名规范.md`。
@@ -433,4 +438,4 @@ skills/
 
 - `技能开发标准.md`
 
-该文档约束 3 个顶层 Skill 的边界、`SKILL.md` 写法、references 组织方式、发布验证和高风险错误。
+该文档约束当前顶层 Skill 的边界、`SKILL.md` 写法、references 组织方式、发布验证和高风险错误。

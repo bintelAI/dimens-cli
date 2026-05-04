@@ -72,7 +72,7 @@ describe('Help Command', () => {
     expect(logSpy).toHaveBeenCalled();
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('命令: sheet create');
-    expect(output).toContain('--type sheet|folder|document|report');
+    expect(output).toContain('--type sheet|folder|document|report|canvas');
     expect(output).toContain('客户中心 --type folder');
     expect(output).toContain('--folder-id folder_customer');
     expect(output).toContain('sheet tree --project-id PROJ1');

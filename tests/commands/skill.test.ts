@@ -67,6 +67,7 @@ describe('Skill Commands', () => {
     expect(output).toContain('column');
     expect(output).toContain('SDK');
     expect(output).toContain('RowSDK');
+    expect(output).toContain('CanvasSDK');
     logSpy.mockRestore();
   });
 
@@ -88,6 +89,45 @@ describe('Skill Commands', () => {
     expect(output).toContain('system_decomposition');
     expect(output).toContain('推荐关键词示例');
     expect(output).toContain('帮我生成一个客户管理系统');
+    logSpy.mockRestore();
+  });
+
+  it('should show system orchestrator canvas guidance in references', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'show'
+    );
+
+    await command?.handler(['dimens-system-orchestrator', '--references']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('系统级画布说明');
+    expect(output).toContain('系统级节点职责与用法');
+    expect(output).toContain('每个节点必须能说清业务职责');
+    expect(output).toContain('CUSTOM_AGENT` 是画布内 AI 智能体，不要滥用');
+    expect(output).toContain('"version": "1.0"');
+    expect(output).toContain('"timestamp"');
+    expect(output).toContain('style.width/height');
+    expect(output).toContain('sourceHandle');
+    expect(output).toContain('targetHandle');
+    expect(output).toContain('arrowclosed');
+    expect(output).toContain('type: "default"');
+    expect(output).toContain('type: "smoothstep"');
+    expect(output).toContain('PPT 画布要求 `16:9`');
+    expect(output).toContain('一页 PPT 对应一个分区');
+    expect(output).toContain('PPT 演示稿画布');
+    expect(output).toContain('每页推荐 `1280 x 720`');
+    expect(output).toContain('INFOGRAPHIC');
+    expect(output).toContain('data.infographicSyntax');
+    expect(output).toContain('AntV Infographic DSL');
+    expect(output).toContain('PARALLELOGRAM');
+    expect(output).toContain('CYLINDER');
+    expect(output).toContain('CUSTOM_AGENT');
+    expect(output).toContain('dimens-manager/references/canvas/references/generation-guide.md');
     logSpy.mockRestore();
   });
 
@@ -136,6 +176,61 @@ describe('Skill Commands', () => {
     const output = logSpy.mock.calls.flat().join('\n');
     expect(output).toContain('维表智联业务管理技能');
     expect(output).toContain('dimens-manager/references/workflow/references/model-routing.md');
+    expect(output).toContain('dimens-manager/references/canvas/references/command-mapping.md');
+    logSpy.mockRestore();
+  });
+
+  it('should show manager canvas node usage guidance in references', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'show'
+    );
+
+    await command?.handler(['dimens-manager', '--references']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('dimens-manager/references/canvas/references/generation-guide.md');
+    expect(output).toContain('节点类型详解');
+    expect(output).toContain('流程节点选型');
+    expect(output).toContain('每个节点必须说明业务职责');
+    expect(output).toContain('可渲染字段模板');
+    expect(output).toContain('positionAbsolute');
+    expect(output).toContain('sourceHandle');
+    expect(output).toContain('targetHandle');
+    expect(output).toContain('markerEnd');
+    expect(output).toContain('arrowclosed');
+    expect(output).toContain('style.stroke');
+    expect(output).toContain('type: "default"');
+    expect(output).toContain('type: "smoothstep"');
+    expect(output).toContain('source-bottom');
+    expect(output).toContain('target-top');
+    expect(output).toContain('"version": "1.0"');
+    expect(output).toContain('"timestamp"');
+    expect(output).toContain('--team-id <teamId> --project-id <projectId>');
+    expect(output).toContain('width=150');
+    expect(output).toContain('PPT / 演示稿画布规则');
+    expect(output).toContain('PPT 画布必须是 `16:9` 比例');
+    expect(output).toContain('一页 PPT 对应一个 `SECTION`');
+    expect(output).toContain('1280 x 720');
+    expect(output).toContain('parentNode: "<slide_section_id>"');
+    expect(output).toContain('slide_01');
+    expect(output).toContain('PPT 演示稿画布');
+    expect(output).toContain('slideRule');
+    expect(output).toContain('INFOGRAPHIC');
+    expect(output).toContain('信息图节点');
+    expect(output).toContain('data.infographicSyntax');
+    expect(output).toContain('AntV Infographic DSL');
+    expect(output).toContain('infographic list-row-horizontal-icon-arrow');
+    expect(output).toContain('客户增长路径信息图');
+    expect(output).toContain('infographicRule');
+    expect(output).toContain('PARALLELOGRAM');
+    expect(output).toContain('CYLINDER');
+    expect(output).toContain('CUSTOM_AGENT');
+    expect(output).toContain('不要把它当成普通“AI 分析步骤”滥用');
     logSpy.mockRestore();
   });
 
@@ -175,6 +270,7 @@ describe('Skill Commands', () => {
     expect(output).toContain('"sdkModules"');
     expect(output).toContain('"recommendExamples"');
     expect(output).toContain('"api-key token 第三方鉴权"');
+    expect(output).toContain('"信息图 PPT 复杂展示"');
     logSpy.mockRestore();
   });
 
@@ -290,6 +386,26 @@ describe('Skill Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should rank system orchestrator first for approval system with canvas text', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'recommend'
+    );
+
+    await command?.handler(['生成一个带业务场景画布的审批系统', '--output', 'json']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
+    const payload = JSON.parse(output);
+    expect(payload.data[0]?.skill?.name).toBe('dimens-system-orchestrator');
+    expect(payload.data[0]?.matchedBy).toContain('system-build-intent');
+    expect(payload.data[0]?.reason).toContain('系统建设意图');
+    logSpy.mockRestore();
+  });
+
   it('should rank system orchestrator first for customer management system text', async () => {
     const { registerCommands } = await import('../../src/commands');
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
@@ -346,6 +462,86 @@ describe('Skill Commands', () => {
     expect(payload.data[0]?.skill?.name).toBe('dimens-manager');
     expect(payload.data[0]?.matchedBy).toContain('workflow-intent');
     expect(payload.data[0]?.reason).toContain('工作流意图');
+    logSpy.mockRestore();
+  });
+
+  it('should route approval workflow generation to manager workflow intent', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'recommend'
+    );
+
+    await command?.handler(['AI', '自动生成审批工作流', '--output', 'json']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
+    const payload = JSON.parse(output);
+    expect(payload.data[0]?.skill?.name).toBe('dimens-manager');
+    expect(payload.data[0]?.matchedBy).toContain('workflow-intent');
+    expect(payload.data[0]?.reason).toContain('工作流意图');
+    logSpy.mockRestore();
+  });
+
+  it('should route canvas intent to manager in json mode', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'recommend'
+    );
+
+    await command?.handler(['AI', '一键生成', '业务工作流画布', '--output', 'json']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
+    const payload = JSON.parse(output);
+    expect(payload.data[0]?.skill?.name).toBe('dimens-manager');
+    expect(payload.data[0]?.matchedBy).toContain('canvas-intent');
+    expect(payload.data[0]?.reason).toContain('画布意图');
+    logSpy.mockRestore();
+  });
+
+  it('should route ppt canvas intent to manager in json mode', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'recommend'
+    );
+
+    await command?.handler(['创建', 'PPT', '演示稿画布', '--output', 'json']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
+    const payload = JSON.parse(output);
+    expect(payload.data[0]?.skill?.name).toBe('dimens-manager');
+    expect(payload.data[0]?.matchedBy).toContain('canvas-intent');
+    expect(payload.data[0]?.reason).toContain('画布意图');
+    logSpy.mockRestore();
+  });
+
+  it('should route infographic canvas intent to manager in json mode', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'recommend'
+    );
+
+    await command?.handler(['信息图', 'PPT', '复杂展示', '--output', 'json']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
+    const payload = JSON.parse(output);
+    expect(payload.data[0]?.skill?.name).toBe('dimens-manager');
+    expect(payload.data[0]?.matchedBy).toContain('canvas-intent');
+    expect(payload.data[0]?.reason).toContain('画布意图');
     logSpy.mockRestore();
   });
 

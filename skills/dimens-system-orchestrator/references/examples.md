@@ -17,6 +17,7 @@
    - 表格：客户、联系人、跟进记录、商机、合同
    - 文档：客户管理制度、销售跟进规范
    - 报表：客户来源分析、商机阶段漏斗、合同金额趋势
+   - 画布：客户生命周期业务场景画布、合同审批工作流画布
 3. 数据模型：
    - 客户 1:N 联系人
    - 客户 1:N 跟进记录
@@ -30,6 +31,7 @@
    - 权限：`dimens-manager/references/permission/overview.md`
    - 报表：`dimens-manager/references/report/overview.md`
    - 工作流：`dimens-manager/references/workflow/overview.md`
+   - 业务场景画布：`dimens-system-orchestrator/references/business-canvas-flow.md` -> `dimens-manager/references/canvas/overview.md`
 6. 等用户确认方案后，再进入 `references/command-mapping.md` 和 `dimens-manager` 对应章节执行。
 
 执行后验收必须补：
@@ -38,6 +40,7 @@
 - `sheet tree`：确认客户资料、销售过程、经营分析、制度文档这些目录存在，且表格/文档/报表已在目标目录下。
 - `column list` / `view list`：确认核心表字段和默认视图可查。
 - `report preview` / `query-widget` / `query`：确认报表不是空壳。
+- `canvas create` / `canvas info` / `canvas save`：确认业务场景画布不是空壳，且保存了 `nodes/edges` 版本。
 
 ## 2. 案例：生成售后工单平台
 
@@ -58,10 +61,15 @@
    - `满意度表`：工单、评分、评价内容、回访人
 4. 文档资源：售后处理规范、升级规则、服务 SLA。
 5. 报表资源：工单状态分布、平均处理时长、满意度趋势。
-6. 路由：
+6. 业务场景画布：
+   - 工单受理与分配画布
+   - 工单升级与超时处理画布
+   - 满意度回访流程画布
+7. 路由：
    - 上下文与项目：`dimens-manager/references/team/overview.md`、`dimens-manager/references/project/overview.md`
    - 表格建模：`dimens-manager/references/table/overview.md`
    - 工作流：`dimens-manager/references/workflow/overview.md`
+   - 画布：`dimens-system-orchestrator/references/business-canvas-flow.md`、`dimens-manager/references/canvas/overview.md`
    - 报表：`dimens-manager/references/report/overview.md`
    - 权限：`dimens-manager/references/permission/overview.md`
 
@@ -150,12 +158,15 @@ https://dimens.bintelai.com/#/TTFFEN/PLVHYDW/sh_Md3EwjVIgzwuH8Ji?view=view_6Xl9H
 这是一个系统级建设任务，建议先完成系统拆解，再进入业务章节落地。
 
 1. 系统定位：...
-2. 资源拆解：项目 / 目录 / 表格 / 文档 / 报表
+2. 资源拆解：项目 / 目录 / 表格 / 文档 / 报表 / 业务场景画布
 3. 数据模型：表、字段、关联、示例数据、查询方式
-4. 扩展模块：权限 / 工作流 / 报表 / 对接
-5. 下一步章节：
+4. 流程表达：业务场景画布 / 审批工作流画布 / 可执行工作流边界
+5. 扩展模块：权限 / 工作流 / 报表 / 对接
+6. 下一步章节：
    - dimens-manager/references/team/overview.md
    - dimens-manager/references/project/overview.md
    - dimens-manager/references/table/overview.md
-6. 完成后验证：project info / sheet tree / column list / view list / report query
+   - dimens-system-orchestrator/references/business-canvas-flow.md
+   - dimens-manager/references/canvas/overview.md
+7. 完成后验证：project info / sheet tree / column list / view list / report query / canvas save
 ```

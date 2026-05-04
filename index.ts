@@ -36,6 +36,7 @@ export {
   createSDK,
   DimensClient,
   AuthSDK,
+  CanvasSDK,
   ColumnSDK,
   FlowChatSDK,
   ProjectSDK,

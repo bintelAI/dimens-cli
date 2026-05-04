@@ -223,7 +223,38 @@ CLI 到 HTTP 请求体的映射：
 4. 非流式和流式的返回结构分别是什么。
 5. `chat/completions` 是工作流体系的一条运行入口，不等于完整工作流管理接口。
 
-## 6. 这份文档的职责边界
+## 6. AI 生成审批工作流案例
+
+用户输入：
+
+```text
+帮我生成一个报销审批工作流：5000 元以内直属负责人审批，超过 5000 元还要财务复核，拒绝后通知申请人。
+```
+
+推荐 Skill 输出必须包含三部分：
+
+1. 业务审批蓝图：报销单字段、金额分支、直属负责人、财务复核、拒绝通知。
+2. `pluginType=approval` 的工作流 JSON 草案：包含 `nodes`、`edges`、`globalVariables`、`meta`。
+3. 项目落地计划：如果已有 `projectId`，优先调用 `/app/approval/:teamId/:projectId/workflow/create` 创建项目审批流，再补发布、`systemView=approval`、在表格补 `workflow` 字段入口、验证审批实例与摘要回写。
+
+如果要让模型辅助生成草案，可先走聊天兼容接口：
+
+```bash
+dimens-cli ai chat-completions \
+  --team-id TEAM1 \
+  --model team-default \
+  --message "请按维表智联 approval 工作流格式，生成报销审批工作流的业务蓝图、nodes/edges/globalVariables/meta JSON 草案和项目落地计划" \
+  --output json
+```
+
+注意：
+
+- 这条命令只负责让 AI 产出草案，不代表工作流已经创建、发布或落到项目里。
+- 如果有 `projectId`，优先走项目内创建路由，而不是把它写成“必须先安装到团队再绑定项目”。
+- 团队安装实例、跨项目绑定和入口挂载仍按 `capability-status.md` 和 `project-binding.md` 处理。
+- 详细生成规范看 `approval-generation.md`。
+
+## 7. 这份文档的职责边界
 
 这份文档只负责接口级案例总览，不再展开：
 

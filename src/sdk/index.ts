@@ -1,4 +1,5 @@
 import { AuthSDK } from './auth';
+import { CanvasSDK } from './canvas';
 import { DimensClient, type APIResponse, type DimensClientOptions } from './client';
 import { ColumnSDK } from './column';
 import { DocumentSDK } from './document';
@@ -23,6 +24,7 @@ export class DimensSDK {
   readonly auth: AuthSDK;
   readonly project: ProjectSDK;
   readonly report: ReportSDK;
+  readonly canvas: CanvasSDK;
   readonly role: RoleSDK;
   readonly permission: PermissionSDK;
   readonly sheet: SheetSDK;
@@ -40,6 +42,7 @@ export class DimensSDK {
     this.auth = new AuthSDK(this.client);
     this.project = new ProjectSDK(this.client);
     this.report = new ReportSDK(this.client);
+    this.canvas = new CanvasSDK(this.client);
     this.role = new RoleSDK(this.client);
     this.permission = new PermissionSDK(this.client);
     this.sheet = new SheetSDK(this.client);
@@ -60,6 +63,7 @@ export function createSDK(config: SDKConfig): DimensSDK {
 
 export { DimensClient } from './client';
 export { AuthSDK } from './auth';
+export { CanvasSDK } from './canvas';
 export { ProjectSDK } from './project';
 export { ReportSDK } from './report';
 export { RoleSDK } from './role';

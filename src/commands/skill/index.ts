@@ -61,12 +61,22 @@ const SKILL_RECOMMEND_EXAMPLES: Record<string, string[]> = {
     '帮我生成一个客户管理系统',
     '帮我做一个项目管理平台',
     '生成一个审批系统',
+    '生成一个带业务场景画布的审批系统',
+    '系统搭建时新增审批工作流画布',
   ],
   'dimens-manager': [
     '团队 项目 成员',
     '行级权限 公开访问 只读',
     '报表 图表 参数筛选',
+    '画布 流程图 工作流',
+    'AI 一键生成业务工作流画布',
+    '画布 流程图 思维导图',
+    '创建 PPT 演示稿画布',
+    '信息图 PPT 复杂展示',
+    '保存画布版本并发布组件资源',
     '工作流 默认模型 AI 分析',
+    'AI 自动生成审批工作流',
+    '一键生成业务审批流程',
     'api-key token 第三方鉴权',
   ],
   'dimens-sdk': [
@@ -112,6 +122,7 @@ const SYSTEM_BUILD_TARGETS = [
   '项目管理',
   '售后管理',
   '审批系统',
+  '带业务场景画布的审批系统',
 ];
 
 const WORKFLOW_INTENT_KEYWORDS = [
@@ -121,6 +132,12 @@ const WORKFLOW_INTENT_KEYWORDS = [
   '默认模型',
   'ai 分析',
   '审批流程',
+  '审批工作流',
+  '审批流',
+  '审批节点',
+  '业务审批流程',
+  '自动生成审批工作流',
+  '一键生成业务审批流程',
   '自动化',
 ];
 
@@ -164,6 +181,32 @@ const REPORT_INTENT_KEYWORDS = [
   '数据源',
   '统计',
   '看板',
+];
+
+const CANVAS_INTENT_KEYWORDS = [
+  '画布',
+  '业务工作流画布',
+  'canvas',
+  '白板',
+  '流程图',
+  '流图',
+  '思维导图',
+  '节点图',
+  '业务流程图',
+  '工作流画布',
+  'ppt',
+  '演示稿',
+  '幻灯片',
+  '汇报幻灯片',
+  'ppt 画布',
+  '演示稿画布',
+  '信息图',
+  'infographic',
+  'antv infographic',
+  '复杂展示',
+  '复杂信息展示',
+  '一键生成画布',
+  '一键生成业务工作流画布',
 ];
 
 const PROJECT_INTENT_KEYWORDS = [
@@ -310,6 +353,10 @@ function getSkillMatchSignals(
       matchedBy.push('report-intent');
       keywordScore += 3;
     }
+    if (hasIntentKeyword(normalizedQuery, CANVAS_INTENT_KEYWORDS)) {
+      matchedBy.push('canvas-intent');
+      keywordScore += 3;
+    }
   }
 
   if (skill.name === 'dimens-sdk' && hasIntentKeyword(normalizedQuery, SDK_INTENT_KEYWORDS)) {
@@ -340,6 +387,9 @@ function getSkillMatchSignals(
   }
   if (matchedBy.includes('report-intent')) {
     reasonParts.push('命中报表意图');
+  }
+  if (matchedBy.includes('canvas-intent')) {
+    reasonParts.push('命中画布意图');
   }
   if (matchedBy.includes('sdk-intent')) {
     reasonParts.push('命中 SDK / 接入开发意图');
@@ -508,6 +558,7 @@ export function registerSkillCommands(): void {
         usage: 'skill recommend <text>',
         examples: [
           'dimens-cli skill recommend 工作流 默认模型 AI 分析',
+          'dimens-cli skill recommend AI 一键生成业务工作流画布',
           'dimens-cli skill recommend api-key token --output json',
         ],
       }

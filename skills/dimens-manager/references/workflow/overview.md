@@ -23,6 +23,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - ✅ 模型问题不能默认认为所有工作流节点都会自动继承团队默认模型
 - ✅ `chat/completions` 接口与普通工作流节点执行是两条不同链路，不能混为一谈
 - ✅ 涉及项目入口、AI 分析、审批、自动化时，要同时检查项目上下文和权限边界
+- ✅ AI 自动生成审批工作流时，必须同时输出业务蓝图、`pluginType=approval` 的图草案和项目落地计划
 
 ## 命令维护表
 
@@ -34,6 +35,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 | `flow_run_debug` | 调试运行工作流 | `teamId`, `flowId` 或 `label` | `projectId`, `input` | 更适合排查节点执行问题和输入输出结构 |
 | `dimens-cli ai chat-completions` | 走 OpenAI 兼容接口调用团队模型或工作流能力 | `teamId`, `messages` | `model`, `temperature`, `stream` | `model` 为空时可能走团队默认文本模型，但不等于所有工作流节点都这样继承 |
 | `flow_config_get` | 查询团队默认模型策略 | `teamId` | `type=default_models` | 只说明团队默认模型配置，不代表节点自动回退一定生效 |
+| `dimens-cli ai chat-completions` | 辅助生成审批工作流草案 | `teamId`, `messages` | `model=team-default` | 可用于让 AI 产出审批蓝图和 JSON 草案，但创建、发布、挂载仍要看当前能力边界 |
 
 ### 强调细节
 
@@ -73,6 +75,13 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - 工作流问题可能同时影响团队隔离、项目隔离、模型配置和权限控制
 - 只靠单一接口返回结果不足以得出结论，必须结合文档和真实挂载关系一起判断
 
+### 6. 审批自动生成边界
+
+- “生成审批系统”属于系统级建设，先用 `dimens-system-orchestrator`。
+- “生成审批工作流 / 审批流程 / 审批节点”属于本章节，重点看 `references/approval-generation.md`。
+- AI 生成结果必须能落成工作流图草案，不能只输出自然语言流程说明。
+- 审批真值以后端审批实例表为准，表格 `workflow` 字段只负责发起和展示摘要。
+
 ## 必查文档
 
 | Skill / references | 作用 | 什么时候必须看 |
@@ -83,6 +92,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 | `references/usage.md` | 团队定义 / 项目挂载 / 运行调用三层分层 | 处理工作流时必须看 |
 | `references/project-binding.md` | 项目挂载与系统视图入口关系 | 分析项目里看不到时必须看 |
 | `references/model-routing.md` | 默认模型与节点模型边界 | 处理模型配置时必须看 |
+| `references/approval-generation.md` | AI 自动生成审批工作流的输入、输出、JSON 草案和落地计划 | 处理审批工作流自动生成时必须看 |
 | `references/capability-status.md` | 已封装 / server-only / 部分对齐 状态 | 判断当前能力范围时建议看 |
 | `references/examples.md` | 工作流接口案例 | 需要直接举例时看 |
 
@@ -138,6 +148,19 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - `model` 可以被解释为 `flowId` 或 `label`
 - 如果工作流已绑定项目入口，还要检查调用时是否需要额外业务上下文
 
+### 场景 4：AI 自动生成审批工作流
+
+推荐输出顺序：
+
+1. 业务审批蓝图：触发条件、表单字段、审批角色、条件分支、结束动作。
+2. 工作流图草案：`pluginType=approval`，包含 `nodes`、`edges`、`globalVariables`、`meta`。
+3. 项目落地计划：发布工作流、挂载到项目、设置 `systemView=approval`、补 `workflow` 字段入口、验证审批实例和字段摘要回写。
+
+注意：
+
+- 如果缺少 `teamId/projectId`，只能生成草案和落地步骤，不要声称已经写入项目。
+- 如果需要保存为可视化画布，另看 `dimens-manager`；可视化画布不等于可执行审批工作流。
+
 ## 常见错误与排查
 
 | 错误现象 | 根本原因 | 解决方案 |
@@ -153,6 +176,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - `references/usage.md`
 - `references/project-binding.md`
 - `references/model-routing.md`
+- `references/approval-generation.md`
 - `references/capability-status.md`
 - `references/examples.md`
 - 如需查看整个 Skill 体系的能力总览，请返回 `dimens-cli/skills/README.md`

@@ -23,6 +23,7 @@ import { registerHelpCommand } from './help';
 import { registerVersionCommand } from './version';
 import { createCommandGroup } from './registry';
 import { registerAuthCommands } from './auth/index';
+import { registerCanvasCommands } from './canvas/index';
 import { registerColumnCommands } from './column/index';
 import { registerDocCommands } from './doc/index';
 import { registerProjectCommands } from './project/index';
@@ -48,6 +49,7 @@ export function registerCommands(): void {
   registerUploadCommands();
   registerProjectCommands();
   registerDocCommands();
+  registerCanvasCommands();
   registerReportCommands();
   registerRoleCommands();
   registerPermissionCommands();

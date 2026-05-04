@@ -20,6 +20,7 @@ const MANAGER_COMMAND_GROUPS = [
   'row-acl',
   'report',
   'ai',
+  'canvas',
 ];
 
 const MANAGER_COMMANDS = [
@@ -110,6 +111,17 @@ const MANAGER_COMMANDS = [
   'report widget-batch',
   'report widget-sort',
   'ai chat-completions',
+  'canvas create',
+  'canvas info',
+  'canvas save',
+  'canvas versions',
+  'canvas version',
+  'canvas restore',
+  'canvas resource-list',
+  'canvas resource-save',
+  'canvas resource-delete',
+  'canvas resource-publish',
+  'canvas resource-market',
 ];
 
 export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
@@ -133,6 +145,7 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
       'permission',
       'workflow',
       'report',
+      'canvas',
     ],
     commandGroups: MANAGER_COMMAND_GROUPS,
     commands: MANAGER_COMMANDS,
@@ -150,6 +163,7 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
       'RowPolicySDK',
       'RowAclSDK',
       'ReportSDK',
+      'CanvasSDK',
       'FlowChatSDK',
       'DimensSDK.auth',
       'DimensSDK.project',
@@ -164,6 +178,7 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
       'DimensSDK.rowPolicy',
       'DimensSDK.rowAcl',
       'DimensSDK.report',
+      'DimensSDK.canvas',
       'DimensSDK.ai',
     ],
     toolNames: [
@@ -181,6 +196,9 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
       'row_policy_check',
       'report_create',
       'report_query',
+      'canvas_create',
+      'canvas_save',
+      'canvas_resource_publish',
       'flow_run_invoke',
     ],
   },

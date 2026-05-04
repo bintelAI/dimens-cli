@@ -29,7 +29,10 @@
 | 建表、字段、视图、行数据、关联、筛选 | `dimens-manager/references/table/overview.md` | 系统数据模型主链 |
 | 角色、项目权限、表列行权限、ACL、公开访问 | `dimens-manager/references/permission/overview.md` | 涉及可见性和协同时必须前置 |
 | 审批、自动化、AI 分析、模型路由 | `dimens-manager/references/workflow/overview.md` | 区分团队工作流定义、项目挂载和运行调用 |
+| 审批工作流自动生成 | `dimens-manager/references/workflow/references/approval-generation.md` | 生成 `pluginType=approval` 草案和落地计划，不等同于画布 |
 | 报表、图表、参数联动、数据源查询 | `dimens-manager/references/report/overview.md` | 创建组件前必须先走报表预检链 |
+| 业务场景画布、审批工作流画布、流程图、思维导图 | `references/business-canvas-flow.md` -> `dimens-manager/references/canvas/overview.md` -> `dimens-manager/references/canvas/references/generation-guide.md` | 生成 `nodes/edges` 并保存画布版本，不等同于可执行工作流 |
+| PPT 画布、演示稿画布、幻灯片画布 | `dimens-manager/references/canvas/overview.md` -> `dimens-manager/references/canvas/references/generation-guide.md#8-ppt--演示稿画布规则` | 16:9，一页一个 `SECTION` 分区，所有内容放在对应分区内 |
 | Node.js、Web、BFF、移动端接入 | `dimens-sdk/SKILL.md` | 只有开发者集成问题才进入 SDK |
 
 ## 3. 默认路由顺序
@@ -40,8 +43,9 @@
 2. `dimens-manager/references/team/overview.md`
 3. `dimens-manager/references/project/overview.md`
 4. `dimens-manager/references/table/overview.md`
-5. 按需追加 `permission / workflow / report`
-6. 如果要写代码接入，再追加 `dimens-sdk/SKILL.md`
+5. 如果存在流程、审批或多角色协作，追加 `references/business-canvas-flow.md` 和 `dimens-manager/references/canvas/overview.md`
+6. 按需追加 `permission / workflow / report`
+7. 如果要写代码接入，再追加 `dimens-sdk/SKILL.md`
 
 ### 3.2 已有项目链接
 
@@ -63,12 +67,16 @@
 | 角色 / 权限 / ACL | `permission` |
 | 工作流 / AI / 模型 | `workflow` |
 | 报表 / 图表 / 数据源 | `report` |
+| 画布 / 白板 / 流程图 / 思维导图 / PPT / 演示稿 / 幻灯片 | `dimens-manager/references/canvas/overview.md` |
+| 业务场景画布 / 审批工作流画布 | `references/business-canvas-flow.md`，再进入 `dimens-manager/references/canvas/overview.md` |
 
 ## 4. 章节依赖关系
 
 - `team` 通常先于所有资源章节，因为上下文不稳会导致所有命令落错项目。
 - `project` 通常先于 `table`，因为表、文档、报表都挂在项目下。
 - `table` 通常先于 `workflow` 和 `report`，因为流程触发和报表数据源都依赖业务对象。
+- `canvas` 可以在方案表达阶段提前生成，但如果要执行自动化，仍要回到 `workflow` 创建真实可执行流。
+- 审批工作流画布和可执行审批工作流必须拆开：前者路由到 `dimens-manager/references/canvas/overview.md`，后者路由到 `workflow/references/approval-generation.md`。
 - `permission` 不是最后补丁，只要用户提到可见范围、公开访问、部门隔离、只看自己，就要提前设计。
 - `sdk` 不替代业务章节；SDK 只是接入方式，业务规则仍以 `dimens-manager` 为准。
 

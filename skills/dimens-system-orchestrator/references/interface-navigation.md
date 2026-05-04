@@ -15,6 +15,7 @@
 | 文档 | 用途 |
 | --- | --- |
 | `system-decomposition.md` | 系统模块拆解方法 |
+| `business-canvas-flow.md` | 业务场景画布与审批工作流画布的系统级流程 |
 | `skill-routing.md` | 顶层技能与 `dimens-manager` 章节路由 |
 | `command-mapping.md` | 系统建设步骤到 CLI 命令的映射 |
 | `examples.md` | 系统级需求输出案例 |
@@ -29,6 +30,7 @@
 | 多维表格 | `dimens-manager/references/table/overview.md` | `build-flow.md`、`field-design-patterns.md`、`row-filters.md` |
 | 权限 | `dimens-manager/references/permission/overview.md` | `command-mapping.md`、`matrix.md`、`scenario-routing.md` |
 | 工作流 | `dimens-manager/references/workflow/overview.md` | `project-binding.md`、`model-routing.md`、`usage.md` |
+| 业务场景画布 | `dimens-manager/references/canvas/overview.md` | `dimens-manager/references/canvas/overview.md`、`business-canvas-flow.md` |
 | 报表 | `dimens-manager/references/report/overview.md` | `usage.md`、`recharts-widget-guide.md`、`examples.md` |
 
 ## 4. SDK 资料落点

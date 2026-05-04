@@ -54,6 +54,7 @@
 2. 如果是“项目里看不到”，优先看项目挂载层，不要直接跳到运行调用。
 3. 如果是“能看到但不能跑”，再进入运行调用层。
 4. 如果是“模型不对或节点报错”，再继续联动看 `model-routing.md`。
+5. 如果是“AI 自动生成审批工作流”，先看 `approval-generation.md`，再回到项目挂载和运行验证。
 
 ---
 
@@ -65,6 +66,7 @@
 - 用户说 AI 分析入口没有可选工作流
 - 用户说审批或自动化入口缺工作流
 - 用户说同一个工作流在不同项目表现不同
+- 用户要求把 AI 生成的审批工作流挂到项目里使用
 
 这时默认至少需要：
 
@@ -79,6 +81,7 @@
 - `examples.md`：接口级案例总览，重点是 `chat/completions` 的真实路径、入参、出参。
 - `project-binding.md`：解释团队定义、项目挂载、系统视图入口三层关系。
 - `model-routing.md`：解释默认模型和节点模型边界。
+- `approval-generation.md`：解释 AI 自动生成审批工作流的输入、输出、JSON 草案和落地验证。
 - `capability-status.md`：解释哪些已封装、哪些仍是 `server-only`、哪些只是部分对齐。
 
 ---
@@ -91,4 +94,5 @@
 2. 如果是项目可见性问题，再看 `project-binding.md`。
 3. 如果是调用结构问题，再看 `examples.md`。
 4. 如果是模型策略问题，再看 `model-routing.md`。
-5. 如果是“CLI 到底支不支持”这类问题，再看 `capability-status.md`。
+5. 如果是审批自动生成问题，再看 `approval-generation.md`。
+6. 如果是“CLI 到底支不支持”这类问题，再看 `capability-status.md`。

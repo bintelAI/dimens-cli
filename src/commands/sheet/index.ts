@@ -91,15 +91,15 @@ export function registerSheetCommands(): void {
           const sdk = new SheetSDK(createClient(context));
           const payload: {
             name: string;
-            type?: 'sheet' | 'folder' | 'document' | 'report';
+            type?: 'sheet' | 'folder' | 'document' | 'report' | 'canvas';
             folderId?: string;
           } = { name };
           if (flags.type) {
-            const supportedTypes = new Set(['sheet', 'folder', 'document', 'report']);
+            const supportedTypes = new Set(['sheet', 'folder', 'document', 'report', 'canvas']);
             if (!supportedTypes.has(flags.type)) {
-              throw new Error('sheet create 的 --type 仅支持 sheet、folder、document、report');
+              throw new Error('sheet create 的 --type 仅支持 sheet、folder、document、report、canvas');
             }
-            payload.type = flags.type as 'sheet' | 'folder' | 'document' | 'report';
+            payload.type = flags.type as 'sheet' | 'folder' | 'document' | 'report' | 'canvas';
           }
           if (flags['folder-id']) {
             payload.folderId = flags['folder-id'];
@@ -112,10 +112,11 @@ export function registerSheetCommands(): void {
       },
       {
         usage:
-          'sheet create --name <name> [--project-id <projectId>] [--type sheet|folder|document|report] [--folder-id <folderSheetId>] [--team-id <teamId>] [--app-url <url>]',
+          'sheet create --name <name> [--project-id <projectId>] [--type sheet|folder|document|report|canvas] [--folder-id <folderSheetId>] [--team-id <teamId>] [--app-url <url>]',
         examples: [
           'sheet create --project-id PROJ1 --name 客户中心 --type folder',
           'sheet create --project-id PROJ1 --name 客户表 --folder-id folder_customer',
+          'sheet create --project-id PROJ1 --name 业务流程画布 --type canvas',
           'sheet tree --project-id PROJ1',
         ],
       }

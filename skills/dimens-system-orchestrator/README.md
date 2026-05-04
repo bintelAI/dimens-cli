@@ -1,6 +1,6 @@
 # dimens-system-orchestrator
 
-`dimens-system-orchestrator` 是维表智联的系统级总控技能，用于把“生成一个 XX 系统 / 平台 / 管理应用”这类需求先拆成项目、目录、表格、文档、报表、权限、工作流和对接模块，再路由到 `dimens-manager` 的具体业务章节。
+`dimens-system-orchestrator` 是维表智联的系统级总控技能，用于把“生成一个 XX 系统 / 平台 / 管理应用”这类需求先拆成项目、目录、表格、文档、报表、业务场景画布、权限、工作流和对接模块，再路由到 `dimens-manager` 的具体业务章节。
 
 当前顶层技能体系已经收敛为 3 个：
 
@@ -16,7 +16,8 @@
 
 - “帮我生成一个客户管理系统”
 - “帮我搭一个售后管理平台”
-- “做一个项目管理系统，需要表格、报表和权限”
+- “做一个项目管理系统，需要表格、报表、业务流程画布和权限”
+- “生成一个审批系统，要能体现审批工作流画布”
 - “基于这个项目链接，帮我规划业务系统”
 
 不适合使用本技能的情况：
@@ -29,12 +30,13 @@
 
 1. 判断是否为系统级需求。
 2. 解析或确认 `teamId / projectId / baseUrl`。
-3. 先拆项目资源：目录、表格、文档、报表。
+3. 先拆项目资源：目录、表格、文档、报表、业务场景画布。
 4. 再拆数据模型：表、字段、关联、示例数据、查询案例。
-5. 按需补权限、工作流、外部对接。
-6. 输出 `dimens-manager` 章节路由和执行顺序。
-7. 用户确认后再进入具体命令或落地步骤。
-8. 执行后必须回查：`project info` 验证上传 URL 写回，`sheet tree` 验证目录归位，报表链路至少跑到 `query-widget` 或 `query`。
+5. 如果涉及流程、审批或多角色协作，补业务场景画布；审批场景补审批工作流画布。
+6. 按需补权限、工作流、外部对接。
+7. 输出 `dimens-manager` 章节路由和执行顺序。
+8. 用户确认后再进入具体命令或落地步骤。
+9. 执行后必须回查：`project info` 验证上传 URL 写回，`sheet tree` 验证目录归位，报表链路至少跑到 `query-widget` 或 `query`。
 
 ## `dimens-manager` 章节入口
 
@@ -47,11 +49,13 @@
 | 角色、权限、行级策略 | `dimens-manager/references/permission/overview.md` |
 | 工作流、AI、模型路由 | `dimens-manager/references/workflow/overview.md` |
 | 报表、组件、查询链 | `dimens-manager/references/report/overview.md` |
+| 业务场景画布、审批工作流画布 | `dimens-manager/references/canvas/overview.md`、`dimens-manager/references/canvas/references/generation-guide.md` |
 
 ## 核心原则
 
 - 先方案，后执行。
 - 系统搭建不要只建表，默认考虑表格、文档、报表。
+- 涉及流程或审批的系统，默认补业务场景画布；画布用于表达场景，不替代真实工作流。
 - 表格建模必须细到字段类型、关联、候选项、示例数据和视图。
 - 权限不是最后补丁，涉及角色、公开访问、部门可见、行级控制时要前置设计。
 - 报表不要直接从 `widget-add` 开始，先走 `report create -> preview -> widget-add -> query-widget -> query`。
@@ -62,6 +66,7 @@
 ## 参考资料
 
 - `references/system-decomposition.md`
+- `references/business-canvas-flow.md`
 - `references/skill-routing.md`
 - `references/interface-navigation.md`
 - `references/command-mapping.md`
