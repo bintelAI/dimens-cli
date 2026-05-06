@@ -32,7 +32,7 @@ dimens-cli project create \
 推荐链路：
 
 ```bash
-dimens-cli upload file --file ./project-cover.svg --key covers/project-cover.svg
+dimens-cli upload file --file ./project-cover.svg --team-id TEAM_ID --scene project-cover
 ```
 
 说明：
@@ -92,7 +92,7 @@ dimens-cli project create \
   --description 客户全生命周期管理 \
   --project-type spreadsheet
 
-dimens-cli upload file --path ./project-cover.svg --key covers/project-cover.svg
+dimens-cli upload file --path ./project-cover.svg --team-id TTFFEN --scene project-cover --source material
 
 dimens-cli sheet create \
   --project-id PROJECT_ID \

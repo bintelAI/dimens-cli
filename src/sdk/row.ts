@@ -26,6 +26,10 @@ export interface RowCreatePayload {
   [key: string]: unknown;
 }
 
+export interface RowBatchCreatePayload {
+  rows: Array<{ data: Record<string, unknown> }>;
+}
+
 export interface RowCellPayload {
   rowId: string;
   fieldId: string;
@@ -62,6 +66,16 @@ export class RowSDK {
 
   create(sheetId: string, payload: RowCreatePayload): Promise<APIResponse<RowInfo>> {
     return this.client.post<RowInfo>(`/app/mul/sheet/${sheetId}/row/create`, payload);
+  }
+
+  batchCreate(
+    sheetId: string,
+    payload: RowBatchCreatePayload
+  ): Promise<APIResponse<RowInfo[]>> {
+    return this.client.post<RowInfo[]>(
+      `/app/mul/sheet/${sheetId}/row/batch-create`,
+      payload
+    );
   }
 
   update(

@@ -32,6 +32,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - ✅ 富文本编辑器已支持 Mermaid 数据；业务流程图、审批流、状态流转、系统对接链路可以直接写入文档，不必截图上传
 - ✅ 当前服务端文档内容允许保留 `class`、`style`、`data-video`、`data-attachment`、`data-file-name`、`data-file-size` 等属性，适合承接富文本样式和附件节点
 - ✅ 文件/图片上传在产品侧已存在 `/app/base/comm/upload` 上传接口，`dimens-cli` 也已支持 `upload file / upload mode`；如果目标是把文件继续写入在线文档，优先走 `doc attach-file / doc append-image`
+- ✅ 如果目标是“上传完成后还能在素材管理里看到”，必须显式传 `--source material`；素材链路会额外写入 `name/size/mimeType` 并落库到素材管理
 - ✅ 项目封面、图标、文档图片、文档附件等资源类更新，统一先 `upload file` 拿 `url`，再把 `url` 写回当前业务数据后更新
 - ✅ SVG 封面/图标上传时必须保留 `.svg` 扩展名；当前 CLI 会按 `image/svg+xml` 上传，避免被后端当成普通二进制文件处理
 - ✅ 项目封面 SVG 默认规格是 `250x150px`，建议写入 `width="250" height="150" viewBox="0 0 250 150"`；背景使用淡色系，动画使用轻量 SVG 动态效果，不要做高饱和、强闪烁或过重动画
@@ -68,7 +69,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 | `dimens-cli project list` | 查询团队下项目列表 | `teamId` | `page`, `size`, `keyword`, `app-url` | 用于先确认项目上下文，再决定后续进入哪个项目做资源初始化或更新 |
 | `dimens-cli project info` | 获取项目详情 | `teamId`, `id` | `app-url` | 项目更新前默认先拿当前项目数据，避免把局部 patch 误当成完整更新数据 |
 | `dimens-cli auth use-project` | 切换本地默认项目上下文 | `projectId` | - | 只影响默认上下文，不会替代真实的项目详情读取和更新流程 |
-| `dimens-cli upload file` | 上传封面、图标、文档图片、附件等资源，先拿 URL | `file` | `team-id`, `project-id`, `scene`, `app-url` | 所有资源类更新先走上传，再把返回 `url` 写回业务数据，最后执行 update |
+| `dimens-cli upload file` | 上传封面、图标、文档图片、附件等资源，先拿 URL | `file` | `team-id`, `project-id`, `scene`, `source`, `classify-id`, `app-url` | 所有资源类更新先走上传，再把返回 `url` 写回业务数据，最后执行 update；要进入素材管理必须显式传 `--source material` |
 | `dimens-cli sheet create` | 创建项目目录节点或表格节点 | `projectId`, `name` | `type=folder`, `folder-id`, `teamId`, `app-url` | 项目创建后优先补菜单骨架；创建子资源时要显式传 `--folder-id` |
 | `dimens-cli sheet update` | 更新资源名称或把已有菜单资源移动到目录 | `teamId`, `projectId`, `sheetId` | `name`, `folder-id`, `app-url` | 已创建资源不会因为目录创建自动归位，移动时必须显式执行 `sheet update --folder-id` |
 | `dimens-cli doc create` | 创建在线文档资源 | `teamId`, `projectId`, `title` | `content`, `format`, `parent-id`, `app-url` | 文档是项目核心资源；可在 `content` 中写入 Mermaid 流程图 |
@@ -89,6 +90,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 
 - 所有更新类操作默认都按“拿数据 -> 改数据 -> 更新数据”执行，项目、文档、报表都不应直接把局部 patch 当通用更新模型。
 - 所有资源类更新默认都按“先上传拿 URL -> 把 URL 写回当前业务数据 -> 再 update”执行，项目封面、图标、文档图片、文档附件都走这条链。
+- 纯上传拿 URL 和“上传后进入素材管理”不是一回事；后者必须显式带 `--source material`，必要时再补 `--classify-id`。
 - 文档相关更新必须先拿 `doc info`，因为内容更新依赖当前文档内容和 `version`，不能跳过版本控制。
 - 如果是项目封面、项目图标这类资源字段更新，默认先 `project info` 拿当前数据，再合并上传后的 `url`，最后 `project update`。
 - 报表或报表组件更新默认先读当前报表数据，不直接盲改；组件场景还要先确认 `reportId`、当前组件配置和数据映射。

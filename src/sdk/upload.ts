@@ -23,6 +23,11 @@ export interface UploadFileOptions {
   scene?: string;
   teamId?: string;
   projectId?: string;
+  source?: string;
+  name?: string;
+  size?: string;
+  mimeType?: string;
+  classifyId?: string;
   [key: string]: string | undefined;
 }
 
@@ -53,6 +58,16 @@ export class UploadSDK {
       typeof keyOrOptions === 'string'
         ? { key: keyOrOptions }
         : (keyOrOptions ?? {});
+
+    if (!options.name) {
+      options.name = file.name;
+    }
+    if (!options.size) {
+      options.size = String(file.size);
+    }
+    if (!options.mimeType) {
+      options.mimeType = file.type;
+    }
 
     Object.entries(options).forEach(([field, value]) => {
       if (!value) {

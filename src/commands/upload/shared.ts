@@ -21,6 +21,21 @@ export function buildUploadOptions(flags: Record<string, string>): UploadFileOpt
   if (flags['project-id']) {
     options.projectId = flags['project-id'];
   }
+  if (flags.source) {
+    options.source = flags.source;
+  }
+  if (flags.name) {
+    options.name = flags.name;
+  }
+  if (flags.size) {
+    options.size = flags.size;
+  }
+  if (flags['mime-type']) {
+    options.mimeType = flags['mime-type'];
+  }
+  if (flags['classify-id']) {
+    options.classifyId = flags['classify-id'];
+  }
 
   return options;
 }

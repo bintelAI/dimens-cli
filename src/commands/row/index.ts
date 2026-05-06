@@ -1,5 +1,6 @@
 import { createCommand, createCommandGroup, registerGroupCommand } from '../registry';
 import { RowSDK } from '../../sdk/row';
+import { readFileSync } from 'node:fs';
 import {
   createClient,
   getContext,
@@ -10,6 +11,35 @@ import {
   requireSheetId,
   requireTeamId,
 } from '../utils';
+
+const MAX_ROW_BATCH_SIZE = 1000;
+
+function normalizeBatchRows(rawRows: unknown): Array<{ data: Record<string, unknown> }> {
+  if (!Array.isArray(rawRows) || rawRows.length === 0) {
+    throw new Error('批量创建行数据必须是非空 JSON 数组');
+  }
+
+  return rawRows.map((row, index) => {
+    const source = (row && typeof row === 'object' && !Array.isArray(row) && 'data' in row)
+      ? (row as { data?: unknown }).data
+      : row;
+    if (!source || typeof source !== 'object' || Array.isArray(source)) {
+      throw new Error(`第 ${index + 1} 行数据格式错误，必须是对象`);
+    }
+    return { data: source as Record<string, unknown> };
+  });
+}
+
+function resolveBatchSize(value?: string): number {
+  const batchSize = value ? Number(value) : MAX_ROW_BATCH_SIZE;
+  if (!Number.isInteger(batchSize) || batchSize <= 0) {
+    throw new Error('--batch-size 必须是正整数');
+  }
+  if (batchSize > MAX_ROW_BATCH_SIZE) {
+    throw new Error(`--batch-size 不能超过 ${MAX_ROW_BATCH_SIZE}`);
+  }
+  return batchSize;
+}
 
 export function registerRowCommands(): void {
   createCommandGroup('row', '行数据管理');
@@ -72,6 +102,46 @@ export function registerRowCommands(): void {
         const values = flags.values ? JSON.parse(flags.values) as Record<string, unknown> : {};
         const result = await sdk.create(sheetId, { data: values });
         printSuccess(context, '行创建成功', result.data);
+      } catch (error) {
+        printError(context, error);
+      }
+    })
+  );
+
+  registerGroupCommand(
+    'row',
+    createCommand('batch-create', '批量创建行', async args => {
+      const flags = parseFlags(args);
+      const context = getContext(flags);
+
+      try {
+        const sheetId = requireSheetId(flags, args);
+        const sdk = new RowSDK(createClient(context));
+        const rawRows = flags.file
+          ? JSON.parse(readFileSync(flags.file, 'utf-8'))
+          : flags.values !== undefined
+            ? JSON.parse(flags.values)
+            : undefined;
+        if (rawRows === undefined) {
+          throw new Error('请通过 --file 或 --values 传入行数据');
+        }
+
+        const rows = normalizeBatchRows(rawRows);
+        const batchSize = resolveBatchSize(flags['batch-size']);
+        const results = [];
+        for (let index = 0; index < rows.length; index += batchSize) {
+          const chunk = rows.slice(index, index + batchSize);
+          const result = await sdk.batchCreate(sheetId, { rows: chunk });
+          if (Array.isArray(result.data)) {
+            results.push(...result.data);
+          }
+        }
+
+        printSuccess(context, `批量创建 ${rows.length} 行成功`, {
+          created: rows.length,
+          batches: Math.ceil(rows.length / batchSize),
+          rows: results,
+        });
       } catch (error) {
         printError(context, error);
       }

@@ -101,4 +101,45 @@ describe('UploadSDK via DimensClient', () => {
     const uploadedFile = formData.get('file') as File;
     expect(uploadedFile.type).toBe('image/svg+xml');
   });
+
+  it('should append default material metadata fields when options do not override them', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 1000,
+        message: 'success',
+        data: {
+          fileId: 'SVG_2',
+          name: 'icon.svg',
+        },
+      }),
+    });
+
+    const client = new DimensClient({
+      baseUrl: 'https://api.example.com',
+      token: 'token-1',
+    });
+    const sdk = new UploadSDK(client);
+
+    const tempDir = await mkdtemp(join(tmpdir(), 'dimens-upload-'));
+    const svgPath = join(tempDir, 'icon.svg');
+    await writeFile(svgPath, '<svg></svg>');
+
+    try {
+      await sdk.uploadFile(svgPath, {
+        source: 'material',
+        teamId: 'TEAM1',
+      });
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+
+    const calledInit = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const formData = calledInit.body as FormData;
+    expect(formData.get('source')).toBe('material');
+    expect(formData.get('teamId')).toBe('TEAM1');
+    expect(formData.get('name')).toBe('icon.svg');
+    expect(formData.get('mimeType')).toBe('image/svg+xml');
+    expect(formData.get('size')).toBeTruthy();
+  });
 });

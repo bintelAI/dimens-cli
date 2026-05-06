@@ -31,10 +31,11 @@ export function registerUploadCommands(): void {
       },
       {
         usage:
-          'upload file --file <path> [--key <objectKey>] [--type <type>] [--biz-type <bizType>] [--scene <scene>] [--team-id <teamId>] [--project-id <projectId>]',
+          'upload file --file <path> [--key <objectKey>] [--type <type>] [--biz-type <bizType>] [--scene <scene>] [--source <source>] [--classify-id <classifyId>] [--team-id <teamId>] [--project-id <projectId>]',
         examples: [
           'dimens-cli upload file --file ./demo.txt',
           'dimens-cli upload file --file ./demo.txt --key docs/demo.txt',
+          'dimens-cli upload file --file ./logo.svg --team-id TEAM1 --source material',
         ],
       }
     )

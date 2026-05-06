@@ -249,6 +249,7 @@ node ./bin/dimens-cli.js project list --team-id TEAM1
 node ./bin/dimens-cli.js upload file --path ./demo.txt
 node ./bin/dimens-cli.js upload file --path ./cover.png --key docs/cover.png
 node ./bin/dimens-cli.js upload file --path ./project-cover.png --team-id TEAM1 --project-id PROJ1 --scene project-cover
+node ./bin/dimens-cli.js upload file --path ./logo.svg --team-id TEAM1 --source material
 node ./bin/dimens-cli.js upload mode
 ```
 
@@ -260,12 +261,13 @@ node ./bin/dimens-cli.js upload mode
 - 典型场景包括：项目封面、文档图片、文档附件
 - 所有更新命令统一按“先拿当前数据 -> 修改目标字段 -> 再提交 update”执行，避免只传局部字段造成数据丢失
 - 如果上传资源明确归属于某个团队或项目，建议同时传 `--team-id`、`--project-id`，必要时补充 `--scene`
+- 如果希望上传后直接进入素材管理，必须显式传 `--source material`；CLI 会自动补 `name`、`size`、`mimeType`
 
 项目初始化与菜单骨架示例：
 
 ```bash
 node ./bin/dimens-cli.js project create --team-id TEAM1 --name 客户管理系统 --description 客户全生命周期管理 --project-type spreadsheet
-node ./bin/dimens-cli.js upload file --path ./project-cover.svg --key covers/project-cover.svg
+node ./bin/dimens-cli.js upload file --path ./project-cover.svg --team-id TEAM1 --scene project-cover
 node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 客户中心 --type folder
 node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 项目文档 --type folder
 node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 经营分析 --type folder

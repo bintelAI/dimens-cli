@@ -151,4 +151,33 @@ describe('Upload Commands', () => {
 
     logSpy.mockRestore();
   });
+
+  it('should pass material source fields for material-library upload', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    registerCommands();
+
+    const command = getCommandGroup('upload')?.commands.find(item => item.name === 'file');
+    expect(command).toBeTruthy();
+
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    await command?.handler([
+      '--file',
+      '/tmp/logo.svg',
+      '--team-id',
+      'TEAM9',
+      '--source',
+      'material',
+      '--classify-id',
+      '12',
+    ]);
+
+    expect(uploadSdkSpies.uploadFile).toHaveBeenCalledWith('/tmp/logo.svg', {
+      classifyId: '12',
+      source: 'material',
+      teamId: 'TEAM9',
+    });
+
+    logSpy.mockRestore();
+  });
 });
