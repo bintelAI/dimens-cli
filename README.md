@@ -322,6 +322,21 @@ node ./bin/dimens-cli.js row page \
 - `row page` 是当前唯一保留的行读取命令
 - 不再使用 `row list`
 
+批量写入行数据：
+
+```bash
+node ./bin/dimens-cli.js row batch-create \
+  --sheet-id SHEET1 \
+  --file ./data/rows.json
+```
+
+说明：
+
+- `rows.json` 顶层必须是 JSON 数组，每一项可以直接是字段对象，也可以是 `{ "data": { ... } }`
+- 后端单批最高限制 1000 行，CLI 默认按 1000 行自动分片
+- 可通过 `--batch-size 500` 调小分片大小，但不能超过 1000
+- 系统初始化、迁移、批量补数据时优先用 `row batch-create`，不要循环调用 `row create`
+
 ## 权限命令快速示例
 
 权限链路建议按“角色 -> 项目/表权限 -> 行级策略 -> 单行 ACL”理解和使用，这也与仓库内权限设计文档的分层保持一致。

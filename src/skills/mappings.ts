@@ -54,6 +54,7 @@ const MANAGER_COMMANDS = [
   'row page',
   'row info',
   'row create',
+  'row batch-create',
   'row update',
   'row delete',
   'row set-cell',

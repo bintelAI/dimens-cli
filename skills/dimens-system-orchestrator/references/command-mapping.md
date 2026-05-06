@@ -69,6 +69,7 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 查看字段列表 | `dimens-cli column list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 写入行数据前必须先取字段 |
 | 创建字段 | `dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 字段名 --type text` | 推荐统一使用 `--label`；`select/multiSelect` 必须同步传 `--options`；如果语义是选人或选部门，优先改配 `person` / `department`，不要误落成普通下拉 |
 | 创建行 | `dimens-cli row create --sheet-id SHEET_ID --values '{\"fld_xxx\":\"值\"}'` | CLI 会映射到服务端 `data` |
+| 批量创建行 | `dimens-cli row batch-create --sheet-id SHEET_ID --file ./rows.json [--batch-size 1000]` | 系统初始化、迁移、批量补数据优先用这个命令；后端单批最高 1000 行，CLI 会按批次分片 |
 | 更新行 | `dimens-cli row update --sheet-id SHEET_ID --row-id ROW_ID --version 1 --values '{\"fld_xxx\":\"新值\"}'` | 更新前要拿到版本号 |
 | 更新单元格 | `dimens-cli row set-cell --sheet-id SHEET_ID --row-id ROW_ID --field-id FIELD_ID --value 新值 --version 1` | 推荐用 `fieldId`，不要用中文字段名 |
 | 查询行数据 | `dimens-cli row page --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --page 1 --size 20` | 验证表是否可用 |
@@ -231,6 +232,21 @@ dimens-cli row create \
   --values '{"fld_customerName":"华东智造","fld_customerLevel":"A"}'
 ```
 
+批量初始化示例数据时，不要循环执行单行 `row create`，应写入 JSON 文件后走批量命令：
+
+```bash
+dimens-cli row batch-create \
+  --sheet-id SHEET_ID \
+  --file ./data/customers.json \
+  --batch-size 1000
+```
+
+说明：
+
+- `customers.json` 顶层必须是数组，每一项可以是 `{ "fld_xxx": "值" }` 或 `{ "data": { "fld_xxx": "值" } }`。
+- 后端单批最多 1000 行；CLI 会按 `--batch-size` 自动分片，`--batch-size` 不能超过 1000。
+- 多批导入时只保证每个后端分片事务原子，不保证整个文件全局事务。
+
 ## 5. 必须显式提醒的坑
 
 | 坑点 | 正确做法 |
@@ -243,5 +259,6 @@ dimens-cli row create \
 | 把部门字段误建成普通下拉 | 没识别组织结构字段和静态枚举字段的区别 | 优先改成 `department`，不要手工维护部门选项 |
 | relation 字段创建显示成功但没真正落库 | 当前复杂 relation 仍需按 API 的 `relationConfig` 校验，不要只看 CLI 成功提示 |
 | 行写入直接用中文字段名 | 先查字段列表，拿 `fieldId` 再写 |
+| 批量导入还循环调用 `row create` | 使用 `row batch-create --file`，让 CLI 按最多 1000 行分片，减少 HTTP 和数据库压力 |
 | `row set-cell` 继续用 `columnId` 理解服务端 | 服务端真实字段是 `fieldId`，`columnId` 只是兼容参数 |
 | 忽略 `version` | 行更新和单元格更新都建议显式带 `version` |

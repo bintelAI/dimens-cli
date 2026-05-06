@@ -67,6 +67,7 @@ describe('Skill Commands', () => {
     expect(output).toContain('column');
     expect(output).toContain('SDK');
     expect(output).toContain('RowSDK');
+    expect(output).toContain('row batch-create');
     expect(output).toContain('CanvasSDK');
     logSpy.mockRestore();
   });

@@ -72,6 +72,8 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `dimens-cli view list` | 查询视图列表 | `teamId`, `projectId`, `sheetId` | - | 建表后先确认默认公开视图是否已经落地 |
 | `dimens-cli view create` | 创建公开默认视图或业务视图 | `teamId`, `projectId`, `sheetId`, `name`, `type` | `isPublic`, `config` | 技能建表链路默认要求至少补一个公开 grid 视图 |
 | `dimens-cli row page` | 分页查询行数据 | `teamId`, `projectId`, `sheetId` | `viewId`, `page`, `size`, `keyword`, `searchFieldIds`, `filters`, `filterMatchType`, `sortRule` | 行读取链路会同时受字段筛选、视图配置和权限影响 |
+| `dimens-cli row create` | 新增单行数据 | `sheetId`, `values` | - | 写入前必须先通过 `column list` 确认真实 `fieldId`，CLI 会把 `--values` 映射成服务端 `data` |
+| `dimens-cli row batch-create` | 批量新增行数据 | `sheetId`, `file` 或 `values` | `batch-size` | 推荐大批量初始化、迁移和补数据使用；CLI 会按最多 1000 行分片，后端单批硬限制 1000 行且单批事务原子 |
 | `dimens-cli row update` | 更新整行数据 | `teamId`, `projectId`, `sheetId`, `rowId` | `data`, `version`, `app-url` | 默认先读当前行数据，再修改目标字段，再 update；不要只凭局部字段直接覆盖 |
 | `dimens-cli row set-cell` | 更新单个单元格 | `sheetId`, `rowId`, `fieldId`, `value` | `version`, `columnId` | 服务端真实契约以 `fieldId` 为准，写入时仍要注意版本和权限边界 |
 
@@ -79,6 +81,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 - 表、字段、行的更新类命令默认都按“拿数据 -> 改数据 -> 更新数据”执行，不能把局部 patch 当成稳定更新方式。
 - `sheet update` 前默认先 `sheet info`；`column update` 前默认先取当前 `structure.columns`；`row update` 前默认先读取当前行数据。
+- 初始化、迁移、补数据这类多行写入优先用 `row batch-create --file`，不要让技能循环调用 `row create` 逐条写入；超过 1000 行时由 CLI 自动分片，后端只保证每个分片事务原子。
 - 如果字段后续要进入报表，建模阶段就要把字段类型、选项、数值字段和维度字段设计清楚，不要拖到报表阶段返工。
 - 新建表后默认检查公开默认视图，不要只建表不补视图。
 - 行写入和字段更新除了结构正确，还要同步考虑权限、协同链路和版本字段。
@@ -238,6 +241,39 @@ dimens-cli row set-cell \
 - 写入前要先确认字段类型和值结构
 - `fieldId` 需要先通过 `dimens-cli column list` 获取，不能直接拿中文字段名当写入键
 - 如果是系统字段、只读字段或命中行级策略，后端仍可能拒绝
+
+### 场景 2.0：批量初始化行数据
+
+推荐把示例数据、迁移数据或补录数据写入 JSON 文件，再批量导入：
+
+```json
+[
+  { "fld_customerName": "华东智造", "fld_customerLevel": "A" },
+  { "fld_customerName": "华南制造", "fld_customerLevel": "B" }
+]
+```
+
+```bash
+dimens-cli row batch-create \
+  --sheet-id SHEET1 \
+  --file ./data/customers.json
+```
+
+如果数据量超过 1000 行，CLI 默认按 1000 行自动切分请求：
+
+```bash
+dimens-cli row batch-create \
+  --sheet-id SHEET1 \
+  --file ./data/customers.json \
+  --batch-size 1000
+```
+
+注意：
+
+- 后端单次 `batch-create` 最高限制 1000 行。
+- CLI 多批导入时，每批在后端事务内原子提交；整个文件不是一个全局事务。
+- 仍然必须使用真实 `fieldId` 写入，不要用中文字段名。
+- 写入会继续受表级、列级、行级权限影响，只读字段会被后端过滤或拒绝。
 
 ### 场景 2.1：设计带颜色的单选/多选字段
 
