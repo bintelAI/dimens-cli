@@ -95,6 +95,43 @@ describe('RowSDK', () => {
     );
   });
 
+  it('should request row batch create with rows payload', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 1000,
+        message: 'success',
+        data: [{ id: 'R1' }, { id: 'R2' }],
+      }),
+    });
+
+    const sdk = new RowSDK(
+      new DimensClient({
+        baseUrl: 'https://api.example.com',
+      })
+    );
+
+    await sdk.batchCreate('S1', {
+      rows: [
+        { data: { fld_name: '华东智造' } },
+        { data: { fld_name: '华南智造' } },
+      ],
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/app/mul/sheet/S1/row/batch-create',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          rows: [
+            { data: { fld_name: '华东智造' } },
+            { data: { fld_name: '华南智造' } },
+          ],
+        }),
+      })
+    );
+  });
+
   it('should request row cell update with fieldId and version', async () => {
     fetchMock.mockResolvedValue({
       ok: true,

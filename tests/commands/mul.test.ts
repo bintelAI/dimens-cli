@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearCommands, getCommandGroup } from '../../src/commands/registry';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 vi.mock('../../src/core/config', () => {
   const store = {
@@ -188,6 +191,11 @@ const rowSdkSpies = {
     },
   })),
   create: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'R1' } })),
+  batchCreate: vi.fn(async (_sheetId: string, payload: { rows: unknown[] }) => ({
+    code: 1000,
+    message: 'success',
+    data: payload.rows.map((_row, index) => ({ id: `R${index + 1}` })),
+  })),
   update: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'R1' } })),
   updateCell: vi.fn(async () => ({ code: 1000, message: 'success', data: true })),
 };
@@ -414,6 +422,9 @@ vi.mock('../../src/sdk/row', () => {
       }
       async create(...args: unknown[]) {
         return rowSdkSpies.create(...args);
+      }
+      async batchCreate(...args: unknown[]) {
+        return rowSdkSpies.batchCreate(...args);
       }
       async update(...args: unknown[]) {
         return rowSdkSpies.update(...args);
@@ -2199,6 +2210,47 @@ describe('Sheet Column Row Commands', () => {
       data: { fld_customer: '华东智造' },
     });
     logSpy.mockRestore();
+  });
+
+  it('should execute row batch-create command from file in 1000-row chunks', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const tmpDir = await mkdtemp(join(tmpdir(), 'dimens-row-batch-'));
+    const filePath = join(tmpDir, 'rows.json');
+    const rows = Array.from({ length: 1001 }, (_, index) => ({
+      fld_customer: `客户${index + 1}`,
+    }));
+    await writeFile(filePath, JSON.stringify(rows), 'utf-8');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    try {
+      registerCommands();
+      const batchCreateRow = getCommandGroup('row')?.commands.find(
+        command => command.name === 'batch-create'
+      );
+      await batchCreateRow?.handler([
+        '--sheet-id',
+        'S1',
+        '--file',
+        filePath,
+      ]);
+
+      expect(rowSdkSpies.batchCreate).toHaveBeenCalledTimes(2);
+      expect(rowSdkSpies.batchCreate).toHaveBeenNthCalledWith(1, 'S1', {
+        rows: expect.arrayContaining([
+          { data: { fld_customer: '客户1' } },
+          { data: { fld_customer: '客户1000' } },
+        ]),
+      });
+      expect((rowSdkSpies.batchCreate.mock.calls[0]?.[1] as any).rows).toHaveLength(1000);
+      expect(rowSdkSpies.batchCreate).toHaveBeenNthCalledWith(2, 'S1', {
+        rows: [{ data: { fld_customer: '客户1001' } }],
+      });
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('批量创建 1001 行成功'));
+    } finally {
+      logSpy.mockRestore();
+      await rm(tmpDir, { recursive: true, force: true });
+    }
   });
 
   it('should execute row update command with data payload', async () => {
