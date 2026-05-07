@@ -26,6 +26,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ relation 字段创建必须补齐目标表，推荐显式传 `--target-sheet-id`，并尽量补 `--display-column-id`
 - ✅ `select` / `multiSelect` 字段在技能创建时必须同时给出完整候选项，不能只定义字段名和类型
 - ✅ `select` / `multiSelect` / 下拉选择类配置在技能输出时必须同时给出候选项颜色策略：默认颜色还是自定义颜色，不能只给 `label`
+- ✅ 用户上传 Excel 并要求创建选择器字段时，必须先从 Excel 表头和样本值提取候选项，用 `column create --options` 创建完整下拉；行数据写入必须映射到这些候选项，不能把不存在的下拉值直接写入
 - ✅ 选项颜色字符串要与前端真实实现对齐：内置颜色使用 `bg-xxx-100 text-xxx-700`，自定义颜色使用 `custom:{\"bg\":\"#xxxxxx\",\"text\":\"#xxxxxx\"}`
 - ✅ 当前 `dimens-cli` 对字段选项颜色的内置白名单已与前端真实字段配置对齐为 12 色；如果超出这 12 种内置色，优先改用 `custom:{...}`，不要直接写扩展类名
 - ✅ `select` / `multiSelect`、`person`、`department` 都属于特殊字段，不能只按普通文本字段理解
@@ -73,7 +74,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `dimens-cli view create` | 创建公开默认视图或业务视图 | `teamId`, `projectId`, `sheetId`, `name`, `type` | `isPublic`, `config` | 技能建表链路默认要求至少补一个公开 grid 视图 |
 | `dimens-cli row page` | 分页查询行数据 | `teamId`, `projectId`, `sheetId` | `viewId`, `page`, `size`, `keyword`, `searchFieldIds`, `filters`, `filterMatchType`, `sortRule` | 行读取链路会同时受字段筛选、视图配置和权限影响 |
 | `dimens-cli row create` | 新增单行数据 | `sheetId`, `values` | - | 写入前必须先通过 `column list` 确认真实 `fieldId`，CLI 会把 `--values` 映射成服务端 `data` |
-| `dimens-cli row batch-create` | 批量新增行数据 | `sheetId`, `file` 或 `values` | `batch-size` | 推荐大批量初始化、迁移和补数据使用；CLI 会按最多 1000 行分片，后端单批硬限制 1000 行且单批事务原子 |
+| `dimens-cli row batch-create` | 批量新增行数据 | `sheetId`, `file` 或 `values` | `batch-size` | 推荐大批量初始化、迁移和补数据使用；CLI 默认按 200 行稳定分片，后端单批硬限制 1000 行且单批事务原子 |
 | `dimens-cli row update` | 更新整行数据 | `teamId`, `projectId`, `sheetId`, `rowId` | `data`, `version`, `app-url` | 默认先读当前行数据，再修改目标字段，再 update；不要只凭局部字段直接覆盖 |
 | `dimens-cli row set-cell` | 更新单个单元格 | `sheetId`, `rowId`, `fieldId`, `value` | `version`, `columnId` | 服务端真实契约以 `fieldId` 为准，写入时仍要注意版本和权限边界 |
 
@@ -81,7 +82,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 - 表、字段、行的更新类命令默认都按“拿数据 -> 改数据 -> 更新数据”执行，不能把局部 patch 当成稳定更新方式。
 - `sheet update` 前默认先 `sheet info`；`column update` 前默认先取当前 `structure.columns`；`row update` 前默认先读取当前行数据。
-- 初始化、迁移、补数据这类多行写入优先用 `row batch-create --file`，不要让技能循环调用 `row create` 逐条写入；超过 1000 行时由 CLI 自动分片，后端只保证每个分片事务原子。
+- 初始化、迁移、补数据这类多行写入优先用 `row batch-create --file`，不要让技能循环调用 `row create` 逐条写入；CLI 默认按 200 行稳定分片，后端只保证每个分片事务原子。
 - 如果字段后续要进入报表，建模阶段就要把字段类型、选项、数值字段和维度字段设计清楚，不要拖到报表阶段返工。
 - 新建表后默认检查公开默认视图，不要只建表不补视图。
 - 行写入和字段更新除了结构正确，还要同步考虑权限、协同链路和版本字段。
@@ -114,6 +115,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - 字段设计默认至少要明确：字段名、类型、是否必填、是否唯一、默认值、是否参与筛选、是否参与排序、是否用于主展示
 - 如果字段类型是 `select` 或 `multiSelect`，还必须同步明确候选项列表；没有选项值就不是完整字段设计
 - 如果字段类型是 `select` 或 `multiSelect`，每个候选项默认至少明确：`id`、`label`、`color`
+- 如果数据来源是 Excel，创建 `select` / `multiSelect` 字段前必须先扫描该列实际值，把去重后的合法值转成候选项；后续 `row batch-create` 写入时只能写已有候选项对应的 `label` 或 `id`，发现新值要先补字段选项再导入
 - 下拉候选项颜色必须区分两类：
   1. 内置默认颜色：使用前端内置的 Tailwind 类名组合
   2. 自定义颜色：使用 `custom:{\"bg\":\"#xxxxxx\",\"text\":\"#xxxxxx\"}` 字符串
@@ -259,20 +261,22 @@ dimens-cli row batch-create \
   --file ./data/customers.json
 ```
 
-如果数据量超过 1000 行，CLI 默认按 1000 行自动切分请求：
+如果数据量超过 200 行，CLI 默认按 200 行稳定切分请求：
 
 ```bash
 dimens-cli row batch-create \
   --sheet-id SHEET1 \
   --file ./data/customers.json \
-  --batch-size 1000
+  --batch-size 200
 ```
 
 注意：
 
 - 后端单次 `batch-create` 最高限制 1000 行。
+- 真实导入不要使用 1000 行分片，已确认 1000 行存在静默丢数据风险；技能生成命令默认使用 200 行。
 - CLI 多批导入时，每批在后端事务内原子提交；整个文件不是一个全局事务。
 - 仍然必须使用真实 `fieldId` 写入，不要用中文字段名。
+- `select` / `multiSelect` 字段写入前必须先回查字段 `options`，把 Excel 单元格值映射到已有候选项；字段没有下拉时先补 `--options`，不能先导入行数据。
 - 写入会继续受表级、列级、行级权限影响，只读字段会被后端过滤或拒绝。
 
 ### 场景 2.1：设计带颜色的单选/多选字段

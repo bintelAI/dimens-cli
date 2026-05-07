@@ -69,7 +69,7 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 查看字段列表 | `dimens-cli column list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 写入行数据前必须先取字段 |
 | 创建字段 | `dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 字段名 --type text` | 推荐统一使用 `--label`；`select/multiSelect` 必须同步传 `--options`；如果语义是选人或选部门，优先改配 `person` / `department`，不要误落成普通下拉 |
 | 创建行 | `dimens-cli row create --sheet-id SHEET_ID --values '{\"fld_xxx\":\"值\"}'` | CLI 会映射到服务端 `data` |
-| 批量创建行 | `dimens-cli row batch-create --sheet-id SHEET_ID --file ./rows.json [--batch-size 1000]` | 系统初始化、迁移、批量补数据优先用这个命令；后端单批最高 1000 行，CLI 会按批次分片 |
+| 批量创建行 | `dimens-cli row batch-create --sheet-id SHEET_ID --file ./rows.json [--batch-size 200]` | 系统初始化、迁移、批量补数据优先用这个命令；后端单批最高 1000 行，但真实导入默认按 200 行稳定分片 |
 | 更新行 | `dimens-cli row update --sheet-id SHEET_ID --row-id ROW_ID --version 1 --values '{\"fld_xxx\":\"新值\"}'` | 更新前要拿到版本号 |
 | 更新单元格 | `dimens-cli row set-cell --sheet-id SHEET_ID --row-id ROW_ID --field-id FIELD_ID --value 新值 --version 1` | 推荐用 `fieldId`，不要用中文字段名 |
 | 查询行数据 | `dimens-cli row page --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --page 1 --size 20` | 验证表是否可用 |
@@ -238,13 +238,13 @@ dimens-cli row create \
 dimens-cli row batch-create \
   --sheet-id SHEET_ID \
   --file ./data/customers.json \
-  --batch-size 1000
+  --batch-size 200
 ```
 
 说明：
 
 - `customers.json` 顶层必须是数组，每一项可以是 `{ "fld_xxx": "值" }` 或 `{ "data": { "fld_xxx": "值" } }`。
-- 后端单批最多 1000 行；CLI 会按 `--batch-size` 自动分片，`--batch-size` 不能超过 1000。
+- 后端单批最多 1000 行；CLI 会按 `--batch-size` 自动分片，默认使用 200 行。不要为了减少请求数改成 1000 行，真实导入中 1000 行分片存在静默丢数据风险。
 - 多批导入时只保证每个后端分片事务原子，不保证整个文件全局事务。
 
 ## 5. 必须显式提醒的坑
@@ -254,11 +254,12 @@ dimens-cli row batch-create \
 | 没登录就直接跑表格命令 | 先执行 `auth api-key-login` 或其他认证链路 |
 | 创建字段还用 `--title` 当规范写法 | 现在兼容，但推荐统一改成 `--label` |
 | 建表后没检查默认视图 | 先 `view list`，缺失时补一个公开的 `grid` 默认视图 |
-| `select` / `multiSelect` 只建字段不配选项 | 创建字段时直接补 `--options`，不要留空配置 |
+| `select` / `multiSelect` 只建字段不配选项 | 创建字段时直接补 `--options`，不要留空配置；Excel 导入前必须先从表头/样本值提取候选项并创建选项 |
 | 把人员字段误建成普通下拉 | 没识别项目已有用户、部门、角色体系，误把“选人”当静态枚举 | 优先改成 `person`，不要手工维护人员选项 |
 | 把部门字段误建成普通下拉 | 没识别组织结构字段和静态枚举字段的区别 | 优先改成 `department`，不要手工维护部门选项 |
 | relation 字段创建显示成功但没真正落库 | 当前复杂 relation 仍需按 API 的 `relationConfig` 校验，不要只看 CLI 成功提示 |
 | 行写入直接用中文字段名 | 先查字段列表，拿 `fieldId` 再写 |
-| 批量导入还循环调用 `row create` | 使用 `row batch-create --file`，让 CLI 按最多 1000 行分片，减少 HTTP 和数据库压力 |
+| 批量导入还循环调用 `row create` | 使用 `row batch-create --file`，让 CLI 默认按 200 行稳定分片，减少 HTTP 和数据库压力 |
+| Excel 里的下拉值直接原样写入 | 先确认字段真实 `options`，写入值必须映射到已有选项的 `label` 或 `id`；缺失选项先更新字段选项，不能写表里不存在的下拉值 |
 | `row set-cell` 继续用 `columnId` 理解服务端 | 服务端真实字段是 `fieldId`，`columnId` 只是兼容参数 |
 | 忽略 `version` | 行更新和单元格更新都建议显式带 `version` |
