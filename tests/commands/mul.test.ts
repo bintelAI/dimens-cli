@@ -2212,7 +2212,7 @@ describe('Sheet Column Row Commands', () => {
     logSpy.mockRestore();
   });
 
-  it('should execute row batch-create command from file in 1000-row chunks', async () => {
+  it('should execute row batch-create command from file in 200-row chunks by default', async () => {
     const { registerCommands } = await import('../../src/commands');
     const { getCommandGroup } = await import('../../src/commands/registry');
     const tmpDir = await mkdtemp(join(tmpdir(), 'dimens-row-batch-'));
@@ -2235,15 +2235,16 @@ describe('Sheet Column Row Commands', () => {
         filePath,
       ]);
 
-      expect(rowSdkSpies.batchCreate).toHaveBeenCalledTimes(2);
+      expect(rowSdkSpies.batchCreate).toHaveBeenCalledTimes(6);
       expect(rowSdkSpies.batchCreate).toHaveBeenNthCalledWith(1, 'S1', {
         rows: expect.arrayContaining([
           { data: { fld_customer: '客户1' } },
-          { data: { fld_customer: '客户1000' } },
+          { data: { fld_customer: '客户200' } },
         ]),
       });
-      expect((rowSdkSpies.batchCreate.mock.calls[0]?.[1] as any).rows).toHaveLength(1000);
-      expect(rowSdkSpies.batchCreate).toHaveBeenNthCalledWith(2, 'S1', {
+      expect((rowSdkSpies.batchCreate.mock.calls[0]?.[1] as any).rows).toHaveLength(200);
+      expect((rowSdkSpies.batchCreate.mock.calls[4]?.[1] as any).rows).toHaveLength(200);
+      expect(rowSdkSpies.batchCreate).toHaveBeenNthCalledWith(6, 'S1', {
         rows: [{ data: { fld_customer: '客户1001' } }],
       });
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('批量创建 1001 行成功'));

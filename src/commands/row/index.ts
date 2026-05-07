@@ -1,6 +1,6 @@
-import { createCommand, createCommandGroup, registerGroupCommand } from '../registry';
-import { RowSDK } from '../../sdk/row';
 import { readFileSync } from 'node:fs';
+import { RowSDK } from '../../sdk/row';
+import { createCommand, createCommandGroup, registerGroupCommand } from '../registry';
 import {
   createClient,
   getContext,
@@ -12,6 +12,7 @@ import {
   requireTeamId,
 } from '../utils';
 
+const DEFAULT_ROW_BATCH_SIZE = 200;
 const MAX_ROW_BATCH_SIZE = 1000;
 
 function normalizeBatchRows(rawRows: unknown): Array<{ data: Record<string, unknown> }> {
@@ -31,7 +32,7 @@ function normalizeBatchRows(rawRows: unknown): Array<{ data: Record<string, unkn
 }
 
 function resolveBatchSize(value?: string): number {
-  const batchSize = value ? Number(value) : MAX_ROW_BATCH_SIZE;
+  const batchSize = value ? Number(value) : DEFAULT_ROW_BATCH_SIZE;
   if (!Number.isInteger(batchSize) || batchSize <= 0) {
     throw new Error('--batch-size 必须是正整数');
   }
@@ -174,7 +175,8 @@ export function registerRowCommands(): void {
           ...currentRow,
           ...nextValues,
         };
-        const { id: _rowId, ...mergedValues } = mergedRow;
+        const mergedValues = { ...mergedRow };
+        delete (mergedValues as { id?: unknown }).id;
         const result = await sdk.update(sheetId, rowId, mergedValues, version);
         printSuccess(context, '行更新成功', result.data);
       } catch (error) {
