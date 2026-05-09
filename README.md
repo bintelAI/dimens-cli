@@ -321,6 +321,8 @@ node ./bin/dimens-cli.js row page \
 
 - `row page` 是当前唯一保留的行读取命令
 - 不再使用 `row list`
+- 如果用户要基于行数据做分析，先执行 `column list` 获取真实字段 ID，再用 `row page` 组合 `keyword`、`search-field-ids`、`filters`、`filter-match-type`、`sort-rule` 查询数据
+- `search-field-ids` 支持逗号分隔或 JSON 字符串数组；`filters` 和 `sort-rule` 必须传合法 JSON
 
 批量写入行数据：
 

@@ -7,8 +7,52 @@
 1. 行数据不是只按分页读取，而是按字段搜索、筛选、排序来读取。
 2. `viewId` 不是独立于字段过滤的另一套逻辑，而是会和 `filters / filterMatchType / sortRule` 共同生效。
 3. 字段设计如果不提前考虑筛选与排序，后续 `row/page` 会很难用。
+4. 用户要从接口获取数据做分析时，必须先查询字段信息，再按真实字段 ID 组装 `row page` 查询条件。
 
 ---
+
+## 0. 技能取数流程重点
+
+当用户提出“搜索数据、筛选数据、按条件取数、导出分析、统计分析、报表预检、根据接口拿数据分析”这类需求时，技能必须把 `row/page` 当成核心取数入口处理，推荐流程是：
+
+1. 先执行 `dimens-cli column list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --output json`。
+2. 从字段列表确认字段 ID、字段类型、选项值、是否适合搜索或排序。
+3. 再执行 `dimens-cli row page`，用字段 ID 组装 `search-field-ids`、`filters`、`sort-rule`。
+4. 拿到 `data.list` 后再进入分析、汇总、报表预览或下一步处理。
+
+不要直接用中文字段名、展示名或猜测字段 ID 拼过滤条件。`row/page` 的筛选、搜索、排序都应基于 `column list` 返回的真实字段信息。
+
+CLI 参数名采用命令行风格：
+
+| 请求体字段 | CLI 参数 |
+| --- | --- |
+| `viewId` | `--view-id` |
+| `searchFieldIds` | `--search-field-ids` |
+| `filterMatchType` | `--filter-match-type` |
+| `sortRule` | `--sort-rule` |
+
+示例：
+
+```bash
+dimens-cli column list \
+  --team-id TEAM_ID \
+  --project-id PROJECT_ID \
+  --sheet-id SHEET_ID \
+  --output json
+
+dimens-cli row page \
+  --team-id TEAM_ID \
+  --project-id PROJECT_ID \
+  --sheet-id SHEET_ID \
+  --page 1 \
+  --size 50 \
+  --keyword 华东 \
+  --search-field-ids fld_customerName,fld_owner \
+  --filters '[{"fieldId":"fld_status","operator":"equals","value":"成交"}]' \
+  --filter-match-type and \
+  --sort-rule '{"fieldId":"fld_amount","direction":"desc"}' \
+  --output json
+```
 
 ## 2. 快速索引
 

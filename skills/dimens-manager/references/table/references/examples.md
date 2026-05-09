@@ -322,6 +322,18 @@ dimens-cli column create \
 
 ### 5.2 CLI 命令
 
+分析型取数不要直接猜筛选字段。先查字段：
+
+```bash
+dimens-cli column list \
+  --team-id TTFFEN \
+  --project-id PUQUNFE \
+  --sheet-id sh_ja2IwgaBhV1jUWB4 \
+  --output json
+```
+
+再用真实字段 ID 查询行分页：
+
 ```bash
 dimens-cli row page \
   --team-id TTFFEN \
@@ -329,6 +341,11 @@ dimens-cli row page \
   --sheet-id sh_ja2IwgaBhV1jUWB4 \
   --page 1 \
   --size 10 \
+  --keyword 华东 \
+  --search-field-ids fld_customerName,fld_owner \
+  --filters '[{"fieldId":"fld_status","operator":"equals","value":"成交"}]' \
+  --filter-match-type and \
+  --sort-rule '{"fieldId":"fld_amount","direction":"desc"}' \
   --output json
 ```
 

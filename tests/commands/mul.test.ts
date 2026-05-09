@@ -181,6 +181,11 @@ const columnSdkSpies = {
 };
 
 const rowSdkSpies = {
+  page: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: { list: [{ id: 'R1' }], total: 1 },
+  })),
   info: vi.fn(async () => ({
     code: 1000,
     message: 'success',
@@ -414,8 +419,8 @@ vi.mock('../../src/sdk/row', () => {
       async list() {
         return { code: 1000, message: 'success', data: [{ id: 'R1' }] };
       }
-      async page() {
-        return { code: 1000, message: 'success', data: { list: [{ id: 'R1' }], total: 1 } };
+      async page(...args: unknown[]) {
+        return rowSdkSpies.page(...args);
       }
       async info(...args: unknown[]) {
         return rowSdkSpies.info(...args);
@@ -560,6 +565,7 @@ describe('Sheet Column Row Commands', () => {
     sheetSdkSpies.delete.mockClear();
     columnSdkSpies.create.mockClear();
     rowSdkSpies.create.mockClear();
+    rowSdkSpies.page.mockClear();
     rowSdkSpies.info.mockClear();
     rowSdkSpies.update.mockClear();
     rowSdkSpies.updateCell.mockClear();
@@ -2208,6 +2214,52 @@ describe('Sheet Column Row Commands', () => {
     expect(logSpy).toHaveBeenCalled();
     expect(rowSdkSpies.create).toHaveBeenCalledWith('S1', {
       data: { fld_customer: '华东智造' },
+    });
+    logSpy.mockRestore();
+  });
+
+  it('should execute row page command with analysis query payload', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const pageRow = getCommandGroup('row')?.commands.find(command => command.name === 'page');
+    await pageRow?.handler([
+      '--team-id',
+      'TEAM1',
+      '--project-id',
+      'PROJ1',
+      '--sheet-id',
+      'S1',
+      '--page',
+      '2',
+      '--size',
+      '50',
+      '--view-id',
+      'view_1',
+      '--keyword',
+      '华东',
+      '--search-field-ids',
+      'fld_customer,fld_owner',
+      '--filters',
+      '[{"fieldId":"fld_status","operator":"eq","value":"成交"}]',
+      '--filter-match-type',
+      'and',
+      '--sort-rule',
+      '{"fieldId":"fld_amount","order":"desc"}',
+    ]);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(rowSdkSpies.page).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      page: 2,
+      size: 50,
+      viewId: 'view_1',
+      keyword: '华东',
+      searchFieldIds: ['fld_customer', 'fld_owner'],
+      filters: [{ fieldId: 'fld_status', operator: 'eq', value: '成交' }],
+      filterMatchType: 'and',
+      sortRule: { fieldId: 'fld_amount', order: 'desc' },
     });
     logSpy.mockRestore();
   });

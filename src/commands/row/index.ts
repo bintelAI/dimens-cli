@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { RowSDK } from '../../sdk/row';
+import type { RowPagePayload } from '../../sdk/row';
 import { createCommand, createCommandGroup, registerGroupCommand } from '../registry';
 import {
   createClient,
@@ -14,6 +15,50 @@ import {
 
 const DEFAULT_ROW_BATCH_SIZE = 200;
 const MAX_ROW_BATCH_SIZE = 1000;
+
+function parseJsonFlag(value: string, fieldName: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    throw new Error(`${fieldName} 必须是合法 JSON`);
+  }
+}
+
+function parseListFlag(value: string): string[] {
+  const parsed = value.trim().startsWith('[')
+    ? parseJsonFlag(value, 'search-field-ids')
+    : value.split(',').map(item => item.trim()).filter(Boolean);
+  if (!Array.isArray(parsed) || parsed.some(item => typeof item !== 'string')) {
+    throw new Error('search-field-ids 必须是逗号分隔字符串或 JSON 字符串数组');
+  }
+  return parsed;
+}
+
+function parseArrayJsonFlag(value: string, fieldName: string): unknown[] {
+  const parsed = parseJsonFlag(value, fieldName);
+  if (!Array.isArray(parsed)) {
+    throw new Error(`${fieldName} 必须是合法 JSON 数组`);
+  }
+  return parsed;
+}
+
+function buildRowPagePayload(flags: Record<string, string>): RowPagePayload {
+  const payload: RowPagePayload = {
+    page: Number(flags.page || '1'),
+    size: Number(flags.size || '20'),
+  };
+
+  if (flags['view-id']) payload.viewId = flags['view-id'];
+  if (flags.keyword) payload.keyword = flags.keyword;
+  if (flags['search-field-ids']) {
+    payload.searchFieldIds = parseListFlag(flags['search-field-ids']);
+  }
+  if (flags.filters) payload.filters = parseArrayJsonFlag(flags.filters, 'filters');
+  if (flags['filter-match-type']) payload.filterMatchType = flags['filter-match-type'];
+  if (flags['sort-rule']) payload.sortRule = parseJsonFlag(flags['sort-rule'], 'sort-rule');
+
+  return payload;
+}
 
 function normalizeBatchRows(rawRows: unknown): Array<{ data: Record<string, unknown> }> {
   if (!Array.isArray(rawRows) || rawRows.length === 0) {
@@ -56,10 +101,7 @@ export function registerRowCommands(): void {
         const projectId = requireProjectId(context, flags);
         const sheetId = requireSheetId(flags, args);
         const sdk = new RowSDK(createClient(context));
-        const payload: { page: number; size: number } = {
-          page: Number(flags.page || '1'),
-          size: Number(flags.size || '20'),
-        };
+        const payload = buildRowPagePayload(flags);
         const result = await sdk.page(teamId, projectId, sheetId, payload);
         printSuccess(context, '行分页获取成功', result.data);
       } catch (error) {
