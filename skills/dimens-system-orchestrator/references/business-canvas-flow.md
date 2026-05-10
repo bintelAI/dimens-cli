@@ -39,8 +39,9 @@
 3. 识别是否存在流程、审批或自动化。
 4. 生成业务场景画布草案。
 5. 如果是审批场景，再生成审批工作流画布草案。
-6. 需要保存时路由到 `dimens-manager` 执行 `canvas create -> canvas info -> canvas save`。
-7. 需要真实执行审批时，再路由到 `dimens-manager/references/workflow/overview.md`。
+6. 生成完成后必须先路由到 `dimens-manager` 执行 `canvas validate`，校验通过再保存。
+7. 需要保存时路由到 `dimens-manager` 执行 `canvas create -> canvas info -> canvas validate -> canvas save -> canvas info -> canvas versions`。
+8. 需要真实执行审批时，再路由到 `dimens-manager/references/workflow/overview.md`。
 
 不要在业务对象、角色和状态都没拆清前直接生成画布，否则画布会变成空泛流程图。
 
@@ -78,6 +79,7 @@
 节点说明要求：
 
 - 每个节点必须能说清业务职责，例如“采集申请信息”“判断是否超预算”“写入审批结果”。
+- 每个节点的 `data.backgroundColor` 必须使用淡色或 `transparent`，不要使用黑色、深灰、深蓝等深色背景。
 - 每条边必须表达时序或分支，不要把业务动作写在边上。
 - 判断节点至少有两条出边，分支 label 必须清楚。
 - `SECTION`、`TEXT`、`STICKY_NOTE` 是辅助表达，不要当成主流程动作。
@@ -103,6 +105,7 @@
 保存型 JSON 不能只给 `id/type/position/data.label` 这种简化节点。总控如果直接生成草案，也必须遵循 `dimens-manager/references/canvas/references/generation-guide.md` 的可渲染字段模板：
 
 - 节点必须包含 `style.width/height`、顶层 `width/height`、`positionAbsolute`、`data.width/height`、`data.borderRadius`、`data.align`、`data.verticalAlign`、`selected`、`dragging`。
+- 节点 `data.backgroundColor` 必须是淡色或 `transparent`，推荐 `#ffffff`、`#f8fafc`、`#eff6ff`、`#ecfdf5`、`#fff7ed`。
 - 边必须包含 `sourceHandle`、`targetHandle`、`markerEnd: { "type": "arrowclosed" }`、`style.stroke`、`style.strokeWidth`、`animated`、`selected`、`zIndex`。
 - 普通边使用 `type: "default"`，分支、回退或跨层级连线使用 `type: "smoothstep"`，不要使用前端无法识别的边类型。
 
@@ -170,4 +173,6 @@ dimens-manager/references/workflow/references/approval-generation.md
 - PPT 画布必须每页都有 `SECTION` 分区，比例为 `16:9`，页面内容节点都在对应分区内。
 - 复杂展示页必须优先使用 `INFOGRAPHIC`，并提供合法 `data.infographicSyntax`。
 - 保存型任务必须执行或说明 `canvas create -> canvas info -> canvas save`。
+- 生成型任务必须执行或说明 `canvas validate`，校验失败不能进入保存。
+- 保存后必须执行或说明 `canvas info -> canvas versions`，确认最新版本已经写入。
 - 可执行审批流必须另有工作流定义、发布、项目挂载和运行验证计划。

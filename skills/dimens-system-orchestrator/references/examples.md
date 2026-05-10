@@ -154,6 +154,8 @@ https://dimens.bintelai.com/#/TTFFEN/PLVHYDW/sh_Md3EwjVIgzwuH8Ji?view=view_6Xl9H
 
 ## 6. 最小输出模板
 
+完整系统需求应先参考 `scenario-taxonomy.md` 判断属于项目梳理、新建项目、修改项目内数据、查询还是分类路由；如果判断为新建项目，再使用下面模板。
+
 ```text
 这是一个系统级建设任务，建议先完成系统拆解，再进入业务章节落地。
 

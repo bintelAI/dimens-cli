@@ -20,6 +20,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ 当前技能只负责 SDK、HTTP API、Web、BFF、Node.js、移动端接入。
 - ✅ 完整系统规划先用 `dimens-system-orchestrator`。
 - ✅ 项目内资源创建、权限、报表、工作流等业务操作先用 `dimens-manager`。
+- ✅ Windows 下生成中文示例代码、Markdown、JSON 或脚本文件时，必须遵守 `../windows-utf8.md`：统一 UTF-8 写入，写完读回检查，避免中文变成 `??`。
 - ✅ 浏览器端和移动端不要明文保存 `apiSecret`；涉及 API Secret 默认放服务端或 BFF 换 token。
 - ✅ API Key 登录返回的是现有用户 token，不是独立开放平台权限体系。
 - ✅ `teamId` 是团队隔离边界，`projectId` 是项目内资源上下文，不能漏传或混传。
@@ -62,6 +63,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 
 ## 高风险跑偏点
 
+- 不要在 Windows 下用 `cmd echo`、默认重定向或未指定编码的 PowerShell 写中文示例文件；优先用 Node.js `fs.writeFileSync(file, content, "utf8")`。
 - 不要把 `apiSecret` 放进浏览器端或 App 包体。
 - 不要把 SDK 接入问题误当成系统设计问题。
 - 不要用一个“万能请求模板”混掉表格、文档、报表、工作流的不同上下文。
@@ -81,6 +83,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 
 ## 参考文档
 
+- `../windows-utf8.md`
 - `references/integration-paths.md`
 - `references/capability-status.md`
 - `references/examples.md`

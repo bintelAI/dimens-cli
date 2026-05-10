@@ -181,6 +181,15 @@ AI 生成画布时，目标不是生成说明文，而是生成能被 `CanvasBoa
 
 节点必须按“可渲染字段模板”生成。不要只给 `id/type/position/data.label`，否则容易出现节点不可见、尺寸丢失或拖拽异常。
 
+视觉规则：
+
+- `data.backgroundColor` 必须使用淡色或 `transparent`，禁止直接使用黑色、深灰、深蓝等深色背景。
+- 流程节点默认推荐 `#ffffff`、`#f8fafc`、`#eff6ff`、`#ecfdf5`、`#fff7ed`、`#fefce8`。
+- `DIAMOND` 判断节点可用 `#fff7ed` 或 `#fef3c7` 这类浅橙 / 浅黄。
+- 数据沉淀节点可用 `#f8fafc` 或 `#eef2ff`。
+- 文字颜色可以使用 `#111827` 这类深色，用来保证浅背景上的可读性。
+- 不要把深色用作节点背景；如果需要强调，用边框色、图标、标签或信息图主题色表达。
+
 ```json
 {
   "id": "lead_submit",
@@ -217,6 +226,7 @@ AI 生成画布时，目标不是生成说明文，而是生成能被 `CanvasBoa
 - `positionAbsolute`：绝对坐标；生成时必须填，避免画布恢复或检索时坐标缺失。
 - `style.width/style.height`、顶层 `width/height`、`data.width/data.height`：三处保持一致。普通节点标准尺寸 `150x80`。
 - `data.label`：用户第一眼看到的业务动作。
+- `data.backgroundColor`：节点背景色，只允许淡色或 `transparent`。
 - `data.align` / `data.verticalAlign`：普通流程节点默认 `center/center`。
 - `data.borderRadius`：普通节点默认 `12`，开始/结束或强调节点可用 `16`。
 - `data.text` / `data.markdownContent`：放节点说明、规则、SOP。
@@ -427,6 +437,7 @@ PPT 画布生成后自检：
 - 每个节点都有清晰业务职责和合适 `type`。
 - 所有节点都有稳定 `id`。
 - 所有节点都有 `style.width/height`、顶层 `width/height`、`positionAbsolute`、`data.width/height`、`data.align/verticalAlign`。
+- 所有节点的 `data.backgroundColor` 都是淡色或 `transparent`，不能是黑色或深色。
 - 所有边的 `source/target` 都能找到节点。
 - 所有边都有 `sourceHandle/targetHandle`、`markerEnd`、`style.stroke/style.strokeWidth`。
 - 至少有一个起点和一个终点。
@@ -435,8 +446,25 @@ PPT 画布生成后自检：
 - 如果用户要 PPT / 演示稿，必须额外确认一页一个 `SECTION`、页面比例 `16:9`、所有内容节点都在页面分区内。
 - 如果用户要展示复杂信息，必须优先考虑 `INFOGRAPHIC`，并检查 `data.infographicSyntax` 是否以 `infographic <template-name>` 开头。
 
-## 11. 保存要求
+## 11. 生成后校验
+
+生成完成后必须先通过本地结构校验，再保存到项目画布：
+
+```bash
+dimens-cli canvas validate --file ./workflow-canvas.json
+```
+
+校验失败时，按错误提示修正 `nodes/edges`，不要继续执行 `canvas create/save`。
+
+校验重点见：
+
+```text
+dimens-manager/references/canvas/references/validation-checklist.md
+```
+
+## 12. 保存要求
 
 - 新建画布可以在 `canvas create --file` 中直接带初始图。
 - 修改已有画布必须先执行 `canvas info`，再执行 `canvas save`。
+- 保存后必须执行 `canvas info` 和 `canvas versions` 回查版本。
 - 输出文件建议命名为 `*-canvas.json`，方便后续版本追踪。

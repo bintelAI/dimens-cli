@@ -37,6 +37,8 @@
 
 ## 3. 默认路由顺序
 
+系统总控先按 `references/scenario-taxonomy.md` 归类为“项目梳理 / 新建项目 / 修改项目内数据 / 查询 / 分类路由”之一，再进入下面资源章节。场景分类负责判断任务形态，资源章节负责落地细节。
+
 ### 3.1 从零创建系统
 
 1. `dimens-manager/references/key-auth/overview.md`

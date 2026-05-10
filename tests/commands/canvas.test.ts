@@ -112,6 +112,67 @@ vi.mock('../../src/sdk/canvas', () => {
   };
 });
 
+const validCanvasGraph = {
+  version: '1.0',
+  timestamp: 1777800000000,
+  nodes: [
+    {
+      id: 'start',
+      type: 'PARALLELOGRAM',
+      position: { x: 0, y: 0 },
+      positionAbsolute: { x: 0, y: 0 },
+      width: 150,
+      height: 80,
+      selected: false,
+      dragging: false,
+      style: { width: 150, height: 80 },
+      data: {
+        label: '提交申请',
+        backgroundColor: '#f8fafc',
+        width: 150,
+        height: 80,
+        align: 'center',
+        verticalAlign: 'center',
+      },
+    },
+    {
+      id: 'archive',
+      type: 'CYLINDER',
+      position: { x: 0, y: 160 },
+      positionAbsolute: { x: 0, y: 160 },
+      width: 150,
+      height: 80,
+      selected: false,
+      dragging: false,
+      style: { width: 150, height: 80 },
+      data: {
+        label: '写入申请表',
+        backgroundColor: '#f8fafc',
+        width: 150,
+        height: 80,
+        align: 'center',
+        verticalAlign: 'center',
+      },
+    },
+  ],
+  edges: [
+    {
+      id: 'edge_start_archive',
+      source: 'start',
+      target: 'archive',
+      sourceHandle: 'source-bottom',
+      targetHandle: 'target-top',
+      type: 'default',
+      animated: false,
+      selected: false,
+      zIndex: 0,
+      markerEnd: { type: 'arrowclosed', color: '#94a3b8' },
+      style: { stroke: '#94a3b8', strokeWidth: 2 },
+    },
+  ],
+  viewport: { x: 0, y: 0, zoom: 1 },
+};
+
 describe('Canvas Commands', () => {
   beforeEach(() => {
     clearCommands();
@@ -129,12 +190,12 @@ describe('Canvas Commands', () => {
       '--name',
       '业务流程画布',
       '--data',
-      '{"nodes":[],"edges":[]}',
+      JSON.stringify(validCanvasGraph),
     ]);
 
     expect(canvasSdkSpies.create).toHaveBeenCalledWith('PROJ1', {
       name: '业务流程画布',
-      data: { nodes: [], edges: [] },
+      data: validCanvasGraph,
     });
     expect(logSpy.mock.calls.flat().join('\n')).toContain('画布创建成功');
     logSpy.mockRestore();
@@ -152,14 +213,14 @@ describe('Canvas Commands', () => {
       '--base-version',
       '1',
       '--data',
-      '{"nodes":[{"id":"start"}],"edges":[]}',
+      JSON.stringify(validCanvasGraph),
       '--summary',
       'AI生成业务工作流',
     ]);
 
     expect(canvasSdkSpies.save).toHaveBeenCalledWith('TEAM1', 'PROJ1', {
       sheetId: 'canvas_1',
-      data: { nodes: [{ id: 'start' }], edges: [] },
+      data: validCanvasGraph,
       baseVersion: 1,
       changeSummary: 'AI生成业务工作流',
     });
@@ -180,9 +241,9 @@ describe('Canvas Commands', () => {
       '--name',
       '审批节点',
       '--nodes',
-      '[{"id":"approve"}]',
+      JSON.stringify(validCanvasGraph.nodes),
       '--edges',
-      '[]',
+      JSON.stringify(validCanvasGraph.edges),
       '--tags',
       '审批,工作流',
     ]);
@@ -190,11 +251,64 @@ describe('Canvas Commands', () => {
     expect(canvasSdkSpies.saveMineResource).toHaveBeenCalledWith('TEAM1', {
       projectId: 'PROJ1',
       name: '审批节点',
-      nodes: [{ id: 'approve' }],
-      edges: [],
+      nodes: validCanvasGraph.nodes,
+      edges: validCanvasGraph.edges,
       tags: ['审批', '工作流'],
     });
     expect(logSpy.mock.calls.flat().join('\n')).toContain('画布资源保存成功');
+    logSpy.mockRestore();
+  });
+
+  it('should validate a renderable canvas graph', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('canvas')?.commands.find(item => item.name === 'validate');
+
+    await command?.handler(['--data', JSON.stringify(validCanvasGraph)]);
+
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('画布数据校验通过');
+    expect(output).toContain('"nodeCount": 2');
+    expect(output).toContain('"edgeCount": 1');
+    logSpy.mockRestore();
+  });
+
+  it('should reject an incomplete canvas graph before save', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('canvas')?.commands.find(item => item.name === 'save');
+
+    await command?.handler([
+      'canvas_1',
+      '--base-version',
+      '1',
+      '--data',
+      '{"nodes":[{"id":"start"}],"edges":[]}',
+    ]);
+
+    expect(canvasSdkSpies.save).not.toHaveBeenCalled();
+    expect(logSpy.mock.calls.flat().join('\n')).toContain('画布数据校验失败');
+    logSpy.mockRestore();
+  });
+
+  it('should reject dark node background colors', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const darkGraph = structuredClone(validCanvasGraph);
+    darkGraph.nodes[0].data.backgroundColor = '#000000';
+
+    registerCommands();
+    const command = getCommandGroup('canvas')?.commands.find(item => item.name === 'validate');
+
+    await command?.handler(['--data', JSON.stringify(darkGraph)]);
+
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('画布数据校验失败');
+    expect(output).toContain('data.backgroundColor');
     logSpy.mockRestore();
   });
 });

@@ -65,6 +65,7 @@
 
 ## 参考资料
 
+- `references/scenario-taxonomy.md`
 - `references/system-decomposition.md`
 - `references/business-canvas-flow.md`
 - `references/skill-routing.md`

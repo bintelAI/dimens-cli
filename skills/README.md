@@ -44,6 +44,23 @@ pnpm add @bintel/dimens-cli
 
 只有当 `@bintel/dimens-cli` 已安装，并且本地能执行 `dimens-cli` 或 `node ./bin/dimens-cli.js` 时，这些 Skill 里的命令、案例和映射才成立。
 
+### 2.1 Windows 中文写入前提
+
+Windows 环境下使用 Skill 生成或修改中文文件时，必须先看：
+
+```text
+windows-utf8.md
+```
+
+统一规则：
+
+- 中文文件必须以 UTF-8 写入。
+- 不要使用 `cmd echo 中文 > file.md` 或未指定编码的重定向写中文正文。
+- 优先使用 Node.js `fs.writeFileSync(file, content, "utf8")`，或 PowerShell `Set-Content -Encoding utf8`。
+- 写入后重新读取文件，确认中文没有变成 `??`。
+
+如果文件里已经出现 `??`，通常说明写入阶段已经有损替换，不能只靠切换显示编码恢复。
+
 ## 3. 总入口维护表
 
 ### 3.1 全局统一流程

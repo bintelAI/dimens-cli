@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 
 import { createCommand, createCommandGroup, registerGroupCommand } from '../registry';
 import { CanvasSDK, type CanvasGraphValue } from '../../sdk/canvas';
+import { ensureValidCanvasGraph, validateCanvasGraph } from './validation';
 import {
   createClient,
   getContext,
@@ -62,15 +63,6 @@ function parseGraphFromFlags(flags: Record<string, string>): CanvasGraphValue {
   throw new Error('缺少画布数据，请传入 --data 或 --file');
 }
 
-function ensureCanvasGraph(data: CanvasGraphValue): void {
-  if (!Array.isArray(data.nodes)) {
-    throw new Error('画布数据缺少 nodes 数组');
-  }
-  if (!Array.isArray(data.edges)) {
-    throw new Error('画布数据缺少 edges 数组');
-  }
-}
-
 function requireCanvasSheetId(flags: Record<string, string>, args: string[]): string {
   const sheetId = flags['sheet-id'] || args[0];
   if (!sheetId) {
@@ -99,7 +91,7 @@ export function registerCanvasCommands(): void {
           const sdk = new CanvasSDK(createClient(context));
           const data = flags.data || flags.file ? parseGraphFromFlags(flags) : undefined;
           if (data) {
-            ensureCanvasGraph(data);
+            ensureValidCanvasGraph(data);
           }
           const payload: Parameters<CanvasSDK['create']>[1] = {
             name: flags.name,
@@ -175,7 +167,7 @@ export function registerCanvasCommands(): void {
             throw new Error('base-version 必须是非负整数');
           }
           const data = parseGraphFromFlags(flags);
-          ensureCanvasGraph(data);
+          ensureValidCanvasGraph(data);
           const sdk = new CanvasSDK(createClient(context));
           const payload: Parameters<CanvasSDK['save']>[2] = {
             sheetId,
@@ -303,6 +295,33 @@ export function registerCanvasCommands(): void {
   registerGroupCommand(
     'canvas',
     createCommand(
+      'validate',
+      '校验画布 JSON 是否满足可渲染保存结构',
+      async args => {
+        const flags = parseFlags(args);
+        const context = getContext(flags);
+
+        try {
+          const data = parseGraphFromFlags(flags);
+          const result = validateCanvasGraph(data);
+          if (!result.ok) {
+            throw new Error(`画布数据校验失败：${result.errors.join('；')}`);
+          }
+          printSuccess(context, '画布数据校验通过', result);
+        } catch (error) {
+          printError(context, error);
+        }
+      },
+      {
+        usage: 'canvas validate (--data <json> | --file <path>)',
+        examples: ['canvas validate --file ./workflow-canvas.json'],
+      }
+    )
+  );
+
+  registerGroupCommand(
+    'canvas',
+    createCommand(
       'resource-list',
       '获取我的画布组件资源',
       async args => {
@@ -342,10 +361,13 @@ export function registerCanvasCommands(): void {
             throw new Error('缺少节点数组，请传入 --nodes');
           }
           const sdk = new CanvasSDK(createClient(context));
+          const nodes = parseJsonArray(flags.nodes, '--nodes 必须是 JSON 数组');
+          const edges = flags.edges ? parseJsonArray(flags.edges, '--edges 必须是 JSON 数组') : [];
+          ensureValidCanvasGraph({ nodes, edges });
           const payload: Parameters<CanvasSDK['saveMineResource']>[1] = {
             name: flags.name,
-            nodes: parseJsonArray(flags.nodes, '--nodes 必须是 JSON 数组'),
-            edges: flags.edges ? parseJsonArray(flags.edges, '--edges 必须是 JSON 数组') : [],
+            nodes,
+            edges,
           };
           const projectId = flags['project-id'] || context.projectId;
           if (projectId) {
