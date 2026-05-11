@@ -69,8 +69,9 @@ windows-utf8.md
 
 1. 所有更新类操作统一按“拿数据 -> 改数据 -> 更新数据”执行
 2. 所有资源类更新统一按“先 upload 拿 url -> 把 url 写回当前业务数据 -> 再 update”执行
+3. 能用 `dimens-cli` 命令行解决的问题，优先推荐并执行 `dimens-cli` 命令；不要把拼接自定义 URL、让用户手动打开 URL 或绕过 CLI 的 HTTP 地址当成首选方案。
 
-这两条规则适用于项目、表格、字段、行、文档、报表、权限等所有更新型场景，不要把局部 patch 当成通用更新模式。
+这些规则适用于项目、表格、字段、行、文档、报表、权限等所有更新型场景，不要把局部 patch 当成通用更新模式，也不要用自定义 URL 替代 CLI 已封装的查询、创建、更新、上传和验证链路。
 
 ### 3.2 Skill 总入口维护表
 
@@ -95,6 +96,7 @@ windows-utf8.md
 - 报表更新默认先 `report info`；报表组件更新默认先拿当前报表和当前组件，再合并变更。
 - 表格链路里 `sheet update`、`column update`、`row update` 也统一按“先读当前数据，再改字段，再更新”处理。
 - 权限链路里 `role update`、`permission update`、`row-policy update` 也统一按同一模型处理，不要例外化。
+- 技能输出操作方案时，默认给 `dimens-cli ...` 命令；自定义 URL 只用于解析 `teamId/projectId/sheetId/viewId` 或在 CLI 暂未覆盖且用户明确要求时作为补充说明。
 
 ## 4. 当前 Skill 总览
 

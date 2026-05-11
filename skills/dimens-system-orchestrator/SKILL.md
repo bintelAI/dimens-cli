@@ -20,6 +20,7 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 - ✅ 当前技能只负责系统级拆解、执行顺序、章节路由和风险提示。
 - ✅ 项目内业务操作统一进入 `dimens-manager`。
 - ✅ SDK、HTTP、Web、BFF、Node.js、移动端接入统一进入 `dimens-sdk`。
+- ✅ 只要 `dimens-cli` 已覆盖对应能力，方案和执行步骤优先推荐 `dimens-cli` 命令行；不要把自定义 URL、手动打开页面链接或绕过 CLI 的 HTTP 地址当成首选解决方案。
 - ✅ 真实执行项目前，必须先用 `dimens-cli auth api-key-login` 通过 API Key / API Secret 换 token；URL 只能解析 `teamId/projectId/sheetId/viewId`，不能替代登录。
 - ✅ Windows 下生成中文方案、Markdown、JSON、画布 JSON 或文档文件时，必须遵守 `../windows-utf8.md`，统一 UTF-8 写入并读回检查，避免中文变成 `??`。
 - ✅ 默认节奏是“先方案，后执行”；系统边界没拆清前不要直接给创建命令。
