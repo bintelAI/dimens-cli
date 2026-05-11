@@ -16,6 +16,16 @@
 
 这 5 类不是互斥的执行域，而是总控层的入口判断。真实落地仍然进入 `dimens-manager` 对应章节，SDK 接入才进入 `dimens-sdk`。
 
+## 1.1 所有场景的认证前置
+
+项目梳理、新建项目、修改项目内数据、查询和分类路由，只要进入真实执行阶段，都必须先完成 CLI 登录。标准方式是通过 API Key / API Secret 执行 `dimens-cli auth api-key-login` 换 token。
+
+核心边界：URL 只能解析 `teamId / projectId / sheetId / viewId`，不能获取 token；只做方案可以先不登录，只要要读、建、改、删、查项目资源，就必须先登录。详细规则见：
+
+```text
+references/auth-prerequisite.md
+```
+
 ## 2. 场景 0：项目梳理场景
 
 ### 2.1 适用输入
@@ -29,6 +39,8 @@
 - “检查这个项目还能怎么优化”
 
 ### 2.2 必须先拿到的上下文
+
+项目梳理需要读取真实资源，必须先完成 `auth api-key-login`。如果用户只给 URL，只能先解析上下文，不能直接读取项目数据。
 
 | 信息 | 来源 |
 | --- | --- |
@@ -136,22 +148,23 @@ https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/SHEET_ID?view=VIEW_ID
 ### 3.3 标准执行顺序
 
 ```text
-1. 识别系统定位
-2. 设计项目与菜单目录
-3. 生成 SVG 封面并上传
-4. 创建项目并写回封面 URL
-5. 创建目录结构
-6. 创建表格和默认视图
-7. 创建字段和 relation
-8. 录入基础表示例数据
-9. 获取基础表行 ID / 字段 ID
-10. 录入带关联的示例数据
-11. 创建在线文档
-12. 创建业务场景画布
-13. 创建报表并跑预检链
-14. 创建角色、权限和行级策略
-15. 创建审批工作流或自动化工作流
-16. 回查项目菜单、结构、数据、权限、报表、画布
+1. 先用 auth api-key-login 完成 API Key / Secret 登录
+2. 识别系统定位
+3. 设计项目与菜单目录
+4. 生成 SVG 封面并上传
+5. 创建项目并写回封面 URL
+6. 创建目录结构
+7. 创建表格和默认视图
+8. 创建字段和 relation
+9. 录入基础表示例数据
+10. 获取基础表行 ID / 字段 ID
+11. 录入带关联的示例数据
+12. 创建在线文档
+13. 创建业务场景画布
+14. 创建报表并跑预检链
+15. 创建角色、权限和行级策略
+16. 创建审批工作流或自动化工作流
+17. 回查项目菜单、结构、数据、权限、报表、画布
 ```
 
 ### 3.4 系统定位设计
@@ -446,6 +459,8 @@ role create -> permission create -> role assign-user -> row-policy create -> row
 
 ### 4.2 更新安全链路
 
+修改项目内数据必须先登录。用户提供的 URL 只用于定位目标资源，不提供 token；不要跳过 `auth api-key-login`。
+
 更新类任务必须遵循：
 
 ```text
@@ -516,6 +531,8 @@ dimens-cli row set-cell \
 
 ### 5.2 查询分类
 
+查询真实项目资源必须先有 token。只给 URL 时，先解析 `teamId / projectId / sheetId / viewId`，再要求或执行 `auth api-key-login`。
+
 | 查询类型 | 入口 | 说明 |
 | --- | --- | --- |
 | 项目查询 | `project info/list` | 查项目容器 |
@@ -579,6 +596,7 @@ dimens-cli row set-cell \
 
 | 情况 | 处理 |
 | --- | --- |
+| 用户只给 URL 就要求查询或修改 | 先说明 URL 只能解析上下文，必须先 `auth api-key-login` 换 token |
 | 用户给已有链接并说“修改” | 优先场景 2，先读取现状再改 |
 | 用户说“生成系统”但已给 `projectId` | 先判断是场景 1 的“在已有项目初始化”，不是新建项目容器 |
 | 用户说“查询并修改” | 先场景 3 查询，再进入场景 2 修改 |
@@ -600,11 +618,11 @@ dimens-cli row set-cell \
 
 | 场景 | 必读章节 | 按需章节 |
 | --- | --- | --- |
-| 项目梳理 | `skill-routing.md`、`command-mapping.md` | `dimens-manager` 各业务域 |
-| 新建项目 | `system-decomposition.md`、`business-canvas-flow.md`、`command-mapping.md` | `project/table/permission/workflow/report/canvas` |
-| 修改项目内数据 | `skill-routing.md`、`command-mapping.md` | 目标资源所属章节 |
-| 查询 | `skill-routing.md`、`command-mapping.md` | 目标资源所属章节 |
-| 分类路由 | 本文档、`skill-routing.md` | 按分类结果进入 |
+| 项目梳理 | `auth-prerequisite.md`、`skill-routing.md`、`command-mapping.md` | `dimens-manager` 各业务域 |
+| 新建项目 | `auth-prerequisite.md`、`system-decomposition.md`、`business-canvas-flow.md`、`command-mapping.md` | `project/table/permission/workflow/report/canvas` |
+| 修改项目内数据 | `auth-prerequisite.md`、`skill-routing.md`、`command-mapping.md` | 目标资源所属章节 |
+| 查询 | `auth-prerequisite.md`、`skill-routing.md`、`command-mapping.md` | 目标资源所属章节 |
+| 分类路由 | `auth-prerequisite.md`、本文档、`skill-routing.md` | 按分类结果进入 |
 
 ## 8. 总控输出模板
 

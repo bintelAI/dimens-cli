@@ -8,14 +8,18 @@
 
 ### 2.1 先完成认证
 
+系统搭建、项目梳理、查询和修改都不能只靠维表页面 URL。URL 只能解析 `teamId/projectId/sheetId/viewId`，不能获取 token。
+
 推荐优先使用：
 
 ```bash
 dimens-cli auth api-key-login \
-  --base-url https://dimens.bintelai.com \
+  --base-url https://dimens.bintelai.com/api \
   --api-key ak_xxx \
   --api-secret sk_xxx
 ```
+
+登录成功后，本地 profile 会保存 token，后续 `project/sheet/row/doc/report/canvas/permission/workflow` 命令才有认证上下文。
 
 如果还不清楚认证边界，先进入 `dimens-manager/references/key-auth/overview.md`，再看：
 
