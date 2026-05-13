@@ -13,10 +13,14 @@ tags: [canvas, diagram, workflow, resource, dimens-cli]
 
 - ✅ 画布是项目菜单资源，创建入口是 `canvas create` 或 `sheet create --type canvas`。
 - ✅ 画布详情、保存、版本和恢复走 `dimens-cli canvas *` 命令。
+- ✅ CLI 是首选执行入口；只有当前命令未覆盖的能力，才补充说明真实接口或产品侧操作。
+- ✅ 缺少 `teamId / projectId / sheetId` 时，先通过用户链接、profile 或显式查询补齐上下文，不要猜 ID。
 - ✅ 保存前必须先读取 `canvas info`，拿到当前 `version` 后再传 `--base-version`。
+- ✅ 更新已有画布必须遵循“先读 -> 合并 -> 校验 -> 更新”：先拿当前 `nodes/edges/version`，只合并目标变更，再保存整份 JSON。
 - ✅ AI 一键生成画布时，最终结果必须落成 `nodes/edges` JSON，而不是只输出文字说明。
 - ✅ 画布落地不只是生成 `nodes/edges`，还要说明每个节点的业务职责、节点类型选择和使用方式；详细规则先看 `references/canvas/references/generation-guide.md`。
 - ✅ 画布生成完成后必须先执行或说明 `canvas validate` 校验，再执行 `canvas create/save`，保存后用 `canvas info/versions` 回查。
+- ✅ 在 Windows 终端写入含中文的 `canvas.json` 或说明文件时，必须用 UTF-8 写入并读回确认，避免中文变成 `??`。
 - ✅ 节点背景色默认使用淡色或 `transparent`，禁止直接使用黑色、深灰、深蓝等深色背景；文字颜色可以保持深色以保证可读性。
 - ✅ 用户要“创建 PPT / 演示稿 / 幻灯片”时，画布 JSON 必须按 PPT 画布规则生成：16:9 比例，一页一个 `SECTION` 分区，页面内容全部放在对应分区内。
 - ✅ PPT 或复杂展示场景中，优先善用 `INFOGRAPHIC` 信息图节点；它比普通文本、矩形、Markdown 更适合承载复杂信息。
@@ -39,7 +43,7 @@ tags: [canvas, diagram, workflow, resource, dimens-cli]
 
 ## 默认处理顺序
 
-1. 先确认 `teamId / projectId`。
+1. 先确认 `teamId / projectId`；如果用户只给链接，先解析链接；如果仍缺上下文，先询问或查询，不要猜。
 2. 如果要创建新画布，执行 `canvas create`，记录返回的 `sheetId/canvasId`。
 3. 如果要写入已有画布，执行 `canvas info <sheetId> --team-id <teamId> --project-id <projectId>` 获取 `version`。
 4. 生成或整理画布 JSON，确认包含 `nodes` 和 `edges`。
@@ -48,6 +52,13 @@ tags: [canvas, diagram, workflow, resource, dimens-cli]
 7. 执行 `canvas save <sheetId> --team-id <teamId> --project-id <projectId> --base-version <version>`。
 8. 保存后执行 `canvas info` 和 `canvas versions`，确认版本号和快照记录。
 9. 需要复用时保存组件资源，需要共享时发布到资源市场。
+
+## 输出与验证契约
+
+- 输出必须包含：目标上下文、执行的 CLI 命令、画布 JSON 来源、校验结果、保存后的 `sheetId` 与版本号。
+- 创建任务至少验证：`canvas validate` 通过、`canvas create` 成功、`canvas info` 可读、`canvas versions` 有记录。
+- 更新任务至少验证：保存前后版本号变化、`base-version` 使用的是刚读取到的版本、旧节点未被无关覆盖。
+- 如果当前环境不能实际执行 CLI，必须明确标注“未执行”，并给出下一步可复制的命令与预期回查点。
 
 ## 与其他章节的关系
 

@@ -11,6 +11,11 @@
   -> dimens-sdk 仅在需要开发者集成时进入
 ```
 
+路由输出必须保持两层边界：
+
+1. 总控层只说明“为什么进入这些章节、先后顺序是什么、完成后看哪些证据”。
+2. 落地层必须指向 `dimens-manager` 的具体业务章节；只有 SDK、HTTP、Web、BFF、Node.js、移动端接入才进入 `dimens-sdk`。
+
 顶层技能只保留：
 
 | 顶层技能 | 职责 |
@@ -97,6 +102,16 @@
 
 - `references/command-mapping.md`
 - `dimens-manager` 对应章节下的 `references/*.md`
+
+如果涉及验收，还要写清楚回查证据，例如：
+
+```text
+验收证据：
+1. project info：确认项目容器和封面 URL
+2. sheet tree：确认目录归位
+3. column list / view list / row page：确认表结构和示例数据
+4. report query / canvas info：确认报表和画布不是空壳
+```
 
 ## 6. 常见错误
 

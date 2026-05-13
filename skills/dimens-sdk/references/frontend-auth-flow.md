@@ -13,6 +13,13 @@
 
 这个技能在前端场景下，优先解释这条链。
 
+安全边界必须同时说清：
+
+- 浏览器端不要保存 `apiSecret`
+- 如果必须用 API Key / Secret 换 token，默认放到 BFF 或服务端执行
+- 前端只接收用户登录 token、短期 token 或 BFF 会话结果
+- token 能读接口不代表具备项目、表格、报表权限，403 要回到权限排查
+
 ## 2. 当前 SDK 登录能力
 
 当前 `auth` 已有的方法：
@@ -293,6 +300,16 @@ export async function withDimensRetry<T>(runner: () => Promise<T>) {
 - 真实项目里应再细分错误类型，不要所有报错都无脑刷新
 - 这里是前端接入主链的最小思路
 
+错误判断建议：
+
+| 错误 | 是否 refresh | 优先处理 |
+| --- | --- | --- |
+| 401 / 未登录 / token 失效 | 是 | refresh 成功后重试一次 |
+| 403 / 无权限 | 否 | 检查团队成员、项目权限、资源权限 |
+| 404 / 资源不存在 | 否 | 检查 `teamId/projectId/sheetId/reportId/documentId` |
+| 409 / version 冲突 | 否 | 重新读取当前数据和版本后再更新 |
+| 5xx / 网络错误 | 否 | 走普通重试或错误提示，不要刷新 token |
+
 ## 9. 一个完整的前端调用链
 
 ### 9.1 登录页
@@ -388,6 +405,7 @@ export function logout() {
 - 退出登录只跳页面，没有清理本地 token
 - 所有请求报错都直接当成 token 失效
 - 把 `apiKey/apiSecret` 直接放在浏览器端
+- 403 或 404 时反复 refresh，掩盖了权限或资源 ID 问题
 
 ## 13. 一句话总结
 

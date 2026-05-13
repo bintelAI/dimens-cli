@@ -222,4 +222,4 @@ export async function fetchAnything(path: string, body: unknown) {
 4. SDK 怎么二次封装
 5. 请求失败怎么处理
 
-只要这五件事讲清楚，用户就能自己继续对接项目、表格、文档、报表和 AI。 
+只要这五件事讲清楚，用户就能自己继续对接项目、表格、文档、报表和 AI。

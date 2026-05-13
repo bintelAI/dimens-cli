@@ -172,3 +172,28 @@ https://dimens.bintelai.com/#/TTFFEN/PLVHYDW/sh_Md3EwjVIgzwuH8Ji?view=view_6Xl9H
    - dimens-manager/references/canvas/overview.md
 7. 完成后验证：project info / sheet tree / column list / view list / report query / canvas save
 ```
+
+## 7. 案例：需求混合，需要先分类路由
+
+用户需求：
+
+```text
+帮我看看这个项目能不能做自动化，顺便整理一下权限和报表
+```
+
+推荐处理：
+
+1. 先归类为“场景 4：分类路由”，因为用户同时提出项目梳理、权限、报表和自动化。
+2. 如果用户给了项目链接，先解析 `teamId / projectId`；如果要真实查询项目，必须先按 `auth-prerequisite.md` 登录。
+3. 第一跳不直接改权限或建工作流，而是进入项目梳理：
+   - `dimens-manager/references/team/overview.md`
+   - `dimens-manager/references/project/overview.md`
+   - `dimens-manager/references/table/overview.md`
+4. 梳理完成后再分三条路由：
+   - 权限：`dimens-manager/references/permission/overview.md`
+   - 报表：`dimens-manager/references/report/overview.md`
+   - 自动化：`dimens-manager/references/workflow/overview.md`
+5. 输出验收口径：
+   - 权限看角色、权限记录、行级策略和例外 ACL。
+   - 报表看 `preview / query-widget / query`。
+   - 自动化看工作流定义、发布、项目挂载和运行验证。

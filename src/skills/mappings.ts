@@ -127,7 +127,7 @@ const MANAGER_COMMANDS = [
 
 export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
   'dimens-system-orchestrator': {
-    version: '1.0.0',
+    version: '1.0.2',
     tags: ['system', 'orchestrator', 'planner', 'routing', 'builder'],
     commandGroups: ['skill'],
     commands: ['skill list', 'skill recommend', 'skill info', 'skill show'],
@@ -135,7 +135,7 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
     toolNames: ['system_decomposition', 'skill_routing'],
   },
   'dimens-manager': {
-    version: '1.0.0',
+    version: '1.0.2',
     tags: [
       'manager',
       'auth',
@@ -204,7 +204,7 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
     ],
   },
   'dimens-sdk': {
-    version: '1.0.0',
+    version: '1.0.2',
     tags: ['sdk', 'http', 'web', 'mobile', 'bff', 'integration'],
     commandGroups: ['auth', 'upload', 'ai', 'project', 'sheet', 'doc', 'report'],
     commands: [

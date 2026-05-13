@@ -19,6 +19,8 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 - ✅ 执行任何 `project / sheet / column / row / ai` 命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`
 - ✅ 表格能力默认要先确认 `projectId`，大多数写操作还需要 `teamId`
+- ✅ CLI 是表、字段、视图、行数据操作的首选入口；接口案例只用于解释真实契约和边界
+- ✅ 缺少 `teamId/projectId/sheetId/fieldId/rowId/viewId` 时，先用列表、详情或用户确认补齐，不要猜 ID
 - ✅ 如果用户还处在“创建项目 / 初始化项目”阶段，先路由到 `dimens-manager/references/project/overview.md`，不要在 `dimens-manager/references/table/overview.md` 里直接吞掉上游步骤
 - ✅ 字段、视图、行数据都属于工作表上下文，不能脱离 `sheetId` 单独判断
 - ✅ 默认要优先帮助用户把“项目 -> 表 -> 字段 -> 关联 -> 示例数据 -> 查询案例”搭起来
@@ -38,6 +40,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 处理字段和行写入问题时，不能只看字段结构，还要同步看权限与系统字段边界
 - ✅ 表格接口能读取不代表一定可写，行级、列级、协同权限可能继续收敛
 - ✅ 如果后续要做报表，这一步就要提前考虑字段能否直接进入 `report preview / query-widget / dataMapping`，不要等到报表阶段再返工
+- ✅ Windows 下保存含中文的导入文件、字段配置、JSON 或命令说明时，必须使用 UTF-8 并读回确认
 
 ## 高风险跑偏点
 
@@ -87,6 +90,13 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - 如果字段后续要进入报表，建模阶段就要把字段类型、选项、数值字段和维度字段设计清楚，不要拖到报表阶段返工。
 - 新建表后默认检查公开默认视图，不要只建表不补视图。
 - 行写入和字段更新除了结构正确，还要同步考虑权限、协同链路和版本字段。
+
+## 输出与验证契约
+
+- 建表类输出必须包含：表 ID、字段清单、字段类型、选项配置、默认视图和示例数据策略。
+- 字段更新输出必须包含：`column list` 读取结果、目标字段 ID、合并后的配置和更新后回查。
+- 行写入输出必须包含：真实 `fieldId` 映射、写入方式、批量分片策略和 `row page/info` 回查结果。
+- 报表联动场景必须说明哪些字段用于维度、指标、筛选和排序，并给出后续 `report preview` 风险点。
 
 ## 核心约束
 

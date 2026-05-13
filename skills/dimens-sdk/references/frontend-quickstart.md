@@ -32,6 +32,8 @@ login -> save token -> createAuthedSdk(teamId, projectId) -> createDimensAppSdk(
 - 初始化时就把 `teamId / projectId` 写进去
 - 页面层后面直接调用你封装好的方法
 - 页面层不再每次自己传 `teamId / projectId`
+- 浏览器里不保存 `apiSecret`，只保存用户态 token 或服务端签发的短期 token
+- 401 只触发 refresh / retry，403 和 404 不要误判成 token 过期
 
 ## 3. 第一步：先把登录态链跑通
 
@@ -49,6 +51,7 @@ src/lib/dimens-sdk.ts
 2. 能把 token 存到本地
 3. 能从本地恢复登录态
 4. 能退出登录时清空本地状态
+5. 能区分 401、403、404
 
 如果这一步还没完成，不要急着写表格、文档、报表接口。
 
@@ -172,6 +175,7 @@ await withDimensRetry(() =>
 - 把所有请求失败都当成 token 失效
 - 行 / 文档更新失败时忽略 `version`
 - 把 `apiKey / apiSecret` 放进前端
+- 报表页直接调用 query 失败时不先用 CLI 验证 `reportId/widgetId`
 
 ## 9. 最短执行清单
 
@@ -186,6 +190,18 @@ await withDimensRetry(() =>
 7. 再补 `withDimensRetry`
 8. 最后再接表格 / 文档 / 报表 / AI
 
-## 10. 一句话原则
+## 10. 最小验证命令
+
+前端接入出现问题时，先在本地验证 token 和资源上下文：
+
+```bash
+dimens-cli auth status
+dimens-cli project info PROJECT_ID --team-id TEAM_ID
+dimens-cli report info PROJECT_ID REPORT_ID
+```
+
+如果 CLI 回查失败，优先修认证、权限和资源 ID；如果 CLI 成功但前端失败，再排查前端 token 保存、请求头和 `baseUrl`。
+
+## 11. 一句话原则
 
 前端接入 `dimens-sdk` 时，先解决登录态，再解决 `teamId/projectId` 初始化，再解决应用级 SDK，再解决 refresh / retry，最后再接具体业务接口。

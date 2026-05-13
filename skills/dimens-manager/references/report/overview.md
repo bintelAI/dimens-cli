@@ -18,6 +18,8 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 ## 执行前必读
 
 - ✅ 报表默认是项目级资源，先确认 `projectId`
+- ✅ CLI 是报表主资源、组件、查询的首选入口；接口案例只用于解释真实契约和未封装边界
+- ✅ 缺少 `projectId/reportId/widgetId/sheetId/fieldId` 时，先通过列表、详情或表结构查询补齐，不要猜 ID
 - ✅ 报表问题不要只看页面表现，还要看数据源、参数、组件配置和权限链路
 - ✅ 参数联动异常不一定是前端问题，也可能是查询链路或默认值问题
 - ✅ 报表可访问不代表底层数据源一定可访问，项目权限和数据源约束可能继续收窄
@@ -25,6 +27,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - ✅ 当前报表前端图表主渲染基于 `recharts@3.6.0`，生成组件时必须按前端真实支持的 `type` 和字段映射输出
 - ✅ 当报表组件来自多维表格时，不能只给 `sheetId`，必须同时补 `sheet.columns`、`fieldIds`、`recommendedMapping`、`previewMapping`、`dataMapping`
 - ✅ 报表主资源和报表组件的更新都应默认按“先拿数据 -> 改数据 -> 更新数据”执行，不要直接把局部 patch 当成通用模式
+- ✅ Windows 下写入含中文的报表配置、组件 JSON 或调试记录时，必须使用 UTF-8 并读回确认
 
 ## 高风险跑偏点
 
@@ -93,6 +96,13 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - 如果组件来自多维表格数据源，不能只传 `sheetId`，还要把 `columns`、`fieldIds`、映射信息一起带齐。
 - `widget-batch` 是整数组覆盖操作，风险高，默认先读取当前 `widgets` 并明确覆盖范围后再提交。
 
+## 输出与验证契约
+
+- 创建类输出必须包含：`reportId`、数据源、字段映射、组件 ID、预览和查询结果摘要。
+- 更新类输出必须包含：`report info` 读取结果、目标组件或主资源合并点、更新命令、`query-widget/query` 回查结果。
+- 组件生成输出必须能落到 `dataSource/dataMapping/chartConfig/layout` 四块结构，不能只给自然语言图表说明。
+- 如果 `preview` 或 `query-widget` 未执行成功，不能声称报表已经可用。
+
 ## 核心约束
 
 ### 1. 资源边界
@@ -137,7 +147,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 
 ## 标准执行顺序
 
-### 1. 用户要“创建一个报表”
+### 6. 用户要“创建一个报表”
 
 建议默认按下面顺序执行：
 
@@ -152,7 +162,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 
 这条顺序就是报表生成时的固定预检链，不要跳过中间步骤。
 
-### 2. 用户要“修一个有问题的报表”
+### 7. 用户要“修一个有问题的报表”
 
 建议默认按下面顺序执行：
 
@@ -170,7 +180,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - 先分清是数据源空、参数不对，还是映射错误
 - 没有 `preview` 结果时，不要急着判断前端渲染有问题
 
-### 3. 用户要“把一个报表迁移到别的项目”
+### 8. 用户要“把一个报表迁移到别的项目”
 
 建议默认按下面顺序执行：
 
@@ -225,7 +235,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 
 ## 常用命令模板
 
-### 1. 先创建报表主资源
+### 9. 先创建报表主资源
 
 ```bash
 dimens-cli report create \
@@ -235,7 +245,7 @@ dimens-cli report create \
   --type 1
 ```
 
-### 2. 先预览数据再加组件
+### 10. 先预览数据再加组件
 
 ```bash
 dimens-cli report preview \
@@ -244,7 +254,7 @@ dimens-cli report preview \
   --data-mapping '{"nameKey":"名称","valueKey":"销售额"}'
 ```
 
-### 3. 创建组件
+### 11. 创建组件
 
 ```bash
 dimens-cli report widget-add \
@@ -256,7 +266,7 @@ dimens-cli report widget-add \
   --data-mapping '{"nameKey":"名称","valueKey":"销售额"}'
 ```
 
-### 4. 单组件试跑
+### 12. 单组件试跑
 
 ```bash
 dimens-cli report query-widget \

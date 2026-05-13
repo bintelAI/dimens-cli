@@ -1,0 +1,17 @@
+[
+  {
+    "id": "manager-001",
+    "prompt": "我有 teamId 和 projectId，帮我在项目里创建一个客户表，字段包含客户名称、负责人、跟进状态，并告诉我怎么验证创建成功。",
+    "expected": "应命中表格章节，先确认认证和项目上下文，给出 sheet/column/view/info/list 的 CLI 链路，并说明负责人字段不能退化为普通下拉。"
+  },
+  {
+    "id": "manager-002",
+    "prompt": "我创建了一个报表但页面是空的，帮我排查。",
+    "expected": "应命中报表章节，说明 reportId=sheetId 口径，按 report info/preview/query-widget/query 的预检链路排查，不只看 create 是否成功。"
+  },
+  {
+    "id": "manager-003",
+    "prompt": "我想让某个角色只能看自己部门的数据，应该怎么配置权限？",
+    "expected": "应命中权限章节，先确认 teamId/projectId/角色/表格/部门字段，说明项目权限、表权限、行级策略或 ACL 的差异，并给出创建后回查和缓存刷新风险。"
+  }
+]

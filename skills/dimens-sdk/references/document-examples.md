@@ -118,7 +118,15 @@ await sdk.document.restore('TEAM1', 'PROJ1', {
 await sdk.document.delete('TEAM1', 'PROJ1', 'DOC1');
 ```
 
+删除前建议先 `info` 确认文档归属和用途；如果只是误改内容，优先考虑 `versions/version/restore`，不要直接删除。
+
 ## 10. Web 前端读取文档详情
+
+适用前提：
+
+- 前端已经从安全来源拿到 `token`
+- 已确认 `teamId/projectId/documentId`
+- 如果用户给的是文档页面 `sheetId`，先通过 `doc info --sheet-id` 或等价接口换出真实 `documentId`
 
 ```ts
 await fetch(
@@ -140,3 +148,17 @@ await fetch(
 - 不要上传完文件后直接假设业务数据已更新；要把返回的 `url` 写回当前文档内容后再 update
 - 不要把 Mermaid 业务流程图截图上传；优先写入 Mermaid 数据，方便版本维护
 - 不要生成只有黑白文字的单调文档；默认至少补状态标签、摘要卡片或提示块
+- 不要把 403/404 都当成 token 过期；先确认权限、文档 ID 和菜单资源 ID 是否混用
+
+## 12. 最小验证命令
+
+```bash
+dimens-cli doc info DOC1 --team-id TEAM1 --project-id PROJ1
+dimens-cli doc versions --team-id TEAM1 --project-id PROJ1 --document-id DOC1
+```
+
+如果用户只有文档页面链接里的 `sh_xxx`，先用：
+
+```bash
+dimens-cli doc info --sheet-id sh_xxx --team-id TEAM1 --project-id PROJ1
+```

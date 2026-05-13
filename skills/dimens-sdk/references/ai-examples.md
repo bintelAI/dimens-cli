@@ -21,6 +21,12 @@ await sdk.ai.completions('TEAM1', {
 
 ## 2. Web 前端直连 AI 接口
 
+适用前提：
+
+- 前端已经从安全来源拿到 `token`
+- `teamId` 来自当前团队上下文
+- 不在浏览器保存 `apiSecret`
+
 ```ts
 await fetch(`https://dimens.bintelai.com/api/app/flow/${teamId}/v1/chat/completions`, {
   method: 'POST',
@@ -94,3 +100,12 @@ await sdk.ai.completions('TEAM1', {
 - 不要把 `chat/completions` 当成工作流发布、挂载、调试全能力
 - 不要忽略 `teamId`
 - 不要把模型选择逻辑写死成单一值而不考虑团队默认模型
+- 不要把 401 以外的错误都当成登录失效；403 常见于团队或模型权限不足
+
+## 7. 最小验证命令
+
+```bash
+dimens-cli ai chat-completions --team-id TEAM1 --message "帮我总结本周项目风险"
+```
+
+如果 CLI 调用失败，先排查 token、团队权限、模型配置和网络，再调整 Web / BFF 代码。

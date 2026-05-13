@@ -1,5 +1,12 @@
 # dimens-manager 项目初始化章节 项目初始化案例
 
+## 使用示例前提
+
+- 项目初始化优先使用 `dimens-cli project/sheet/doc/report/upload` 命令，不优先手写接口。
+- 示例里的 `TTFFEN / PROJECT_ID / SHEET_ID` 必须替换为真实上下文；如果用户给了项目链接，先解析链接。
+- 文档、封面、报表、菜单归位等更新类操作必须先读当前数据，再合并目标字段后更新。
+- Windows 下生成或修改含中文的 SVG、HTML、Markdown、JSON、CSV 文件时，必须使用 UTF-8 写入并读回确认。
+
 ## 1. 创建项目
 
 ```bash

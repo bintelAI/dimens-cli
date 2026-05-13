@@ -1,26 +1,54 @@
 # dimens-manager 画布章节案例
 
+## 使用示例前提
+
+- 示例默认优先使用 `dimens-cli canvas *`，不要把接口调用当作首选执行路径。
+- 示例里的 `TEAM1 / PROJ1 / canvas_1` 都是占位符，执行前必须替换为真实 `teamId / projectId / sheetId`。
+- 更新已有画布时必须先 `canvas info` 读取当前 `version` 和图数据，再合并目标节点或边，最后 `canvas validate` 和 `canvas save`。
+- 在 Windows 下生成含中文的 JSON 文件时，必须使用 UTF-8 写入并读回确认中文未损坏。
+
 ## 1. 一键生成审批流程画布
 
 1. 根据用户描述生成 `approval-canvas.json`。
-2. 创建画布：
+2. 保存前校验：
+
+```bash
+dimens-cli canvas validate --file ./approval-canvas.json
+```
+
+3. 创建画布：
 
 ```bash
 dimens-cli canvas create --team-id TEAM1 --project-id PROJ1 --name 审批流程画布 --file ./approval-canvas.json
 ```
 
-3. 如果后续要更新：
+4. 回查创建结果：
 
 ```bash
 dimens-cli canvas info canvas_1 --team-id TEAM1 --project-id PROJ1
+dimens-cli canvas versions canvas_1 --team-id TEAM1 --project-id PROJ1
+```
+
+5. 如果后续要更新：
+
+```bash
+dimens-cli canvas info canvas_1 --team-id TEAM1 --project-id PROJ1
+dimens-cli canvas validate --file ./approval-canvas.json
 dimens-cli canvas save canvas_1 --team-id TEAM1 --project-id PROJ1 --base-version 1 --file ./approval-canvas.json --summary 优化审批异常分支
 ```
 
-4. 如果要沉淀为组件：
+6. 如果要沉淀为组件：
 
 ```bash
 dimens-cli canvas resource-save --team-id TEAM1 --name 审批节点组 --nodes '[{"id":"submit"}]' --edges '[]' --tags 审批,流程
 ```
+
+完成判定：
+
+- `canvas validate` 通过。
+- `canvas info` 能读到画布。
+- `canvas versions` 能看到新版本。
+- 更新任务的保存后版本号大于保存前版本号。
 
 ## 2. 售后工单工作流画布
 

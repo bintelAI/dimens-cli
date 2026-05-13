@@ -2,7 +2,7 @@
 name: dimens-manager
 slug: dimens-manager
 description: 用于维表智联项目内业务资源创建、配置、维护和排查，适合处理 Key、团队、项目、表格、权限、工作流、报表、画布等落地问题。
-version: 1.0.1
+version: 1.0.2
 author: 方块智联工作室
 tags: [manager, project, table, permission, workflow, report, canvas, auth, dimens-cli]
 ---
@@ -25,6 +25,8 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - ✅ 更新类操作统一遵循“先读取当前数据 -> 修改目标字段 -> 再提交更新”。
 - ✅ 项目资源默认按“三驾马车”理解：表格、文档、报表。
 - ✅ 报表创建当前走项目菜单 `sheet/create type=report`；返回的 `reportId` 等于 `sheetId`。
+- ✅ 用户只给自然语言目标时，先把目标归类到业务域，再给 CLI 步骤；不要直接编造不存在的命令或字段。
+- ✅ 如果上下文、权限或资源 ID 缺失，先列出缺口和最小补齐命令，再继续执行或给方案。
 
 ## 职责边界
 
@@ -49,15 +51,28 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 
 ## 默认处理顺序
 
-1. 先看 `references/key-auth/overview.md`，确认认证方式。
-2. 再看 `references/team/overview.md`，明确 `teamId / projectId / baseUrl`。
-3. 项目容器问题看 `references/project/overview.md`。
-4. 数据模型问题看 `references/table/overview.md`。
-5. 访问控制问题看 `references/permission/overview.md`。
-6. 自动化和 AI 流程问题看 `references/workflow/overview.md`。
+1. 识别用户目标：查询、创建、更新、排查、导入、生成画布或验证。
+2. 先看 `references/key-auth/overview.md`，确认认证方式。
+3. 再看 `references/team/overview.md`，明确 `teamId / projectId / baseUrl`。
+4. 项目容器问题看 `references/project/overview.md`。
+5. 数据模型问题看 `references/table/overview.md`。
+6. 访问控制问题看 `references/permission/overview.md`。
+7. 自动化和 AI 流程问题看 `references/workflow/overview.md`。
    - 审批工作流 AI 自动生成必须继续看 `references/workflow/references/approval-generation.md`。
-7. 统计分析和看板问题看 `references/report/overview.md`。
-8. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
+8. 统计分析和看板问题看 `references/report/overview.md`。
+9. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
+10. 输出前按“命令链、必要参数、验证命令、风险点”检查一遍。
+
+## 输出契约
+
+处理项目内业务资源时，默认输出下面 4 类信息：
+
+1. `目标域`：命中哪个章节，例如表格、权限、报表、画布。
+2. `前置条件`：认证状态、`teamId/projectId`、资源 ID、权限要求。
+3. `执行链路`：优先给 `dimens-cli` 命令；更新类必须体现“先读再改再更”。
+4. `验证链路`：给出回查命令和通过标准；权限、报表、画布不能只看创建成功。
+
+如果用户要求直接执行，但缺少必要上下文，先输出缺口和补齐命令，不要假装已经完成。
 
 ## 高风险跑偏点
 
@@ -80,6 +95,14 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 | 报表创建后读取不到 `reportId` | 使用返回的 `sheetId` 作为 `reportId`，或使用已归一化的 CLI 输出 |
 | 权限创建成功就认为前端已生效 | 继续检查权限快照、缓存失效和前端刷新 |
 | AI 只输出审批说明，没有图草案 | 按 `approval-generation.md` 补齐 `pluginType=approval` 的 `nodes/edges/globalVariables/meta` |
+
+## 干跑测试样本
+
+维护本技能时使用 `test-prompts.json` 做 dry-run 复测，至少覆盖：
+
+- 项目内资源创建和回查。
+- 权限或团队上下文缺失时的补齐路径。
+- 报表、工作流、画布这类需要预检或版本回查的复杂链路。
 
 ## 参考文档
 

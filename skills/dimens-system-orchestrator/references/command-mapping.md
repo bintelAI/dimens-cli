@@ -46,6 +46,18 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 
 后续命令直接代入即可，不要再把链接当普通描述文本丢掉。
 
+### 2.3 执行网关
+
+系统总控在给命令前，必须先完成下面判断：
+
+| 判断项 | 通过标准 | 不通过时 |
+| --- | --- | --- |
+| 任务类型 | 已归类为项目梳理、新建项目、修改、查询或分类路由 | 回到 `scenario-taxonomy.md` |
+| 认证状态 | 真实执行前已有 `auth api-key-login` 登录态 | 先登录，不用 URL 冒充 token |
+| 上下文 | `teamId / projectId` 已明确；表、文档、报表、画布类任务还要明确资源 ID | 先走 `project list/info`、`sheet tree` 或对应 info 命令 |
+| 路由章节 | 已明确进入 `dimens-manager` 的具体业务章节，或 SDK 接入进入 `dimens-sdk` | 回到 `skill-routing.md` |
+| 验收口径 | 已列出执行后的回查命令 | 不要只给创建命令 |
+
 ## 3. 系统搭建步骤 → 命令
 
 | 系统搭建步骤 | 优先命令 | 说明 |
@@ -267,3 +279,19 @@ dimens-cli row batch-create \
 | Excel 里的下拉值直接原样写入 | 先确认字段真实 `options`，写入值必须映射到已有选项的 `label` 或 `id`；缺失选项先更新字段选项，不能写表里不存在的下拉值 |
 | `row set-cell` 继续用 `columnId` 理解服务端 | 服务端真实字段是 `fieldId`，`columnId` 只是兼容参数 |
 | 忽略 `version` | 行更新和单元格更新都建议显式带 `version` |
+
+## 6. 完成判定
+
+系统级执行不能只看命令返回。至少按下面证据收口：
+
+| 交付物 | 最低证据 |
+| --- | --- |
+| 项目 | `project info` 能看到目标项目、描述和封面 URL |
+| 菜单 | `sheet tree` 能看到目录和资源归位 |
+| 表格 | `sheet info`、`column list`、`view list` 能看到字段和默认视图 |
+| 数据 | `row page` 能看到示例数据，relation 展示正常 |
+| 文档 | `doc info` 能看到正文和版本 |
+| 报表 | `report query` 有可解释结果或明确空数据原因 |
+| 画布 | `canvas info` 和保存版本能看到节点、边和版本号 |
+| 权限 | 角色、权限、行级策略能回查到绑定关系 |
+| 工作流 | 定义、发布、项目挂载和运行验证能对应到同一项目 |

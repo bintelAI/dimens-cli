@@ -1,0 +1,17 @@
+[
+  {
+    "id": "orchestrator-001",
+    "prompt": "帮我生成一个客户管理系统，包含客户、商机、合同和回款。",
+    "expected": "应输出系统蓝图，拆表格、文档、报表、业务场景画布、权限和后续 manager 章节，不应直接只给单表创建命令。"
+  },
+  {
+    "id": "orchestrator-002",
+    "prompt": "我要做一个审批系统，支持提交、经理审批、财务复核和驳回。",
+    "expected": "应区分业务场景画布和可执行审批工作流，补角色、对象、状态、异常路径，并路由到 manager 的 workflow approval-generation 和 canvas 章节。"
+  },
+  {
+    "id": "orchestrator-003",
+    "prompt": "我的 Web 项目想调用维表智联接口读取报表数据。",
+    "expected": "应识别为 SDK/Web 接入，不强行做系统拆解，路由到 dimens-sdk 的 integration-paths、frontend-auth-flow 和 report-examples。"
+  }
+]

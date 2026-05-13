@@ -10,6 +10,8 @@ app login -> app server -> exchange token -> app request business api -> busines
 
 - `apiSecret` 默认放服务端
 - App 只消费自己服务端透出的业务接口或短期 token
+- App 包体里不要出现 `apiKey/apiSecret`
+- 服务端负责记录审计日志、刷新 token、处理 403/404 和版本冲突
 
 ## 2. 移动端请求自家服务端拿项目列表
 
@@ -155,3 +157,17 @@ await fetch('https://your-app.example.com/api/dimens/ai/summary', {
 - 不要让客户端自己决定维表 baseUrl
 - 不要在客户端直接拼接全部业务路径而完全不走服务端治理
 - 不要忽略 token 刷新策略和设备注销策略
+- 不要让移动端绕过服务端直接处理多团队、多项目隔离逻辑
+- 不要把版本冲突和权限不足都展示成“登录过期”
+
+## 9. 服务端最小验证链路
+
+移动端联调前，服务端先验证目标资源：
+
+```bash
+dimens-cli auth status
+dimens-cli project info PROJECT_ID --team-id TEAM_ID
+dimens-cli sheet info SHEET_ID --team-id TEAM_ID --project-id PROJECT_ID
+```
+
+只有服务端验证通过后，再让 App 调业务接口。

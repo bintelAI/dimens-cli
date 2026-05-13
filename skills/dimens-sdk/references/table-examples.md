@@ -13,6 +13,7 @@ const sheet = await sdk.sheet.create('PROJ1', {
 
 - 表创建走 `projectId`
 - 默认适合项目初始化后的第一步
+- 如果是资源运维或排查，先用 `dimens-cli sheet create/info/list` 验证，再把同样上下文迁移到代码
 
 ## 2. 查询表格列表
 
@@ -135,6 +136,12 @@ await sdk.row.update(
 
 ## 11. Web 前端读取表格行数据
 
+适用前提：
+
+- 前端已经从安全来源拿到 `token`
+- 已确认 `teamId/projectId/sheetId`
+- 浏览器没有保存 `apiSecret`
+
 ```ts
 await fetch(`https://dimens.bintelai.com/api/app/mul/${teamId}/${projectId}/sheet/${sheetId}/row/page`, {
   method: 'POST',
@@ -155,3 +162,14 @@ await fetch(`https://dimens.bintelai.com/api/app/mul/${teamId}/${projectId}/shee
 - 不要忽略 `version`
 - 不要把团队级和项目级路径混成一个模板
 - 不要把人员字段、部门字段退化成普通下拉
+- 不要把 403/404 都当成 token 过期；先检查权限和资源上下文
+
+## 13. 最小验证命令
+
+```bash
+dimens-cli sheet info SHEET1 --team-id TEAM1 --project-id PROJ1
+dimens-cli column list --team-id TEAM1 --project-id PROJ1 --sheet-id SHEET1
+dimens-cli row page --team-id TEAM1 --project-id PROJ1 --sheet-id SHEET1
+```
+
+如果 CLI 读取失败，先排查 token、团队成员、项目权限和 `sheetId`，不要先改 SDK 封装。

@@ -16,6 +16,13 @@
 
 如果用户后续还要做报表，这份文档要和 `dimens-manager/references/report/overview.md` 一起看。表结构不是独立问题，字段设计会直接影响后面的 `report preview / query-widget / dataMapping` 是否能一次成功。
 
+示例使用约束：
+
+- 已封装能力优先使用 `dimens-cli sheet/column/view/row *`，接口案例只用于解释真实路径和字段契约。
+- 写入前必须先 `column list` 确认真实字段 ID、字段类型和选项值；不要用中文字段名直接猜 `fieldId`。
+- 更新表、字段、行数据时必须先读当前数据，再合并目标字段后更新；批量初始化优先用 `row batch-create --file`。
+- Windows 下保存含中文的导入文件、字段配置或命令说明时，必须使用 UTF-8 并读回确认。
+
 ---
 
 ## 1. 查询表列表

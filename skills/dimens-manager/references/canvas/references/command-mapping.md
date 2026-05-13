@@ -1,5 +1,12 @@
 # dimens-manager 画布章节 命令映射
 
+## 使用原则
+
+- 已有命令一律优先使用 `dimens-cli canvas *`，接口只作为命令语义说明。
+- 创建前确认 `teamId/projectId`，更新前确认 `sheetId` 和当前 `version`。
+- 更新已有画布固定执行“`canvas info` 先读 -> 合并 `nodes/edges` -> `canvas validate` -> `canvas save` -> `canvas info/versions` 回查”。
+- 如果在 Windows 下生成含中文的 `canvas.json`，必须以 UTF-8 写入并读回确认。
+
 ## 命令与接口
 
 | 命令 | 作用 | 接口 |
@@ -19,6 +26,8 @@
 
 ## 常用链路
 
+新建并保存：
+
 ```bash
 dimens-cli canvas create --team-id TEAM1 --project-id PROJ1 --name 业务流程画布
 dimens-cli canvas info canvas_1 --team-id TEAM1 --project-id PROJ1
@@ -28,7 +37,16 @@ dimens-cli canvas info canvas_1 --team-id TEAM1 --project-id PROJ1
 dimens-cli canvas versions canvas_1 --team-id TEAM1 --project-id PROJ1
 ```
 
+版本恢复：
+
 ```bash
 dimens-cli canvas versions canvas_1 --team-id TEAM1 --project-id PROJ1
 dimens-cli canvas restore canvas_1 --team-id TEAM1 --project-id PROJ1 --version 2
 ```
+
+完成后至少确认：
+
+- `canvas validate` 无错误。
+- `canvas info` 能读取最新内容。
+- `canvas versions` 能看到预期版本。
+- 更新场景的版本号有递增。

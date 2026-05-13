@@ -224,7 +224,10 @@ const SDK_INTENT_KEYWORDS = [
   'sdk',
   'http',
   'api 调用',
+  '接口',
   'web 接入',
+  'web',
+  '前端',
   '前端接入',
   '移动端',
   'app',
@@ -232,8 +235,23 @@ const SDK_INTENT_KEYWORDS = [
   'bff',
   'node',
   'node.js',
+  '调用',
+  '读取',
   '集成',
+  '接入',
   '对接开发',
+];
+
+const SDK_RESOURCE_CONTEXT_KEYWORDS = [
+  ...TABLE_INTENT_KEYWORDS,
+  ...REPORT_INTENT_KEYWORDS,
+  '文档',
+  'document',
+  'doc',
+  'ai',
+  'chat-completions',
+  '上传',
+  'upload',
 ];
 
 function getSystemOrchestratorBonus(
@@ -362,6 +380,10 @@ function getSkillMatchSignals(
   if (skill.name === 'dimens-sdk' && hasIntentKeyword(normalizedQuery, SDK_INTENT_KEYWORDS)) {
     matchedBy.push('sdk-intent');
     keywordScore += 4;
+    if (hasIntentKeyword(normalizedQuery, SDK_RESOURCE_CONTEXT_KEYWORDS)) {
+      matchedBy.push('sdk-resource-intent');
+      keywordScore += 3;
+    }
   }
 
   const score = keywordScore + phraseScore + systemBonus;
@@ -393,6 +415,9 @@ function getSkillMatchSignals(
   }
   if (matchedBy.includes('sdk-intent')) {
     reasonParts.push('命中 SDK / 接入开发意图');
+  }
+  if (matchedBy.includes('sdk-resource-intent')) {
+    reasonParts.push('命中资源调用接入场景');
   }
   if (matchedBy.includes('name-keyword')) {
     reasonParts.push('匹配到技能名关键词');

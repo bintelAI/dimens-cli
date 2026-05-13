@@ -1,0 +1,17 @@
+[
+  {
+    "id": "sdk-001",
+    "prompt": "我要在 React 前端接入维表智联 API，可以把 apiSecret 放在前端吗？请给一个推荐方案。",
+    "expected": "应拒绝前端保存 apiSecret，推荐 BFF 或服务端换 token，说明 token 刷新、teamId/projectId 传递和最小调试命令。"
+  },
+  {
+    "id": "sdk-002",
+    "prompt": "Node.js 服务端要读取一个项目里的表格行数据，并处理 401 和权限不足，怎么写？",
+    "expected": "应命中 Node.js/服务端接入，给出 SDK 或 HTTP 最小调用链，覆盖 auth、teamId/projectId/sheetId、401 refresh、403 权限排查和 CLI 验证。"
+  },
+  {
+    "id": "sdk-003",
+    "prompt": "移动端需要上传图片并写入文档或表格字段，推荐怎么接？",
+    "expected": "应说明移动端不保存 apiSecret，先 upload file 拿 url，再先读当前资源并合并更新，给出失败处理和验收方式。"
+  }
+]

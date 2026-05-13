@@ -66,6 +66,15 @@ export function isDimensAuthError(error: unknown) {
 - 真实项目里你可以结合真实接口错误结构继续细化
 - 当前技能里先给最小可执行判断思路
 
+不要触发 refresh 的典型错误：
+
+| 错误类型 | 正确处理 |
+| --- | --- |
+| 403 权限不足 | 提示权限不足，检查团队成员、项目权限和资源权限 |
+| 404 资源不存在 | 检查 `teamId/projectId/sheetId/reportId/documentId` |
+| 409 版本冲突 | 重新读取当前数据和 `version` 后再提交 |
+| 业务校验错误 | 展示业务错误或修正参数 |
+
 ## 4. refresh 只允许串行执行
 
 如果多个请求同时 401，不要让它们同时各自 refresh。
@@ -295,6 +304,7 @@ export function logout() {
 - refresh 失败后没有清本地登录态
 - 页面里自己处理 refresh，导致逻辑散落
 - 忽略 `version`，把数据更新失败误判成 token 失效
+- 403 / 404 时反复 refresh，导致真实权限或上下文问题被隐藏
 
 ## 14. 最终建议
 

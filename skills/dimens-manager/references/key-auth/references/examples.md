@@ -6,6 +6,13 @@
 2. 换到 token 后如何继续访问 `/app/*`
 3. 当前 Skill 在说明问题时必须引用的真实入参、出参与边界
 
+示例使用约束：
+
+- CLI 首选入口只有 `dimens-cli auth api-key-login`；Key 创建、状态、删除、重置等管理能力如未封装，必须按 `server-only` 说明。
+- 示例中的 `ak_xxx / sk_xxx` 是占位符，不能当成真实可执行密钥。
+- 输出示例可以展示 token 字段存在，但不要在最终回复里打印完整 token、完整 secret 或可复用敏感值。
+- Windows 下保存含中文的接口说明或登录日志时，必须使用 UTF-8 写入并读回确认。
+
 更细的规则说明请分别查看：
 
 - `login-flow.md`

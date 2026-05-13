@@ -2,7 +2,7 @@
 name: dimens-sdk
 slug: dimens-sdk
 description: 用于维表智联 SDK、HTTP API、Web、BFF、Node.js 和移动端接入开发，适合处理认证、token、上下文传递与资源调用集成问题。
-version: 1.0.1
+version: 1.0.2
 author: 方块智联工作室
 tags: [sdk, http, web, mobile, integration, dimens-cli]
 ---
@@ -26,6 +26,8 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ API Key 登录返回的是现有用户 token，不是独立开放平台权限体系。
 - ✅ `teamId` 是团队隔离边界，`projectId` 是项目内资源上下文，不能漏传或混传。
 - ✅ 所有更新类接口统一按“先拿数据 -> 改数据 -> 更新数据”设计调用链。
+- ✅ 先判断密钥应该放在哪里：浏览器和移动端只拿短期 token，`apiSecret` 默认只在服务端或 BFF。
+- ✅ 代码示例必须带出失败处理边界：401 刷新、403 权限不足、404 上下文或资源 ID 错误。
 
 ## 职责边界
 
@@ -59,8 +61,22 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 2. 再判断认证方式：用户登录 token、API Key 换 token、服务端代管 token。
 3. 明确 `baseUrl / teamId / projectId` 的来源和传递方式。
 4. 按资源域选择 table / document / report / ai 示例。
-5. 更新类接口必须先读取当前数据，再合并目标字段。
-6. 涉及文件、图片、封面、附件，先上传拿 `url`，再写回业务数据。
+5. 先用 `dimens-cli` 给出可验证的调试路径，再给 SDK / HTTP 代码。
+6. 更新类接口必须先读取当前数据，再合并目标字段。
+7. 涉及文件、图片、封面、附件，先上传拿 `url`，再写回业务数据。
+8. 输出代码前说明密钥存放位置、token 刷新策略和最小验证命令。
+
+## 输出契约
+
+处理接入开发问题时，默认输出下面 5 类信息：
+
+1. `接入位置`：浏览器、移动端、BFF、Node.js 服务端或混合架构。
+2. `认证方案`：token 来源、刷新方式、`apiSecret` 存放边界。
+3. `上下文传递`：`baseUrl/teamId/projectId` 从哪里来，是否允许用户切换。
+4. `调用示例`：优先最小可运行片段，不把多个资源域混成一个模板。
+5. `调试验证`：给出 `dimens-cli` 命令或 HTTP 断言，覆盖 401、403、404 的判断。
+
+如果用户的问题本质是项目内资源管理，转交 `dimens-manager`；如果是完整系统搭建，转交 `dimens-system-orchestrator`。
 
 ## 高风险跑偏点
 
@@ -81,6 +97,14 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 | 同一 token 调项目成功但调表失败 | 补齐 `teamId / projectId / sheetId` 上下文 |
 | 行更新偶发失败 | 先查当前版本，再提交更新 |
 | 报表创建后找不到 `reportId` | 菜单报表创建返回的 `sheetId` 就是 `reportId` |
+
+## 干跑测试样本
+
+维护本技能时使用 `test-prompts.json` 做 dry-run 复测，至少覆盖：
+
+- BFF 代管 API Secret 并给前端 token。
+- React / Web 端处理 token 刷新和资源上下文。
+- Node.js 服务端读取表格、文档、报表或 AI 能力。
 
 ## 参考文档
 

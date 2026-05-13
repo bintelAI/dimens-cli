@@ -19,10 +19,13 @@ tags: [team, project, tenant, context, dimens-cli]
 
 - ✅ 团队是资源的最高隔离边界，绝大多数业务问题先确认 `teamId`
 - ✅ 项目是团队下的业务单元，项目问题通常要同时带上 `teamId` 与 `projectId`
+- ✅ CLI 优先使用 `dimens-cli team/project/auth` 相关命令确认上下文；不要直接依赖口头团队名推断真实 ID
 - ✅ 成员能否访问项目，不只取决于项目成员关系，还可能取决于团队角色与部门角色
 - ✅ Guest、Member、Admin、Owner 的可见范围不能混为一谈
 - ✅ 分析资源访问问题时，先判断团队可见性，再判断项目级权限
 - ✅ 很多 CLI 命令支持显式参数、本地 profile、环境变量三种上下文来源，不能只看单次命令参数
+- ✅ 缺少上下文时，优先从用户给的 `app-url`、本地 profile 或 `project list/info` 补齐；仍缺失时先询问
+- ✅ Windows 下写入含中文的上下文记录或排查日志时，必须使用 UTF-8 并读回确认
 
 ## 命令维护表
 
@@ -42,6 +45,12 @@ tags: [team, project, tenant, context, dimens-cli]
 - 如果后续要做项目更新，默认先 `project info` 拿当前数据，再改字段再 update，而不是跳过读取阶段。
 - `auth use-team` / `auth use-project` 只是在本地切换默认上下文，不等于真实资源校验。
 - 处理跨团队、跨项目问题时，要同时检查显式参数、本地 profile、环境变量三类上下文来源。
+
+## 输出与验证契约
+
+- 上下文结论必须列出：当前 `teamId`、当前 `projectId`、来源是显式参数 / profile / 环境变量 / 链接解析中的哪一种。
+- 如果上下文来自默认 profile，排查类输出要建议用显式参数复跑一次，避免默认值误导。
+- 如果用户目标是后续创建或更新资源，必须把下一步路由到对应章节，并继续执行“先读 -> 合并 -> 更新”的更新契约。
 
 ## 核心约束
 

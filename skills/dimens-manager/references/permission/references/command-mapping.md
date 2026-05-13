@@ -8,6 +8,9 @@
 
 - 下面主示例统一优先使用 `--app-url`，CLI 会自动解析 `teamId / projectId / baseUrl`
 - `role create`、`permission create`、`row-policy create` 这几条主链命令已在 CLI 命令测试中覆盖，优先按这里的参数名执行
+- 更新类命令必须先读当前记录，再合并目标字段后提交，避免覆盖已有角色能力、列权限或行级条件
+- 缺少 `roleId / sheetId / userId / rowId` 时，先用列表或详情命令补齐，不要凭名称猜 ID
+- Windows 下写入含中文的权限 JSON、方案或命令文件时，必须使用 UTF-8 并读回确认
 - 但 `role` / `permission` 的正确使用不能只看命令层；复杂项目权限必须同时参考前端 `permissionStore`、后端 `/permission/myPermissions` 和服务端 `getEffectiveSheetPermission()` 的真实结果
 
 适用场景：
@@ -84,6 +87,12 @@ dimens-cli permission create \
 
 1. `dimens-cli permission list --app-url ... --sheet-id SHEET_ID`
 2. 前端或接口确认 `/app/mul/project/:projectId/permission/myPermissions` 当前返回
+
+写入后至少回查：
+
+1. `dimens-cli permission list --app-url ... --sheet-id SHEET_ID`
+2. 目标用户视角重新读取 `myPermissions`
+3. 协同场景确认权限变更通知和快照已刷新
 
 ### 3.2 限制列可见范围
 

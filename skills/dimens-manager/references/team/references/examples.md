@@ -6,6 +6,13 @@
 2. 项目列表 / 项目详情的真实入参与出参
 3. CLI 默认上下文如何影响结果
 
+示例使用约束：
+
+- 上下文确认优先使用 `dimens-cli auth use-team/use-project`、`project list/info` 和显式参数复跑。
+- 示例中的团队名、项目名不能替代真实 `teamId/projectId`；缺 ID 时先查询或询问。
+- 排查“数据不对”时必须同时说明显式参数、本地 profile、环境变量三类上下文来源。
+- Windows 下保存含中文上下文记录或排查日志时，必须使用 UTF-8 并读回确认。
+
 更细的规则说明请分别查看：
 
 - `context-sources.md`

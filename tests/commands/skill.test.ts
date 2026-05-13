@@ -626,6 +626,36 @@ describe('Skill Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should rank sdk first for web report api integration text', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'recommend'
+    );
+
+    await command?.handler([
+      '我的',
+      'Web',
+      '项目',
+      '想调用',
+      '维表智联接口',
+      '读取报表数据',
+      '--output',
+      'json',
+    ]);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = String(logSpy.mock.calls.at(-1)?.[0] ?? '');
+    const payload = JSON.parse(output);
+    expect(payload.data[0]?.skill?.name).toBe('dimens-sdk');
+    expect(payload.data[0]?.matchedBy).toContain('sdk-intent');
+    expect(payload.data[0]?.matchedBy).toContain('sdk-resource-intent');
+    expect(payload.data[0]?.reason).toContain('资源调用接入场景');
+    logSpy.mockRestore();
+  });
+
   it('should recommend skills in json mode', async () => {
     const { registerCommands } = await import('../../src/commands');
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);

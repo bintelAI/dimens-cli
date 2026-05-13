@@ -23,6 +23,8 @@
 1. 先给能力状态：`已封装 / server-only / 部分对齐`。
 2. 再给调用建议：优先 CLI 还是需要走服务端接口。
 3. 最后给风险边界：是否受 `teamId/projectId/systemView/model` 影响。
+4. 如果缺少 `teamId/projectId/flowId/label`，先列出待确认项；不要把 `model` 字段直接等同于真实工作流定义。
+5. 如果只是生成审批草案，必须说明尚未创建、发布或挂载到项目。
 
 示例表达：
 

@@ -65,6 +65,8 @@
 3. 对 `部分对齐` 和 `server-only` 能力，明确边界，不要伪装成已有命令。
 4. 如果涉及多维表数据源，再补一句需要联动 `dimens-manager/references/table/overview.md` 和权限链路。
 5. 如果涉及“直接生成报表”，要明确提醒先走固定预检链，防止 AI 直接跳到 `widget-add`。
+6. 如果涉及更新报表或组件，要先 `report info` 读取当前配置，再合并目标字段并回查 `query/query-widget`。
+7. 如果缺少 `projectId/reportId/widgetId`，先列出待确认项或查询命令，不要猜资源 ID。
 
 ---
 

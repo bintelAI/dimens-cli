@@ -36,6 +36,13 @@
 
 `report create -> report preview -> report widget-add -> report query-widget -> report query`
 
+示例使用约束：
+
+- 已封装能力优先使用 `dimens-cli report *`，接口案例只用于解释真实入参、出参和边界。
+- 更新报表主资源或组件时必须先 `report info` 读取当前配置，再合并目标字段后更新。
+- 示例里的 `projectId/reportId/widgetId` 执行前必须替换为真实值；`reportId` 通常等于报表菜单资源的 `sheetId`。
+- Windows 下写入含中文的报表配置、组件 JSON 或调试记录时，必须使用 UTF-8 并读回确认。
+
 更细的规则说明请分别查看：
 
 - `usage.md`
@@ -524,7 +531,7 @@ dimens-cli report query-widget \
 
 ---
 
-## 6. Skill 输出要求
+## 7. Skill 输出要求
 
 当用户提到报表、图表、数据源、参数联动时，Skill 至少要说清：
 

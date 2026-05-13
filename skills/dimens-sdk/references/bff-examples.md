@@ -20,6 +20,13 @@ export function createDimensService(token: string) {
 - Next.js Route Handler
 - Serverless Function
 
+BFF 侧安全边界：
+
+- `apiSecret` 只允许保存在服务端环境变量或密钥系统
+- 前端只拿 BFF 返回的短期 token 或业务数据
+- 日志里不要打印完整 token、refreshToken、apiSecret
+- 所有业务函数都显式接收 `teamId/projectId`，不要把团队或项目写死在单例里
+
 ## 2. BFF 代理项目查询
 
 ```ts
@@ -216,3 +223,4 @@ export async function summarizeByAi(token: string, teamId: string, content: stri
 - 不要在 SDK 返回失败时只把原始错误直接透传给前端
 - 不要在更新行和文档时忽略版本号
 - 不要把 AI 聊天接口误当成工作流全量管理接口
+- 不要把服务端持有的 `apiSecret` 返回给浏览器或 App

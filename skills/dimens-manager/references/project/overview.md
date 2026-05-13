@@ -20,6 +20,8 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - ✅ 执行任何项目命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`
 - ✅ 项目一定挂在团队下面，创建项目前必须先确认 `teamId`
 - ✅ 当用户给的是 `https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/` 这类链接时，优先直接解析成当前项目上下文
+- ✅ CLI 是项目初始化首选执行入口；只有命令未覆盖时才补充真实接口或产品侧边界
+- ✅ 缺少 `teamId/projectId/sheetId/documentId/reportId` 时，先用链接解析、列表、详情或用户确认补齐，不要猜 ID
 - ✅ 这个技能只负责“项目创建 / 项目初始化 / 项目落地入口”，不替代表结构、字段设计、权限设计
 - ✅ 当用户要求“创建项目”时，默认先按维表特性完成建模方案设计，再进入创建命令
 - ✅ 默认项目初始化主链是：`project create -> sheet/doc/report create -> view list/create -> column create -> role create -> permission create -> role assign-user`
@@ -34,6 +36,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - ✅ 文件/图片上传在产品侧已存在 `/app/base/comm/upload` 上传接口，`dimens-cli` 也已支持 `upload file / upload mode`；如果目标是把文件继续写入在线文档，优先走 `doc attach-file / doc append-image`
 - ✅ 如果目标是“上传完成后还能在素材管理里看到”，必须显式传 `--source material`；素材链路会额外写入 `name/size/mimeType` 并落库到素材管理
 - ✅ 项目封面、图标、文档图片、文档附件等资源类更新，统一先 `upload file` 拿 `url`，再把 `url` 写回当前业务数据后更新
+- ✅ Windows 下生成或修改含中文的项目文档、SVG、JSON、CSV、Markdown 时，必须使用 UTF-8 写入并读回确认
 - ✅ SVG 封面/图标上传时必须保留 `.svg` 扩展名；当前 CLI 会按 `image/svg+xml` 上传，避免被后端当成普通二进制文件处理
 - ✅ 项目封面 SVG 默认规格是 `250x150px`，建议写入 `width="250" height="150" viewBox="0 0 250 150"`；背景使用淡色系，动画使用轻量 SVG 动态效果，不要做高饱和、强闪烁或过重动画
 - ✅ 所有更新类操作默认都按“先拿数据 -> 改数据 -> 更新数据”执行，不能把局部字段 patch 当成通用更新模型
@@ -94,6 +97,14 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - 文档相关更新必须先拿 `doc info`，因为内容更新依赖当前文档内容和 `version`，不能跳过版本控制。
 - 如果是项目封面、项目图标这类资源字段更新，默认先 `project info` 拿当前数据，再合并上传后的 `url`，最后 `project update`。
 - 报表或报表组件更新默认先读当前报表数据，不直接盲改；组件场景还要先确认 `reportId`、当前组件配置和数据映射。
+
+## 输出与验证契约
+
+- 项目初始化输出必须列出：创建的项目、目录、表格、文档、报表、视图、字段和后续权限入口；没有执行的项要明确标注未执行。
+- 更新类输出必须包含：读取命令、合并点、更新命令、回查命令。
+- 文档更新至少验证：`doc info` 可读、`doc update` 使用正确 `version`、必要时 `doc versions` 有记录。
+- 报表初始化至少验证：`report preview`、`widget-add`、`query-widget` 或 `query` 中的关键结果。
+- 如果当前只完成项目壳子创建，不能声称项目初始化闭环。
 
 ## 核心约束
 

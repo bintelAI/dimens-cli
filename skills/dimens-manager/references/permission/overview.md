@@ -20,12 +20,15 @@ tags: [permission, access-control, acl, row-policy, dimens-cli]
 - ✅ 当前技能目录统一承载“角色 + 项目权限 + 行级权限”能力，不再拆散到多个技能目录
 - ✅ 执行任何权限命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`
 - ✅ 如果用户给的是 `https://dimens.bintelai.com/#/TEAM/PROJECT/` 这种地址，CLI 可通过 `--app-url` 自动解析 `teamId / projectId / baseUrl`
+- ✅ CLI 是权限变更的首选执行入口；但权限真值验证必须同时看后端有效权限、前端快照和协同投影
+- ✅ 缺少 `projectId/sheetId/roleId/userId/rowId` 时，先通过列表、详情或用户确认补齐，不要猜测权限对象
 - ✅ `role` 和 `permission` 的操作口径必须以前端 `permissionStore` 展示的权限快照和后端 `/permission/myPermissions`、`getEffectiveSheetPermission()` 的最终结果一起对齐，不能只看 CLI 命令是否执行成功
 - ✅ 先区分“能进入项目”和“能操作项目内资源”不是一回事
 - ✅ 最终权限真值以后端为准，前端只负责预判和保守渲染
 - ✅ 设计权限时，默认顺序应是：角色 -> 项目/表级权限 -> 行级策略 -> 单行 ACL 例外
 - ✅ 行分页读取正常不代表 `yjs-socket` 一定正常；协同问题仍要回到权限快照和广播过滤去判断
 - ✅ 角色创建和权限写入后，不代表前端立即等价生效；真实系统里还要联动缓存失效、`notifyPermissionChanged` 和前端权限快照刷新
+- ✅ Windows 下写入含中文的权限方案、JSON 条件或回归记录时，必须使用 UTF-8 并读回确认
 
 ## 命令维护表
 
@@ -53,6 +56,13 @@ tags: [permission, access-control, acl, row-policy, dimens-cli]
 - `permission update` 和 `row-policy update` 前默认先读取当前记录，避免把原有字段、动作、条件、列权限覆盖丢失。
 - CLI 命令执行成功，不等于前端权限快照、后端有效权限、协同权限快照都已收敛；更新后要结合 `myPermissions`、`permissionStore`、协同快照一起判断。
 - 涉及文档、报表、页面的资源权限时，先确认资源归属和项目上下文，再写资源权限。
+
+## 输出与验证契约
+
+- 变更类输出必须包含：变更对象、执行命令、变更前读取来源、变更后回查命令、权限真值验证点。
+- 行级策略输出必须列出真实字段 ID、条件表达式、作用动作、优先级和启用状态。
+- 单行 ACL 输出必须列出目标行、授权对象、权限级别、过期时间和是否覆盖通用策略。
+- 如果只完成 CLI 写入但未完成快照或协同验证，必须明确标注剩余验证，不要声称权限已完全生效。
 
 ## 核心约束
 

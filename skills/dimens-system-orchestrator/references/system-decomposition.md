@@ -4,18 +4,21 @@
 
 这份文档用于把“生成一个 XX 系统”拆成可执行的模块，而不是直接跳到单个表或单个接口实现。
 
+系统总控只输出系统级拆解、执行顺序、路由和验收证据，不在这里展开具体字段命令、接口代码或 SDK 示例。项目内落地细节进入 `dimens-manager`，接入代码进入 `dimens-sdk`。
+
 ## 2. 默认拆解主线
 
 收到系统级需求时，默认先拆下面主线维度：
 
 1. 系统定位
 2. 团队与项目上下文
-3. 核心业务对象
-4. 项目与表结构
-5. 项目内文档 / 说明页
-6. 字段与关联关系
-7. 示例数据与查询案例
-8. 业务场景画布
+3. 系统交付物边界
+4. 核心业务对象
+5. 项目与表结构
+6. 项目内文档 / 说明页
+7. 字段与关联关系
+8. 示例数据与查询案例
+9. 业务场景画布
 
 这些是默认主线，不应该一上来就被权限、流程、报表抢走重点。
 
@@ -78,6 +81,22 @@
 | 关系 | 一对多、多对多、阶段流转、归属关系 |
 | 状态 | 新建、处理中、完成、关闭等状态模型 |
 | 动作 | 创建、分配、审批、回访、归档等核心动作 |
+
+### 4.3.1 系统交付物边界
+
+完整系统默认至少判断下列交付物，不要把“系统搭建”收缩成单表创建：
+
+| 交付物 | 默认判断 | 落地章节 |
+| --- | --- | --- |
+| 项目容器 | 必须 | `dimens-manager/references/project/overview.md` |
+| 菜单目录 | 必须 | `dimens-manager/references/project/overview.md` |
+| 表格与视图 | 必须 | `dimens-manager/references/table/overview.md` |
+| 在线文档 | 默认考虑 | `dimens-manager/references/project/overview.md` |
+| 报表看板 | 管理类系统默认考虑 | `dimens-manager/references/report/overview.md` |
+| 业务场景画布 | 多角色、流程、审批类系统必须 | `references/business-canvas-flow.md` |
+| 权限 | 多人协作、部门隔离、公开访问时必须 | `dimens-manager/references/permission/overview.md` |
+| 可执行工作流 | 审批、自动化或 AI 节点运行时按需 | `dimens-manager/references/workflow/overview.md` |
+| SDK / 外部接入 | 开发者集成时才进入 | `dimens-sdk` |
 
 ### 4.4 项目与表结构
 
@@ -241,6 +260,15 @@
 - 工作流 / 审批工作流画布
 - 报表
 - 对接
+
+### 9. 验收证据
+- 项目与封面：project info
+- 菜单归位：sheet tree
+- 表结构：sheet info / column list / view list
+- 示例数据：row page
+- 文档：doc info
+- 报表：report query
+- 画布：canvas info / canvas save
 ```
 
 这一步的目标是先让用户看到“系统至少要落到什么粒度”，而不是替用户预设 CRM、项目管理、售后或审批模板。

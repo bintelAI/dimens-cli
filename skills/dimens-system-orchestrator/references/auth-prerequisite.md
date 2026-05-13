@@ -4,6 +4,8 @@
 
 `dimens-system-orchestrator` 里的项目梳理、新建项目、修改项目内数据、查询和分类路由，只要进入真实执行命令阶段，都必须先完成认证。
 
+认证是执行网关，不是业务权限承诺。总控只能要求先拿登录态，后续能不能读、建、改、查，还要由 `dimens-manager` 对应章节继续验证团队、项目、表、列、行、资源和协同权限。
+
 认证只能通过 API Key / API Secret 换取 token，推荐统一使用：
 
 ```bash
@@ -117,6 +119,8 @@ dimens-cli project info \
 7. 进入 project/table/doc/report/canvas/permission/workflow 等章节
 8. 执行后回查
 ```
+
+如果当前只是输出方案、拆解系统或给路由建议，可以先不要求用户提供 API Key / Secret；一旦要实际调用 `dimens-cli project/sheet/row/doc/report/canvas/role/permission/workflow`，必须先登录。
 
 ## 6. 用户只给 URL 时的处理方式
 

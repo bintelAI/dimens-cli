@@ -104,6 +104,12 @@ await sdk.report.copy('PROJ1', {
 
 ## 10. Web 报表页查询单组件
 
+适用前提：
+
+- 前端已经从安全来源拿到 `token`
+- 已确认 `projectId/reportId/widgetId`
+- 不在浏览器保存 `apiSecret`
+
 ```ts
 await fetch(`https://dimens.bintelai.com/api/app/report/query/${projectId}/widget`, {
   method: 'POST',
@@ -118,6 +124,14 @@ await fetch(`https://dimens.bintelai.com/api/app/report/query/${projectId}/widge
 });
 ```
 
+如果返回异常，按下面顺序判断：
+
+| 状态 | 优先排查 |
+| --- | --- |
+| 401 | token 过期，走 refresh / retry |
+| 403 | 当前用户没有项目或报表权限 |
+| 404 | `projectId/reportId/widgetId` 不匹配或资源已移动 |
+
 ## 11. 报表接入推荐顺序
 
 ```text
@@ -130,3 +144,4 @@ report.createProjectReport -> report.preview -> report.addWidget -> report.query
 - 不要在新建项目报表时继续使用旧 `report.create` 示例并期待后端返回 `data.reportId`
 - 不要跳过 `preview` 直接加组件
 - 不要把主资源链、组件链、查询链混成一个接口理解
+- 不要把“Web 页面读取报表数据”误路由成纯报表运维；如果用户要代码接入，应回到 `dimens-sdk`

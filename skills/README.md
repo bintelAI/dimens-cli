@@ -10,15 +10,17 @@
 - 开发方：`方块智联工作室`
 - 官网：[https://dimens.bintelai.com/](https://dimens.bintelai.com/)
 
-这套体系的核心约束只有两条：
+这套体系的核心约束只有三条：
 
 1. Skill 内部不要再引用外部文档体系
 2. 只能通过 Skill 与 Skill 之间互相路由、互相引用
+3. CLI 优先；只要 `dimens-cli` 已覆盖对应能力，就不要把手写 HTTP、拼接页面 URL 或人工页面操作当成首选路径
 
 也就是说：
 
 - 不再把外部规则文档当成 Skill 的前置依赖
 - Skill 自己就是一套独立的产品操作知识体系
+- 系统总控只负责系统级拆解、执行顺序、风险识别和章节路由，项目内落地交给 `dimens-manager`，开发者接入交给 `dimens-sdk`
 
 ## 2. 使用前提
 
@@ -65,7 +67,7 @@ windows-utf8.md
 
 ### 3.1 全局统一流程
 
-在进入任何 `dimens-manager` 章节 之前，先统一遵守下面两条总规则：
+在进入任何 `dimens-manager` 章节之前，先统一遵守下面三条总规则：
 
 1. 所有更新类操作统一按“拿数据 -> 改数据 -> 更新数据”执行
 2. 所有资源类更新统一按“先 upload 拿 url -> 把 url 写回当前业务数据 -> 再 update”执行
@@ -78,15 +80,15 @@ windows-utf8.md
 | Skill / 模块 | 命令域 | 作用 | 细节说明 |
 | --- | --- | --- | --- |
 | `dimens-system-orchestrator` | 系统级编排命令、Skill 路由 | 负责系统搭建、模块拆解、执行顺序规划 | 适合“帮我搭一个系统/平台”这类总控任务，不直接替代具体资源命令 |
-| `dimens-manager/references/workflow/overview.md` | `flow_*`、`dimens-cli ai *` | 负责工作流定义、项目挂载、运行调用、模型边界 | 先分清团队定义、项目挂载、运行调用三层，不要混用结论 |
 | `dimens-manager/references/key-auth/overview.md` | `dimens-cli auth api-key-login`、`api_key_*` | 负责 Key 登录、token 复用、第三方接入边界 | 这是认证入口，不是资源更新入口；登录成功不代表自动有资源权限 |
-| `dimens-sdk` | SDK / HTTP 接入链路 | 负责 Node、Web、H5、App、BFF 的接入方式说明 | 适合端侧接入和 SDK 使用，不替代 CLI 资源运维主链 |
 | `dimens-manager/references/team/overview.md` | `team info`、`project list/info`、上下文切换 | 负责团队、项目、租户、默认上下文判断 | 很多问题先确认 `teamId/projectId`，上下文不对，后面所有结论都不稳 |
 | `dimens-manager/references/project/overview.md` | `project *`、`upload file`、`doc *`、`report *` 起始链路 | 负责项目创建、项目初始化、三驾马车入口 | 资源类更新默认先上传拿 `url`，项目和文档更新默认先读当前数据再提交 |
 | `dimens-manager/references/table/overview.md` | `sheet *`、`column *`、`view *`、`row *` | 负责工作表、字段、视图、行数据建模与更新 | `sheet/column/row` 的更新都走“先读再改再更”，字段设计还要考虑后续报表映射 |
 | `dimens-manager/references/permission/overview.md` | `role *`、`permission *`、`row-policy *`、`row-acl *` | 负责角色、项目权限、行级策略、单行 ACL | 权限类更新也走“先拿当前记录再更新”，CLI 成功不等于权限快照已全部收敛 |
+| `dimens-manager/references/workflow/overview.md` | `flow_*`、`dimens-cli ai *` | 负责工作流定义、项目挂载、运行调用、模型边界 | 先分清团队定义、项目挂载、运行调用三层，不要混用结论 |
 | `dimens-manager/references/report/overview.md` | `report *`、`widget-*`、`query*`、`preview` | 负责报表主资源、组件、查询和预检链路 | 报表和组件更新都默认先取当前数据，新增或修改组件前优先走 `preview` |
 | `dimens-manager/references/canvas/overview.md` | `canvas *`、`sheet create --type canvas` | 负责画布资源、AI 生成图数据、版本和组件资源市场 | 保存前先 `canvas info` 拿版本，再 `canvas save --base-version`，不要把画布当成可执行工作流 |
+| `dimens-sdk` | SDK / HTTP 接入链路 | 负责 Node、Web、H5、App、BFF 的接入方式说明 | 适合端侧接入和 SDK 使用，不替代 CLI 资源运维主链 |
 
 ### 3.3 强调细节
 
@@ -303,43 +305,7 @@ skills/
 │   ├── rules/
 │   ├── assets/
 │   └── references/
-├── dimens-manager/
-│   ├── SKILL.md
-│   ├── README.md
-│   ├── rules/
-│   ├── assets/
-│   └── references/
-├── dimens-manager/
-│   ├── SKILL.md
-│   ├── README.md
-│   ├── rules/
-│   ├── assets/
-│   └── references/
-├── dimens-manager/
-│   ├── SKILL.md
-│   ├── README.md
-│   ├── rules/
-│   ├── assets/
-│   └── references/
-├── dimens-manager/
-│   ├── SKILL.md
-│   ├── README.md
-│   ├── rules/
-│   ├── assets/
-│   └── references/
-├── dimens-manager/
-│   ├── SKILL.md
-│   ├── README.md
-│   ├── rules/
-│   ├── assets/
-│   └── references/
-├── dimens-manager/
-│   ├── SKILL.md
-│   ├── README.md
-│   ├── rules/
-│   ├── assets/
-│   └── references/
-└── dimens-manager/
+└── dimens-sdk/
     ├── SKILL.md
     ├── README.md
     ├── rules/
@@ -395,6 +361,8 @@ skills/
 | 解释工作流、默认模型、AI 分析 | `dimens-manager/references/workflow/overview.md` |
 | 解释图表、看板、数据源、参数联动 | `dimens-manager/references/report/overview.md` |
 | 解释 Key 登录、token 复用、第三方接入 | `dimens-manager/references/key-auth/overview.md` |
+| 解释画布、流程图、思维导图、PPT 画布 | `dimens-manager/references/canvas/overview.md` |
+| 解释 SDK、HTTP、Web、BFF、Node.js、移动端接入 | `dimens-sdk` |
 
 其中 `dimens-manager/references/report/overview.md`默认阅读顺序建议是：
 
