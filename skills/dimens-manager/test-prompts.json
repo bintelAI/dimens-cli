@@ -13,5 +13,25 @@
     "id": "manager-003",
     "prompt": "我想让某个角色只能看自己部门的数据，应该怎么配置权限？",
     "expected": "应命中权限章节，先确认 teamId/projectId/角色/表格/部门字段，说明项目权限、表权限、行级策略或 ACL 的差异，并给出创建后回查和缓存刷新风险。"
+  },
+  {
+    "id": "manager-004",
+    "prompt": "参考现有审批流，帮我生成一个报销审批工作流：低于 5000 主管审批，高于 5000 加财务复核，审批通过后要回写项目表。",
+    "expected": "应命中 workflow/approval-generation，并读取 approval-existing-cases；输出业务蓝图、pluginType=approval 草案和落地计划；节点类型必须限制在 start/approval/condition/notification/end，项目表回写只能说明 mul_update_row 后置能力或通用兼容节点，不能生成 action、sync_workflow_cell、approval_ai_review。"
+  },
+  {
+    "id": "manager-005",
+    "prompt": "给我做一个 AI 自动审批节点，金额小于 20 自动通过，大于 100 自动驳回，中间转人工。",
+    "expected": "应说明 AI 自动审批不是独立节点，必须写入 approval 节点的 data.options.autoApproval；不得生成 approval_ai_review；同时要求 approval 节点有 participantRules 或明确的历史 approver 兼容策略。"
+  },
+  {
+    "id": "manager-006",
+    "prompt": "帮我生成审批工作流 JSON，每个节点参数都要详细，不要只有节点名称。",
+    "expected": "应读取 approval-node-parameters，逐个补齐 start.approvalInputConfig/inputParams、approval.approvalType/participantRules/timeout/fieldConfig/autoApproval、condition.IF 和 source-if/source-else、notification 接收人、end.result；同时检查不生成不存在节点。"
+  },
+  {
+    "id": "manager-007",
+    "prompt": "我要从表格 workflow 字段发起一个报销审批，开始节点要绑定当前项目的报销表，金额字段用于条件和 AI 自动审批，审批节点参数也要写详细。",
+    "expected": "应读取 approval-node-parameters 的开始节点绑定表格规则和审批节点详细规则；必须输出 approvalInputConfig.sourceType=mul_table、projectId/sheetId/sheetName/fields、rowId/sheetId/inputParams、sourceSnapshot 与 bizData.payload 映射、participantRules、fieldConfig、autoApproval；说明 includeInPayload=false 字段不能被条件或 AI 自动审批引用，workflow 字段摘要由后端托管回写，不生成 sync_workflow_cell 或 approval_ai_review。"
   }
 ]

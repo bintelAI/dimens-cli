@@ -2,7 +2,7 @@
 name: dimens-manager
 slug: dimens-manager
 description: 用于维表智联项目内业务资源创建、配置、维护和排查，适合处理 Key、团队、项目、表格、权限、工作流、报表、画布等落地问题。
-version: 1.0.2
+version: 1.0.3
 author: 方块智联工作室
 tags: [manager, project, table, permission, workflow, report, canvas, auth, dimens-cli]
 ---
@@ -59,6 +59,8 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 6. 访问控制问题看 `references/permission/overview.md`。
 7. 自动化和 AI 流程问题看 `references/workflow/overview.md`。
    - 审批工作流 AI 自动生成必须继续看 `references/workflow/references/approval-generation.md`。
+   - 审批工作流节点类型必须继续对照 `references/workflow/references/approval-existing-cases.md`，不能生成不存在的节点。
+   - 审批工作流节点参数必须继续看 `references/workflow/references/approval-node-parameters.md`，不能只输出空节点。
 8. 统计分析和看板问题看 `references/report/overview.md`。
 9. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
 10. 输出前按“命令链、必要参数、验证命令、风险点”检查一遍。
@@ -84,6 +86,8 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - 不要跳过报表预检链直接创建复杂图表。
 - 不要把业务工作流画布直接等同于可执行工作流；可执行链路仍要回到工作流章节。
 - 不要把 AI 生成的审批流程文字等同于已发布审批工作流；必须补齐图草案、项目挂载、`workflow` 字段入口和审批运行验证。
+- 不要为审批流编造节点类型；AI 自动审批放在 `approval` 节点配置里，项目表回写用已存在的 `mul_update_row`，不要生成 `action`、`sync_workflow_cell` 或 `approval_ai_review`。
+- 不要只生成 `id/type/label` 空节点；每个审批节点都要按 `approval-node-parameters.md` 补齐必填参数。
 - 不要只看 CLI 命令执行成功就判断权限生效；还要关注缓存失效、权限快照和前端刷新。
 
 ## 常见错误与修正
@@ -95,6 +99,8 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 | 报表创建后读取不到 `reportId` | 使用返回的 `sheetId` 作为 `reportId`，或使用已归一化的 CLI 输出 |
 | 权限创建成功就认为前端已生效 | 继续检查权限快照、缓存失效和前端刷新 |
 | AI 只输出审批说明，没有图草案 | 按 `approval-generation.md` 补齐 `pluginType=approval` 的 `nodes/edges/globalVariables/meta` |
+| AI 生成了不存在的审批节点 | 对照 `approval-existing-cases.md` 和 `approval-generation.md` 白名单，把节点收敛到 `start/approval/condition/notification/end`；项目表回写只用 `mul_update_row` 并说明发布边界 |
+| AI 生成了空壳节点 | 按 `approval-node-parameters.md` 补齐 `start.approvalInputConfig`、`approval.participantRules`、`condition.IF`、`notification` 接收人、`end.result` 等参数 |
 
 ## 干跑测试样本
 
@@ -115,5 +121,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - `references/permission/overview.md`
 - `references/workflow/overview.md`
 - `references/workflow/references/approval-generation.md`
+- `references/workflow/references/approval-existing-cases.md`
+- `references/workflow/references/approval-node-parameters.md`
 - `references/report/overview.md`
 - `references/canvas/overview.md`

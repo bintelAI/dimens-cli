@@ -113,6 +113,8 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 | `references/ai-generation.md` | AI 工作流生成模板 | 处理 AI 工作流自动生成时必须看 |
 | `references/ai-node-templates.md` | AI 工作流节点模板库 | 需要直接拼装 AI 节点 JSON 草案时必须看 |
 | `references/approval-generation.md` | 审批工作流的输入、输出、JSON 草案和落地计划 | 处理审批工作流自动生成时必须看 |
+| `references/approval-existing-cases.md` | 真实审批工作流 16/17 案例摘要 | AI 生成审批工作流时必须看，用于避免编造不存在节点 |
+| `references/approval-node-parameters.md` | 审批工作流节点参数说明 | AI 生成审批节点 JSON 时必须看，避免只有节点类型没有参数 |
 | `references/field-binding.md` | 审批工作流字段绑定与行数据链路 | 处理 `workflow` 字段发起、行数据绑定、摘要回写时必须看 |
 | `references/capability-status.md` | 已封装 / server-only / 部分对齐 状态 | 判断当前能力范围时建议看 |
 | `references/examples.md` | 工作流接口案例 | 需要直接举例时看 |

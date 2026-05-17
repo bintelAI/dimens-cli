@@ -18,6 +18,8 @@
 | `references/ai-generation.md` | AI 工作流一键生成模板、节点结构与输出要求 |
 | `references/ai-node-templates.md` | AI 工作流节点模板库，提供可复制的输入、提示词、模型、检索、工具、解析、质检、写回节点模板 |
 | `references/approval-generation.md` | 审批工作流一键生成模板、输入收集、图 JSON 草案和项目落地计划 |
+| `references/approval-existing-cases.md` | MCP 读取到的真实审批工作流 16/17 案例摘要，用于约束节点类型和经典审批链路 |
+| `references/approval-node-parameters.md` | 审批工作流每类节点的参数说明、最小示例和常见错误 |
 | `references/field-binding.md` | 审批工作流字段绑定与行数据链路，说明 `workflow` 字段、`rowId`、`sourceSnapshot`、`bizData.payload` 和摘要回写 |
 | `references/usage.md` | 团队定义 / 项目挂载 / 运行调用三层分层 |
 | `references/project-binding.md` | 工作流项目挂载与系统视图入口 |

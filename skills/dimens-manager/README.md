@@ -38,5 +38,7 @@
 - `references/workflow/references/node-dictionary.md`：AI 工作流与审批工作流共用的节点语义词典
 - `references/workflow/references/ai-generation.md`：AI 工作流生成模板
 - `references/workflow/references/approval-generation.md`：审批工作流生成模板
+- `references/workflow/references/approval-existing-cases.md`：真实审批工作流 16/17 的结构摘要，约束 AI 只使用已存在节点
+- `references/workflow/references/approval-node-parameters.md`：审批节点参数说明，要求每个节点补齐可运行参数
 
 不新增顶层 Skill。AI 工作流和审批工作流都归入当前工作流章节，分别输出对应的 `pluginType=ai` 和 `pluginType=approval` 草案、落地计划和验证边界。
