@@ -13,5 +13,15 @@
     "id": "sdk-003",
     "prompt": "移动端需要上传图片并写入文档或表格字段，推荐怎么接？",
     "expected": "应说明移动端不保存 apiSecret，先 upload file 拿 url，再先读当前资源并合并更新，给出失败处理和验收方式。"
+  },
+  {
+    "id": "sdk-004",
+    "prompt": "Node.js 服务端要用 SDK 保存一个画布版本，并把素材发布到资源市场，应该怎么组织代码和验证？",
+    "expected": "应命中 Node.js SDK 和资源域接入，说明 Node >=20、CanvasSDK、baseVersion、先 info 再 save、素材先 upload 后 saveMineResource/publishMineResource，并给出 CLI 回查命令。"
+  },
+  {
+    "id": "sdk-005",
+    "prompt": "我的 Web 项目只想读报表数据，不创建报表，应该直接 HTTP 还是走 BFF？403 和 404 怎么判断？",
+    "expected": "应命中前端和资源域接入，先确认 token 安全来源、teamId/projectId/reportId，说明 reportId=sheetId 口径，403 查权限，404 查资源或上下文，并给 CLI 预检。"
   }
 ]

@@ -261,7 +261,128 @@ dimens-cli ai chat-completions \
 - 团队安装实例、跨项目绑定和入口挂载仍按 `capability-status.md` 和 `project-binding.md` 处理。
 - 详细生成规范看 `approval-generation.md`。
 
-## 7. 这份文档的职责边界
+## 7. AI 工作流生成案例
+
+### 7.1 结构化摘要工作流
+
+用户输入：
+
+```text
+帮我生成一个 AI 工作流，把客户沟通记录总结成摘要、风险点和下一步动作。
+```
+
+推荐 Skill 输出必须包含：
+
+1. 业务目标：把 `sourceText` 转成 `summary/risks/nextActions`。
+2. 节点清单：`start -> prepare_input -> build_prompt -> llm_generate -> parse_result -> summarize_result -> end`。
+3. `pluginType=ai` 的工作流 JSON 草案。
+4. 项目落地计划：说明如果缺少 `teamId/projectId`，只能生成草案；如果要真实运行，还要看团队模型配置和工作流管理能力边界。
+
+可用聊天兼容接口辅助生成草案：
+
+```bash
+dimens-cli ai chat-completions \
+  --team-id TEAM1 \
+  --model team-default \
+  --message "请按维表智联 pluginType=ai 工作流格式，生成客户沟通摘要工作流，节点包括 prepare_input、build_prompt、llm_generate、parse_result、summarize_result、end，并输出 nodes/edges/globalVariables/meta JSON 草案" \
+  --output json
+```
+
+注意：
+
+- 这条命令只负责生成草案，不代表工作流已经创建、发布或挂载。
+- 普通 LLM 节点是否自动继承团队默认模型，需要按 `model-routing.md` 说明当前实现边界。
+
+### 7.2 工具增强分析工作流
+
+用户输入：
+
+```text
+帮我生成一个 AI 工作流：先分析用户问题，再决定是否查询项目数据，最后输出处理建议。
+```
+
+推荐节点：
+
+```text
+start -> prepare_input -> build_prompt -> llm_reason -> route_by_result
+                                      ├-> call_tool -> parse_result -> summarize_result -> end
+                                      └-> summarize_result -> end
+```
+
+推荐变量：
+
+| 变量 | 类型 | 用途 |
+| --- | --- | --- |
+| `question` | `string` | 用户问题 |
+| `projectId` | `string` | 项目上下文 |
+| `needTool` | `boolean` | 是否需要调用工具 |
+| `toolResult` | `object` | 工具返回结果 |
+
+注意：
+
+- `call_tool` 必须写明工具名和参数来源，不能只是“调用工具”。
+- 如果没有明确工具或接口，默认不要强行保留工具节点。
+
+### 7.3 分类分流工作流
+
+用户输入：
+
+```text
+帮我生成一个 AI 工作流，把工单按紧急程度分成高、中、低，并输出不同处理建议。
+```
+
+推荐节点：
+
+```text
+start -> prepare_input -> build_prompt -> llm_generate -> parse_result -> route_by_priority
+                                                          ├-> high_priority_action -> summarize_result -> end
+                                                          ├-> medium_priority_action -> summarize_result -> end
+                                                          └-> low_priority_action -> summarize_result -> end
+```
+
+推荐模型输出结构：
+
+```json
+{
+  "priority": "high | medium | low",
+  "reason": "分级原因",
+  "suggestedAction": "处理建议"
+}
+```
+
+注意：
+
+- `route_by_priority` 至少要有三条出边，并且边标签要对应 `high/medium/low`。
+- 模型输出必须先经过 `parse_result`，不要让条件节点直接解析长文本。
+
+### 7.4 写回字段工作流
+
+用户输入：
+
+```text
+帮我生成一个 AI 工作流，把销售线索描述自动打标签，并把标签写回线索表。
+```
+
+推荐节点：
+
+```text
+start -> prepare_input -> build_prompt -> llm_generate -> parse_result -> validate_ai_output -> write_back_result -> end
+```
+
+推荐写回配置：
+
+| 配置 | 示例 | 说明 |
+| --- | --- | --- |
+| `target` | `sheet.column` | 写回目标 |
+| `mapping` | `{ "tag": "lead_tag", "confidence": "ai_confidence" }` | AI 输出到字段的映射 |
+| `writeMode` | `update_current_row` | 写回当前行 |
+
+注意：
+
+- 写回前必须确认目标字段存在，不能让 AI 草案默认覆盖用户字段。
+- 如果涉及更新类操作，后续真实执行仍要遵循“先读当前数据 -> 合并目标字段 -> 再更新”。
+
+## 8. 这份文档的职责边界
 
 这份文档只负责接口级案例总览，不再展开：
 

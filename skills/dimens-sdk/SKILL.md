@@ -1,7 +1,7 @@
 ---
 name: dimens-sdk
 slug: dimens-sdk
-description: 用于维表智联 SDK、HTTP API、Web、BFF、Node.js 和移动端接入开发，适合处理认证、token、上下文传递与资源调用集成问题。
+description: 用于维表智联开发者接入，适合 Web/H5、BFF、Node.js、移动端、HTTP API、@bintel/dimens-cli SDK、token 刷新、密钥存放、上下文传递和资源调用代码集成问题。
 version: 1.0.2
 author: 方块智联工作室
 tags: [sdk, http, web, mobile, integration, dimens-cli]
@@ -39,28 +39,23 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 
 ## 快速路由表
 
-| 接入问题 | 优先文档 | 说明 |
+| 接入场景 | 入口文档 | 说明 |
 | --- | --- | --- |
-| 选择 SDK、HTTP、BFF 哪条路径 | `references/integration-paths.md` | 先定接入架构 |
-| 当前 SDK 支持哪些能力 | `references/capability-status.md` | 判断能否直接用 SDK |
-| 前端首次接入 | `references/frontend-quickstart.md` | 阅读顺序和最小接入链路 |
-| 登录、token、刷新、失效处理 | `references/frontend-auth-flow.md` | 前端和端侧认证主链 |
-| React / Vue 类项目落地 | `references/react-auth-example.md` | 前端代码组织示例 |
-| 请求重试、401、refresh、logout | `references/request-retry-example.md` | token 失效处理 |
-| Web / H5 直连 | `references/web-examples.md` | 前端模块封装案例 |
-| App / 小程序 | `references/mobile-examples.md` | 移动端安全接入 |
-| BFF / SSR / 服务端代理 | `references/bff-examples.md` | 服务端代管密钥和 token |
-| 表格、字段、视图、行 | `references/table-examples.md` | 多维表格资源调用 |
-| 文档、富文本、版本 | `references/document-examples.md` | 在线文档接入 |
-| 报表、组件、查询 | `references/report-examples.md` | 报表接入；注意 `reportId=sheetId` 的菜单报表创建口径 |
-| AI 对话、总结、分析 | `references/ai-examples.md` | chat/completions 兼容调用 |
+| 前端 / Web / H5 | `references/frontend/overview.md` | 登录态、token、refresh、HTTP 直连、React/Vue 代码组织 |
+| BFF / 服务端代理 | `references/bff/overview.md` | 服务端代管密钥、换 token、代理资源调用 |
+| Node.js SDK | `references/node/overview.md` | `@bintel/dimens-cli` SDK、脚本、服务端任务 |
+| 移动端 / 小程序 | `references/mobile/overview.md` | App 不直持密钥，端上只拿短期 token 或调自家服务端 |
+| 资源域调用 | `references/resources/overview.md` | 表格、文档、报表、权限、画布、AI 等代码调用 |
+| 文件与媒体 | `references/media/overview.md` | 上传图片、附件、封面后写入业务资源 |
+| 接入路径选择 | `references/integration-paths.md` | SDK、HTTP、BFF 的选型边界 |
+| 当前 SDK 能力 | `references/capability-status.md` | 判断能否直接用 SDK |
 
 ## 默认处理顺序
 
 1. 先判断接入位置：浏览器、移动端、BFF、Node.js 服务端。
 2. 再判断认证方式：用户登录 token、API Key 换 token、服务端代管 token。
 3. 明确 `baseUrl / teamId / projectId` 的来源和传递方式。
-4. 按资源域选择 table / document / report / ai 示例。
+4. 先读对应 `overview.md`，再按资源域选择 table / document / report / upload / canvas / ai 示例。
 5. 先用 `dimens-cli` 给出可验证的调试路径，再给 SDK / HTTP 代码。
 6. 更新类接口必须先读取当前数据，再合并目标字段。
 7. 涉及文件、图片、封面、附件，先上传拿 `url`，再写回业务数据。
@@ -84,7 +79,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - 不要把 `apiSecret` 放进浏览器端或 App 包体。
 - 不要把 SDK 接入问题误当成系统设计问题。
 - 不要用一个“万能请求模板”混掉表格、文档、报表、工作流的不同上下文。
-- 不要跳过 `version` 并发控制直接更新行或文档。
+- 不要跳过 `version/baseVersion` 并发控制直接更新行、文档或画布。
 - 不要把 `chat/completions` 当成完整工作流管理接口。
 - 不要认为登录成功就自动拥有项目、表格、报表权限。
 
@@ -113,13 +108,20 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - `references/capability-status.md`
 - `references/examples.md`
 - `references/frontend-quickstart.md`
+- `references/frontend/overview.md`
 - `references/frontend-auth-flow.md`
 - `references/react-auth-example.md`
 - `references/sdk-best-practices.md`
 - `references/request-retry-example.md`
+- `references/bff/overview.md`
+- `references/node/overview.md`
+- `references/mobile/overview.md`
+- `references/resources/overview.md`
+- `references/media/overview.md`
 - `references/web-examples.md`
 - `references/mobile-examples.md`
 - `references/bff-examples.md`
+- `references/upload-examples.md`
 - `references/table-examples.md`
 - `references/document-examples.md`
 - `references/report-examples.md`

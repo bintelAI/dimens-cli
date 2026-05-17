@@ -55,6 +55,16 @@ const sheetSdkSpies = {
             dictionaryId: null,
           },
         },
+        {
+          id: 'F_WORKFLOW',
+          label: '旧审批',
+          type: 'workflow',
+          config: {
+            flowId: 'FLOW_OLD',
+            systemView: 'approval',
+            displayMode: 'summary',
+          },
+        },
       ],
     },
   })),
@@ -163,11 +173,11 @@ vi.mock('../../src/sdk/column', () => {
       async list() {
         return { code: 1000, message: 'success', data: [{ id: 'F1', title: '名称' }] };
       }
-      async create() {
-        return { code: 1000, message: 'success', data: { id: 'F1', title: '名称' } };
+      async create(...args: unknown[]) {
+        return columnSdkSpies.create(...args);
       }
-      async update() {
-        return { code: 1000, message: 'success', data: { id: 'F1', title: '名称' } };
+      async update(...args: unknown[]) {
+        return columnSdkSpies.update(...args);
       }
       async delete() {
         return { code: 1000, message: 'success', data: true };
@@ -178,6 +188,7 @@ vi.mock('../../src/sdk/column', () => {
 
 const columnSdkSpies = {
   create: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'F1', title: '名称' } })),
+  update: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'F1', title: '名称' } })),
 };
 
 const rowSdkSpies = {
@@ -564,6 +575,7 @@ describe('Sheet Column Row Commands', () => {
     sheetSdkSpies.update.mockClear();
     sheetSdkSpies.delete.mockClear();
     columnSdkSpies.create.mockClear();
+    columnSdkSpies.update.mockClear();
     rowSdkSpies.create.mockClear();
     rowSdkSpies.page.mockClear();
     rowSdkSpies.info.mockClear();
@@ -1948,6 +1960,73 @@ describe('Sheet Column Row Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should execute workflow column create command with flow binding config', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createColumn = getCommandGroup('column')?.commands.find(
+      command => command.name === 'create'
+    );
+    await createColumn?.handler([
+      '--sheet-id',
+      'S1',
+      '--label',
+      '审批',
+      '--type',
+      'workflow',
+      '--flow-id',
+      'FLOW_APPROVAL',
+      '--system-view',
+      'approval',
+    ]);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      label: '审批',
+      type: 'workflow',
+      config: {
+        flowId: 'FLOW_APPROVAL',
+        systemView: 'approval',
+      },
+    });
+    logSpy.mockRestore();
+  });
+
+  it('should execute column create command with generic config payload', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createColumn = getCommandGroup('column')?.commands.find(
+      command => command.name === 'create'
+    );
+    await createColumn?.handler([
+      '--sheet-id',
+      'S1',
+      '--label',
+      '审批',
+      '--type',
+      'workflow',
+      '--config',
+      '{"flowId":"FLOW_FROM_CONFIG","systemView":"approval","displayMode":"summary"}',
+    ]);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      label: '审批',
+      type: 'workflow',
+      config: {
+        flowId: 'FLOW_FROM_CONFIG',
+        systemView: 'approval',
+        displayMode: 'summary',
+      },
+    });
+    logSpy.mockRestore();
+  });
+
   it('should reject select column create command when option ids are duplicated', async () => {
     const { registerCommands } = await import('../../src/commands');
     const { getCommandGroup } = await import('../../src/commands/registry');
@@ -2031,6 +2110,40 @@ describe('Sheet Column Row Commands', () => {
       },
     });
     updateSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should execute workflow column update command and preserve existing config', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const updateColumn = getCommandGroup('column')?.commands.find(
+      command => command.name === 'update'
+    );
+    await updateColumn?.handler([
+      '--sheet-id',
+      'S1',
+      '--field-id',
+      'F_WORKFLOW',
+      '--flow-id',
+      'FLOW_NEW',
+      '--system-view',
+      'approval',
+    ]);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(sheetSdkSpies.structure).toHaveBeenCalledWith('S1');
+    expect(columnSdkSpies.update).toHaveBeenCalledWith('S1', 'F_WORKFLOW', {
+      label: '旧审批',
+      type: 'workflow',
+      config: {
+        flowId: 'FLOW_NEW',
+        systemView: 'approval',
+        displayMode: 'summary',
+      },
+    });
     logSpy.mockRestore();
   });
 
@@ -2192,6 +2305,41 @@ describe('Sheet Column Row Commands', () => {
       rowId: 'R1',
       fieldId: 'F1',
       value: 'hello',
+      version: 2,
+    });
+    logSpy.mockRestore();
+  });
+
+  it('should execute row set-cell command with json value payload', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const setCell = getCommandGroup('row')?.commands.find(
+      command => command.name === 'set-cell'
+    );
+    await setCell?.handler([
+      '--sheet-id',
+      'S1',
+      '--row-id',
+      'R1',
+      '--field-id',
+      'F_WORKFLOW',
+      '--value-json',
+      '{"status":"waiting_approval","flowId":"FLOW_APPROVAL"}',
+      '--version',
+      '2',
+    ]);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(rowSdkSpies.updateCell).toHaveBeenCalledWith('S1', {
+      rowId: 'R1',
+      fieldId: 'F_WORKFLOW',
+      value: {
+        status: 'waiting_approval',
+        flowId: 'FLOW_APPROVAL',
+      },
       version: 2,
     });
     logSpy.mockRestore();

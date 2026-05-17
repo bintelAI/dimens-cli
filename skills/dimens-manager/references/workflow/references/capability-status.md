@@ -13,6 +13,8 @@
 | 默认模型配置读取 | `flow_config(type=default_models)` | 部分对齐 | 文档定义清晰，但不同链路生效范围不同 |
 | 节点模型自动回退 | LLM 节点缺省模型回退 | 部分对齐（未完全统一） | `chat/completions` 默认模型模式已通，普通节点不应默认假设自动回退 |
 | AI 生成审批工作流草案 | 业务蓝图、`pluginType=approval` 图 JSON、落地计划 | Skill 已覆盖 | 可通过 `dimens-cli ai chat-completions` 辅助产出草案 |
+| 表格 `workflow` 字段绑定 | 创建 / 更新 `workflow` 字段并绑定 `flowId/systemView` | 已封装 | CLI 已支持 `column create/update --type workflow --flow-id FLOW_ID --system-view approval`，也支持通用 `--config` |
+| 对象型单元格值写入 | `row set-cell` 写入 JSON 对象值 | 已封装 | CLI 已支持 `--value-json`；但 `workflow` 审批摘要通常应由后端审批链路托管回写 |
 | 项目内审批工作流创建 / 更新 / 发布 | `/app/approval/:teamId/:projectId/workflow/create|update|publish` | 已有项目路由 | 这是项目内直接创建链路，创建后即归属项目；CLI 未必已完整封装 |
 | 团队安装实例 / 项目绑定 | `flow_info`、项目工作流绑定、`systemView=approval` | server-only | 适用于团队复用、跨项目挂载、安装实例和入口绑定判断 |
 

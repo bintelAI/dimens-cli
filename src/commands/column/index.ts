@@ -71,11 +71,20 @@ export function registerColumnCommands(): void {
         if (flags.type) {
           payload.type = flags.type;
         }
+        if (flags.config) {
+          payload.config = parseJsonObjectFlag(flags.config, 'config');
+        }
         if (payload.type === 'relation') {
-          payload.config = buildRelationConfig(flags);
+          payload.config = {
+            ...(payload.config ?? {}),
+            ...buildRelationConfig(flags),
+          };
         }
         if (payload.type === 'select' || payload.type === 'multiSelect') {
           payload.config = buildSelectConfig(flags);
+        }
+        if (payload.type === 'workflow' || hasWorkflowConfigFlags(flags)) {
+          payload.config = buildWorkflowConfig(flags, payload.config);
         }
         const result = await sdk.create(teamId, projectId, sheetId, payload);
         printSuccess(context, '字段创建成功', result.data);
@@ -122,8 +131,17 @@ export function registerColumnCommands(): void {
           payload.type = flags.type;
         }
         const nextType = payload.type || flags['current-type'];
+        if (flags.config) {
+          payload.config = {
+            ...(payload.config ?? {}),
+            ...parseJsonObjectFlag(flags.config, 'config'),
+          };
+        }
         if ((nextType === 'select' || nextType === 'multiSelect') && flags.options) {
           payload.config = buildSelectConfig(flags);
+        }
+        if (nextType === 'workflow' || hasWorkflowConfigFlags(flags)) {
+          payload.config = buildWorkflowConfig(flags, payload.config);
         }
         const result = await sdk.update(sheetId, fieldId, payload);
         printSuccess(context, '字段更新成功', result.data);
@@ -222,6 +240,44 @@ function buildSelectConfig(flags: Record<string, string>): Record<string, unknow
     dataSourceType: 'manual',
     dictionaryId: null,
   };
+}
+
+function hasWorkflowConfigFlags(flags: Record<string, string>): boolean {
+  return Boolean(flags['flow-id'] || flags['system-view']);
+}
+
+function buildWorkflowConfig(
+  flags: Record<string, string>,
+  currentConfig?: Record<string, unknown>
+): Record<string, unknown> {
+  const workflowConfig: Record<string, unknown> = {
+    ...(currentConfig ?? {}),
+  };
+
+  if (flags['flow-id']) {
+    workflowConfig.flowId = flags['flow-id'];
+  }
+
+  if (flags['system-view']) {
+    workflowConfig.systemView = flags['system-view'];
+  }
+
+  return workflowConfig;
+}
+
+function parseJsonObjectFlag(value: string, fieldName: string): Record<string, unknown> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new Error(`--${fieldName} 必须是合法 JSON 对象`);
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(`--${fieldName} 必须是合法 JSON 对象`);
+  }
+
+  return parsed as Record<string, unknown>;
 }
 
 function parseSelectOptions(rawOptions: string): Array<Record<string, unknown>> {

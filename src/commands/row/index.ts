@@ -267,11 +267,20 @@ export function registerRowCommands(): void {
         if (flags.version && Number.isNaN(version)) {
           throw new Error('version 必须是数字，请传入 --version');
         }
+        if (flags.value !== undefined && flags['value-json'] !== undefined) {
+          throw new Error('--value 和 --value-json 不能同时传入');
+        }
+        if (flags.value === undefined && flags['value-json'] === undefined) {
+          throw new Error('缺少单元格值，请传入 --value 或 --value-json');
+        }
+        const value = flags['value-json'] !== undefined
+          ? parseJsonFlag(flags['value-json'], 'value-json')
+          : flags.value;
         const sdk = new RowSDK(createClient(context));
         const result = await sdk.updateCell(sheetId, {
           rowId,
           fieldId,
-          value: flags.value,
+          value,
           ...(version === undefined ? {} : { version }),
         });
         printSuccess(context, '单元格更新成功', result.data);

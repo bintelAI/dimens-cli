@@ -1,4 +1,4 @@
-# 审批工作流 AI 自动生成规范
+# 审批工作流生成规范
 
 本文档用于指导 AI 根据用户描述生成可落地的审批工作流。它属于 `dimens-manager` 的工作流章节，不新增顶层 Skill。
 
@@ -11,7 +11,7 @@
 | AI 自动生成审批工作流 | 生成审批流定义草案，并给出落地步骤 |
 | 一键生成业务审批流程 | 从业务规则抽取触发条件、审批节点、分支和动作 |
 | 请假 / 报销 / 采购 / 合同审批流程 | 按真实业务表单字段和角色生成审批链路 |
-| 审批节点自动化处理 | 在人工审批节点前后补自动校验、通知、回写节点 |
+| 审批节点自动化处理 | 在人工审批节点前后补通知、回写和归档节点 |
 | 把审批流程挂到项目里 | 补齐团队定义、项目挂载、系统视图与权限检查 |
 
 如果用户说的是“生成一个审批系统”，这是系统级建设需求，应先路由到 `dimens-system-orchestrator`；如果用户说的是“生成审批工作流 / 审批流程 / 审批节点”，才进入本文档。
@@ -65,9 +65,10 @@ AI 输出不能只给自然语言说明，必须按三层组织。
 
 说明：
 
-- `pluginType` 固定为 `approval`，避免生成全功能工作流节点。
+- `pluginType` 固定为 `approval`。
 - `nodes` 和 `edges` 必须稳定可读，节点 `id` 使用英文短名。
 - `globalVariables` 只放跨节点共享的变量，不要把整张表字段全部塞进去。
+- 如果审批从表格行发起，`globalVariables` 必须能从 `bizData.payload` 映射出来；字段绑定与行数据链路看 `field-binding.md`。
 - 如果只是文档草案，不要声称已经创建或发布了工作流。
 
 ### 3.3 项目落地计划
@@ -82,10 +83,11 @@ AI 输出不能只给自然语言说明，必须按三层组织。
 6. `systemView` 设置为 `approval`。
 7. 在表格里用 `workflow` 类型字段作为发起入口。
 8. 验证审批实例、任务、候选人、动作日志和字段摘要回写。
+9. 如果绑定到具体行数据，补齐 `sheetId/rowId/fieldId`、`sourceSnapshot` 和 `bizData.payload` 映射。
 
-## 4. 节点总表与配置清单
+## 4. 审批节点结构
 
-审批工作流生成时，先按“核心必备节点”和“按场景补充节点”拆开，不要把可选节点写成必备，也不要少掉拒绝路径。下面的配置名是**推荐写法**，如果后端实现字段名略有差异，必须以当前实现为准，但语义不能省。
+审批工作流生成时，先按“核心必备节点”和“按场景补充节点”拆开，不要把可选节点写成必备，也不要少掉拒绝路径。
 
 ### 4.1 核心必备节点
 
@@ -233,10 +235,14 @@ AI 输出不能只给自然语言说明，必须按三层组织。
 - `systemView` 是否为 `approval`。
 - 当前用户是否具备项目可见和审批操作权限。
 - 表格是否已有 `workflow` 类型字段作为发起入口。
+- 如果从行发起，是否能构造 `sourceSnapshot.projectId/sheetId/rowId/fieldId`。
+- 审批变量是否能从 `bizData.rowData` 或 `bizData.payload` 中读取。
 
 一句话规则：
 
 **团队工作流负责定义，项目绑定负责入口，审批运行表负责真值，`workflow` 字段只负责发起和展示摘要。**
+
+字段绑定、行数据发起和摘要回写细节看 `field-binding.md`。
 
 ## 7. 当前 CLI 能力边界
 
@@ -249,8 +255,18 @@ AI 输出不能只给自然语言说明，必须按三层组织。
 | 生成审批工作流草案 | 可以直接输出 JSON 和落地步骤 |
 | 调用 AI 辅助生成 | 可用 `dimens-cli ai chat-completions` 让模型产出草案 |
 | 创建 / 更新 / 发布项目审批流 | 优先说明项目内路由 `/app/approval/:teamId/:projectId/workflow/create|update|publish`，并明确创建结果是项目归属，不是团队安装实例 |
+| 回查项目审批流 | 使用 `/app/approval/:teamId/:projectId/workflow/info?flowId=<id>` 或 `/app/approval/:teamId/:projectId/workflow/page?page=1&size=20&keyword=<keyword>` |
 | 团队工作流安装 / 跨项目绑定 | 说明仍需要看团队定义、项目挂载和绑定关系 |
 | 验证运行结果 | 需要看审批实例、任务、候选人、日志、字段摘要和权限 |
+
+接口请求体要点：
+
+- `create`：`POST /app/approval/:teamId/:projectId/workflow/create`，请求体包含 `name`、`label`、`description?`、`draft`。
+- `update`：`POST /app/approval/:teamId/:projectId/workflow/update`，请求体包含 `flowId`，可带 `name`、`description`、`draft`、`status`。
+- `publish`：`POST /app/approval/:teamId/:projectId/workflow/publish`，请求体包含 `flowId`。
+- `draft` 当前服务端会规范化并保存 `nodes/edges`；`globalVariables/meta` 更适合保存在节点 `data.options` 或外部草案文件中，不能依赖发布后顶层字段一定保留。
+- 审批节点发布校验要求：有且只有一个 `approval_start`，至少一个 `approval_user_task`，至少一个 `approval_end`，连线必须可达；每个 `approval_user_task` 的 `data.options.participantRules` 不能为空。
+- 参与者规则可使用 `sourceType=project_role` 并传项目角色 `roleId`，例如财务负责人、HR负责人、管理员等。
 
 ## 8. 推荐 AI 提示语
 
@@ -271,7 +287,7 @@ AI 输出不能只给自然语言说明，必须按三层组织。
 - 审批真值以后端审批实例表为准，表格 workflow 字段只展示摘要
 ```
 
-## 8.1 项目内创建接口
+## 9. 项目内创建接口
 
 当 `projectId` 已知时，优先输出下面这个创建请求，而不是只给团队级草案：
 
@@ -302,9 +318,8 @@ POST /app/approval/:teamId/:projectId/workflow/create
 - `isInstalledInstance = false`：说明它不是团队安装实例，而是项目内直接创建的审批流。
 
 如果后续要更新、发布或分页读取，继续使用同一条项目路由。
-```
 
-## 9. 验证清单
+## 10. 验证清单
 
 生成审批工作流后，至少按下面清单检查：
 
@@ -313,11 +328,12 @@ POST /app/approval/:teamId/:projectId/workflow/create
 - 是否至少有开始、人工审批、通过结束、拒绝结束四类节点。
 - 条件分支是否有清晰的通过和异常路径。
 - 审批人是否用角色、部门或人员策略表达，而不是写死姓名。
-- 是否说明 `teamId/projectId/systemView=approval`。
-- 是否说明 `workflow` 字段入口和摘要回写边界。
+- 是否说明了 `teamId/projectId/systemView=approval`。
+- 是否说明了 `workflow` 字段入口和摘要回写边界。
+- 如果绑定行数据，是否说明了 `sheetId/rowId/fieldId`、`sourceSnapshot` 和 `bizData.payload` 映射。
 - 是否区分了 CLI 已封装能力与 server-only 能力。
 
-### 9.1 更细的节点校验
+### 10.1 更细的节点校验
 
 - `start` 是否包含能串起整条审批链路的上下文变量。
 - `validate_request` 是否把必填字段和失败处理写明。
@@ -330,14 +346,14 @@ POST /app/approval/:teamId/:projectId/workflow/create
 - 是否存在没有后继节点的“悬挂节点”。
 - 是否存在重复 `id` 或指向不存在节点的边。
 
-### 9.2 场景模板校验
+### 10.2 场景模板校验
 
 - 请假模板至少要能覆盖单级审批和多天数升级两种情况。
 - 报销模板至少要能覆盖金额阈值分支和财务复核。
 - 采购模板至少要能覆盖金额分支和合规检查扩展位。
 - 合同模板至少要能覆盖法务审批和拒绝通知。
 
-## 10. 常见报错与修正
+## 11. 常见报错与修正
 
 | 报错 / 异常 | 常见原因 | 修正方式 |
 | --- | --- | --- |
@@ -349,11 +365,11 @@ POST /app/approval/:teamId/:projectId/workflow/create
 | 通知没发出去 | `recipients` 或 `template/message` 为空 | 先确认通知对象，再决定模板或消息内容 |
 | 草案能看懂但运行时报错 | 节点 id 重复、边指向不存在节点、或用了未支持的节点类型 | 先查节点唯一性和边连通性，再对照当前实现收敛节点类型 |
 
-## 11. 标准审批场景模板
+## 12. 标准审批场景模板
 
-下面四类模板是最常见的审批工作流场景。生成时不要从零发散，优先在这些模板上按业务字段做增删，这样最不容易漏掉节点和配置。
+下面四类模板是最常见的审批工作流场景。生成时不要从零发散，优先在这些模板上按业务字段做增删。
 
-### 11.1 请假审批
+### 12.1 请假审批
 
 适用场景：年假、事假、调休、病假、外出申请。
 
@@ -368,19 +384,9 @@ start -> validate_request -> manager_approval -> approved_end
 
 - 请假天数大于阈值时，增加部门负责人审批。
 - 病假、外出类可根据类型增加附件或证明材料校验。
-- 超过某个天数时，增加财务或行政复核。
+- 超过某个天数时，增加行政复核。
 
-建议配置：
-
-| 节点 | 必填配置 | 常用配置 |
-| --- | --- | --- |
-| `start` | `variables` | `triggerField`, `sourceSheetId` |
-| `validate_request` | `rules` | `failMessage`, `haltOnFail` |
-| `manager_approval` | `assigneeStrategy`, `roleKey`, `actions` | `timeout`, `canTransfer`, `remarkRequired` |
-| `approved_end` | `result` | `summary` |
-| `rejected_end` | `result` | `reasonField` |
-
-### 11.2 报销审批
+### 12.2 报销审批
 
 适用场景：差旅报销、办公报销、采购报销、业务招待。
 
@@ -398,19 +404,7 @@ start -> validate_request -> amount_branch -> manager_approval -> approved_end
 - 金额高于阈值时增加财务复核。
 - 涉及票据或附件时必须加附件校验节点。
 
-建议配置：
-
-| 节点 | 必填配置 | 常用配置 |
-| --- | --- | --- |
-| `start` | `variables` | `triggerField`, `sourceSheetId` |
-| `validate_request` | `rules` | `failMessage`, `haltOnFail` |
-| `amount_branch` | `expression` 或 `rules` | `label` 分支说明 |
-| `manager_approval` | `assigneeStrategy`, `roleKey`, `actions` | `timeout`, `canTransfer` |
-| `finance_approval` | `assigneeStrategy`, `roleKey`, `actions` | `timeout`, `canTransfer`, `skipWhen` |
-| `approved_end` | `result` | `summary`, `notifyTemplate` |
-| `rejected_end` | `result` | `reasonField`, `notifyTemplate` |
-
-### 11.3 采购审批
+### 12.3 采购审批
 
 适用场景：物料采购、服务采购、固定资产采购、供应商比价。
 
@@ -427,19 +421,7 @@ start -> validate_request -> amount_branch -> manager_approval -> finance_approv
 - 涉及供应商选择时，增加比价或合规检查节点。
 - 固定资产类采购可增加资产编码或入账校验节点。
 
-建议配置：
-
-| 节点 | 必填配置 | 常用配置 |
-| --- | --- | --- |
-| `start` | `variables` | `triggerField`, `sourceSheetId` |
-| `validate_request` | `rules` | `failMessage`, `haltOnFail` |
-| `amount_branch` | `expression` | `label` 分支说明 |
-| `manager_approval` | `assigneeStrategy`, `roleKey`, `actions` | `timeout`, `canTransfer` |
-| `finance_approval` | `assigneeStrategy`, `roleKey`, `actions` | `timeout`, `canTransfer` |
-| `approved_end` | `result` | `summary`, `writeBackFields` |
-| `rejected_end` | `result` | `reasonField`, `notifyTemplate` |
-
-### 11.4 合同审批
+### 12.4 合同审批
 
 适用场景：销售合同、采购合同、服务合同、补充协议。
 
@@ -456,19 +438,7 @@ start -> validate_request -> amount_branch -> manager_approval -> legal_approval
 - 模板类合同可增加条款校验节点。
 - 涉及对外签署时可增加通知或归档节点。
 
-建议配置：
-
-| 节点 | 必填配置 | 常用配置 |
-| --- | --- | --- |
-| `start` | `variables` | `triggerField`, `sourceSheetId` |
-| `validate_request` | `rules` | `failMessage`, `haltOnFail` |
-| `amount_branch` | `expression` | `label` 分支说明 |
-| `manager_approval` | `assigneeStrategy`, `roleKey`, `actions` | `timeout`, `canTransfer` |
-| `legal_approval` | `assigneeStrategy`, `roleKey`, `actions` | `timeout`, `canTransfer`, `remarkRequired` |
-| `approved_end` | `result` | `summary`, `notifyTemplate`, `writeBackFields` |
-| `rejected_end` | `result` | `reasonField`, `notifyTemplate` |
-
-### 11.5 场景选择原则
+### 12.5 场景选择原则
 
 1. 先确定申请类型，再选模板，不要先选节点再倒推业务。
 2. 先确定是否需要金额分支，再决定是否引入 `amount_branch`。

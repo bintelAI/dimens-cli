@@ -32,4 +32,11 @@
 
 ## 工作流补充
 
-审批工作流 AI 自动生成归入 `references/workflow/references/approval-generation.md`，不新增顶层 Skill。它负责把业务描述转换为审批蓝图、`pluginType=approval` 的工作流 JSON 草案和项目落地计划。
+工作流章节现在按“总规范 + 节点词典 + AI 场景模板 + 审批场景模板”组织：
+
+- `references/workflow/references/workflow-spec.md`：工作流共用输出契约、节点分层、连线规则和校验原则
+- `references/workflow/references/node-dictionary.md`：AI 工作流与审批工作流共用的节点语义词典
+- `references/workflow/references/ai-generation.md`：AI 工作流生成模板
+- `references/workflow/references/approval-generation.md`：审批工作流生成模板
+
+不新增顶层 Skill。AI 工作流和审批工作流都归入当前工作流章节，分别输出对应的 `pluginType=ai` 和 `pluginType=approval` 草案、落地计划和验证边界。

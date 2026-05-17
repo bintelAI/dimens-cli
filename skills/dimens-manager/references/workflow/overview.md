@@ -18,6 +18,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 ## 执行前必读
 
 - ✅ 所有工作流能力先确认 `teamId`
+- ✅ 工作流章节现在按四层组织：总规范、节点词典、AI 场景模板、审批场景模板
 - ✅ CLI 优先：当前已封装的聊天兼容调用优先走 `dimens-cli ai chat-completions`，未封装的管理、挂载、发布能力必须说明 `server-only` 或产品侧边界
 - ✅ 缺少 `teamId/projectId/flowId/label` 时，先补上下文或输出待确认项，不要把 `label`、`model`、`flowId` 混写成同一个确定值
 - ✅ 项目内工作流展示必须区分“团队工作流定义”和“项目工作流挂载”
@@ -25,7 +26,9 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - ✅ 模型问题不能默认认为所有工作流节点都会自动继承团队默认模型
 - ✅ `chat/completions` 接口与普通工作流节点执行是两条不同链路，不能混为一谈
 - ✅ 涉及项目入口、AI 分析、审批、自动化时，要同时检查项目上下文和权限边界
+- ✅ AI 工作流和审批工作流共用节点词典，但不能混淆人工挂起语义与模型编排语义
 - ✅ AI 自动生成审批工作流时，必须同时输出业务蓝图、`pluginType=approval` 的图草案和项目落地计划
+- ✅ 审批工作流如果要从表格行发起，必须继续说明 `workflow` 字段绑定、`rowId`、`sourceSnapshot`、`bizData.payload` 和摘要回写边界
 - ✅ Windows 下写入含中文的工作流 JSON、审批草案或说明文档时，必须使用 UTF-8，并在提交前读回确认中文没有损坏
 
 ## 命令维护表
@@ -38,7 +41,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 | `flow_run_debug` | 调试运行工作流 | `teamId`, `flowId` 或 `label` | `projectId`, `input` | 更适合排查节点执行问题和输入输出结构 |
 | `dimens-cli ai chat-completions` | 走 OpenAI 兼容接口调用团队模型或工作流能力 | `teamId`, `messages` | `model`, `temperature`, `stream` | `model` 为空时可能走团队默认文本模型，但不等于所有工作流节点都这样继承 |
 | `flow_config_get` | 查询团队默认模型策略 | `teamId` | `type=default_models` | 只说明团队默认模型配置，不代表节点自动回退一定生效 |
-| `dimens-cli ai chat-completions` | 辅助生成审批工作流草案 | `teamId`, `messages` | `model=team-default` | 可用于让 AI 产出审批蓝图和 JSON 草案，但创建、发布、挂载仍要看当前能力边界 |
+| `dimens-cli ai chat-completions` | 辅助生成 AI 工作流或审批工作流草案 | `teamId`, `messages` | `model=team-default` | 可用于让 AI 产出蓝图和 JSON 草案，但创建、发布、挂载仍要看当前能力边界 |
 
 ### 强调细节
 
@@ -51,7 +54,9 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 
 - 排查类输出必须按“团队定义 -> 项目挂载 -> 运行调用 -> 模型配置 -> 权限边界”给结论，不能只给单点猜测。
 - 调用类输出必须包含：使用的 `teamId`、`model/flowId/label`、是否流式、CLI 命令或接口、返回摘要。
+- AI 工作流自动生成输出必须包含：业务目标、`pluginType=ai` 图草案、项目落地计划、当前未执行或未封装的边界说明。
 - 审批自动生成输出必须包含：业务蓝图、`pluginType=approval` 图草案、项目落地计划、当前未执行或未封装的边界说明。
+- 行数据绑定输出必须包含：`workflow` 字段、绑定 `flowId`、`sheetId/rowId/fieldId`、`sourceSnapshot`、`bizData.payload` 映射和摘要回写验证。
 - 如果只是生成草案而未写入项目，必须明确写“尚未创建/发布/挂载”，避免把自然语言方案说成已落地。
 
 ## 核心约束
@@ -85,12 +90,13 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - 工作流问题可能同时影响团队隔离、项目隔离、模型配置和权限控制
 - 只靠单一接口返回结果不足以得出结论，必须结合文档和真实挂载关系一起判断
 
-### 6. 审批自动生成边界
+### 6. AI 与审批自动生成边界
 
+- “生成 AI 工作流”与“生成审批工作流”都属于本章节，但前者重点看 `references/ai-generation.md`，后者重点看 `references/approval-generation.md`。
 - “生成审批系统”属于系统级建设，先用 `dimens-system-orchestrator`。
-- “生成审批工作流 / 审批流程 / 审批节点”属于本章节，重点看 `references/approval-generation.md`。
 - AI 生成结果必须能落成工作流图草案，不能只输出自然语言流程说明。
 - 审批真值以后端审批实例表为准，表格 `workflow` 字段只负责发起和展示摘要。
+- 表格行发起审批必须能定位到 `sheetId + rowId + fieldId`，否则后端无法把审批摘要稳定回写到对应单元格。
 
 ## 必查文档
 
@@ -102,7 +108,12 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 | `references/usage.md` | 团队定义 / 项目挂载 / 运行调用三层分层 | 处理工作流时必须看 |
 | `references/project-binding.md` | 项目挂载与系统视图入口关系 | 分析项目里看不到时必须看 |
 | `references/model-routing.md` | 默认模型与节点模型边界 | 处理模型配置时必须看 |
-| `references/approval-generation.md` | AI 自动生成审批工作流的输入、输出、JSON 草案和落地计划 | 处理审批工作流自动生成时必须看 |
+| `references/workflow-spec.md` | 工作流共用输出契约、节点分层、连线与校验规则 | 处理工作流总规范时必须看 |
+| `references/node-dictionary.md` | 节点语义词典，统一 AI 与审批工作流 | 处理节点职责、节点命名和场景复用时必须看 |
+| `references/ai-generation.md` | AI 工作流生成模板 | 处理 AI 工作流自动生成时必须看 |
+| `references/ai-node-templates.md` | AI 工作流节点模板库 | 需要直接拼装 AI 节点 JSON 草案时必须看 |
+| `references/approval-generation.md` | 审批工作流的输入、输出、JSON 草案和落地计划 | 处理审批工作流自动生成时必须看 |
+| `references/field-binding.md` | 审批工作流字段绑定与行数据链路 | 处理 `workflow` 字段发起、行数据绑定、摘要回写时必须看 |
 | `references/capability-status.md` | 已封装 / server-only / 部分对齐 状态 | 判断当前能力范围时建议看 |
 | `references/examples.md` | 工作流接口案例 | 需要直接举例时看 |
 
@@ -171,6 +182,19 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - 如果缺少 `teamId/projectId`，只能生成草案和落地步骤，不要声称已经写入项目。
 - 如果需要保存为可视化画布，另看 `dimens-manager`；可视化画布不等于可执行审批工作流。
 
+### 场景 5：AI 自动生成工作流
+
+推荐输出顺序：
+
+1. 场景说明：分析、生成、调用工具、汇总结果的目标。
+2. 工作流图草案：`pluginType=ai`，包含 `nodes`、`edges`、`globalVariables`、`meta`。
+3. 项目落地计划：如果有 `projectId`，说明如何挂载、调用或保存草案。
+
+注意：
+
+- 如果缺少 `teamId/projectId`，只能生成草案和落地步骤，不要声称已经写入项目。
+- 如果场景里出现人工审批、挂起、候选人、同意或拒绝，这不是 AI 工作流，应切到 `approval-generation.md`。
+
 ## 常见错误与排查
 
 | 错误现象 | 根本原因 | 解决方案 |
@@ -186,7 +210,9 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - `references/usage.md`
 - `references/project-binding.md`
 - `references/model-routing.md`
+- `references/ai-node-templates.md`
 - `references/approval-generation.md`
+- `references/field-binding.md`
 - `references/capability-status.md`
 - `references/examples.md`
 - 如需查看整个 Skill 体系的能力总览，请返回 `dimens-cli/skills/README.md`

@@ -269,7 +269,54 @@ dimens-cli column create \
 - 技能生成字段方案时，也必须把候选项一并生成出来
 - 同一个字段的选项 `id` 必须唯一，不能重复，否则前端下拉映射和后续统计都有概率异常
 
-### 4.5 报表友好的字段组合案例
+### 4.5 `workflow` 字段案例：审批入口
+
+CLI 创建审批入口字段：
+
+```bash
+dimens-cli column create \
+  --team-id TTFFEN \
+  --project-id PUQUNFE \
+  --sheet-id sh_ja2IwgaBhV1jUWB4 \
+  --label 审批 \
+  --type workflow \
+  --flow-id FLOW_APPROVAL \
+  --system-view approval
+```
+
+服务端 body：
+
+```json
+{
+  "label": "审批",
+  "type": "workflow",
+  "config": {
+    "flowId": "FLOW_APPROVAL",
+    "systemView": "approval"
+  }
+}
+```
+
+已有字段改绑审批流：
+
+```bash
+dimens-cli column update \
+  --team-id TTFFEN \
+  --project-id PUQUNFE \
+  --sheet-id sh_ja2IwgaBhV1jUWB4 \
+  --field-id fld_approval \
+  --flow-id FLOW_APPROVAL \
+  --system-view approval
+```
+
+补充说明：
+
+- `workflow` 字段负责行数据发起审批和展示摘要，不保存审批实例真值。
+- `--flow-id/--system-view` 只绑定字段入口，不负责创建、发布或挂载审批工作流。
+- 如果需要完整字段配置，可传 `--config '{"flowId":"FLOW_APPROVAL","systemView":"approval"}'`；`column update` 会在当前字段配置基础上合并。
+- 详细行数据绑定、`sourceSnapshot`、`bizData.payload` 和摘要回写规则看 `../../workflow/references/field-binding.md`。
+
+### 4.6 报表友好的字段组合案例
 
 如果这张表后续还要接报表，建模时建议先按下面这种组合思路准备：
 
@@ -552,7 +599,8 @@ CLI 当前实现：
 
 | 命令 | 实际发送 |
 | --- | --- |
-| `dimens-cli row set-cell ... --field-id ... --value ... --version 1` | `{ "rowId": "...", "fieldId": "...", "value": ..., "version": 1 }` |
+| `dimens-cli row set-cell ... --field-id ... --value ... --version 1` | `{ "rowId": "...", "fieldId": "...", "value": "字符串", "version": 1 }` |
+| `dimens-cli row set-cell ... --field-id ... --value-json '{...}' --version 1` | `{ "rowId": "...", "fieldId": "...", "value": { ... }, "version": 1 }` |
 
 因此 Skill 在解释“写接口为什么失败”时，必须明确区分：
 
@@ -565,3 +613,5 @@ CLI 当前实现：
 - `row page`、`row info` 读取链路已经可以稳定使用
 - `row/page` 说明时建议优先采用前端真实口径 `keyword / searchFieldIds / filters / filterMatchType / sortRule`
 - `row create`、`row update`、`row set-cell` 当前已可按 server 契约写入，但调用前仍需先获取真实 `fieldId`
+- 复杂对象值使用 `--value-json`；`--value` 与 `--value-json` 不能同时传入
+- `workflow` 字段的审批摘要一般不应手工写入，真实状态以审批实例表和后端托管回写为准

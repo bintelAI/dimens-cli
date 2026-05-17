@@ -37,6 +37,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 新表落地后必须确认至少存在一个公开默认视图；如果技能链路没有自动补齐，就要显式执行 `view create`
 - ✅ `row/page` 默认要按“基于字段的搜索、筛选、排序”来解释，不只是分页
 - ✅ 系统视图相关问题要区分团队级默认字段和项目级实际分配字段
+- ✅ 如果字段类型是 `workflow`，必须同时看工作流字段绑定与行数据链路：`dimens-manager/references/workflow/references/field-binding.md`
 - ✅ 处理字段和行写入问题时，不能只看字段结构，还要同步看权限与系统字段边界
 - ✅ 表格接口能读取不代表一定可写，行级、列级、协同权限可能继续收敛
 - ✅ 如果后续要做报表，这一步就要提前考虑字段能否直接进入 `report preview / query-widget / dataMapping`，不要等到报表阶段再返工
@@ -71,15 +72,15 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `dimens-cli sheet create` | 创建表或目录节点 | `projectId`, `name` | `teamId`, `folder-id`, `type` | 新表落地后还要继续检查默认公开视图是否存在；要放入目录时必须显式传 `--folder-id` |
 | `dimens-cli sheet update` | 更新表基础信息或移动菜单归属 | `projectId`, `sheetId` | `teamId`, `name`, `folder-id`, `app-url` | 默认先 `sheet info` 拿当前数据，再改字段后更新；已有资源移入目录用 `--folder-id` |
 | `dimens-cli column list` | 查询字段列表 | `teamId`, `projectId`, `sheetId` | - | 用于先确认字段结构、字段类型和现有字段 ID |
-| `dimens-cli column create` | 创建字段 | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `property`, `uiType`, `config`, `required`, `unique`, `key`, `options` | `select/multiSelect` 必须补完整 `options`，颜色协议要和前端一致 |
-| `dimens-cli column update` | 更新字段定义 | `teamId`, `projectId`, `sheetId`, `fieldId` | `label`, `title`, `type`, `config`, `required`, `unique`, `app-url` | 默认先拿当前表结构，从 `structure.columns` 找到目标字段后再合并更新 |
+| `dimens-cli column create` | 创建字段 | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `property`, `uiType`, `config`, `required`, `unique`, `key`, `options`, `flow-id`, `system-view` | `select/multiSelect` 必须补完整 `options`；`workflow` 字段可用 `--flow-id --system-view approval` 绑定审批入口 |
+| `dimens-cli column update` | 更新字段定义 | `teamId`, `projectId`, `sheetId`, `fieldId` | `label`, `title`, `type`, `config`, `required`, `unique`, `app-url`, `flow-id`, `system-view` | 默认先拿当前表结构，从 `structure.columns` 找到目标字段后再合并更新；`--config` 与 `--flow-id/--system-view` 会合并字段配置 |
 | `dimens-cli view list` | 查询视图列表 | `teamId`, `projectId`, `sheetId` | - | 建表后先确认默认公开视图是否已经落地 |
 | `dimens-cli view create` | 创建公开默认视图或业务视图 | `teamId`, `projectId`, `sheetId`, `name`, `type` | `isPublic`, `config` | 技能建表链路默认要求至少补一个公开 grid 视图 |
 | `dimens-cli row page` | 分页查询行数据，也是后续数据分析的核心取数入口 | `teamId`, `projectId`, `sheetId` | `viewId`, `page`, `size`, `keyword`, `search-field-ids`, `filters`, `filter-match-type`, `sort-rule` | 使用前必须先 `column list` 获取真实字段 ID，再按字段设计搜索、筛选、排序；行读取链路会同时受字段筛选、视图配置和权限影响 |
 | `dimens-cli row create` | 新增单行数据 | `sheetId`, `values` | - | 写入前必须先通过 `column list` 确认真实 `fieldId`，CLI 会把 `--values` 映射成服务端 `data` |
 | `dimens-cli row batch-create` | 批量新增行数据 | `sheetId`, `file` 或 `values` | `batch-size` | 推荐大批量初始化、迁移和补数据使用；CLI 默认按 200 行稳定分片，后端单批硬限制 1000 行且单批事务原子 |
 | `dimens-cli row update` | 更新整行数据 | `teamId`, `projectId`, `sheetId`, `rowId` | `data`, `version`, `app-url` | 默认先读当前行数据，再修改目标字段，再 update；不要只凭局部字段直接覆盖 |
-| `dimens-cli row set-cell` | 更新单个单元格 | `sheetId`, `rowId`, `fieldId`, `value` | `version`, `columnId` | 服务端真实契约以 `fieldId` 为准，写入时仍要注意版本和权限边界 |
+| `dimens-cli row set-cell` | 更新单个单元格 | `sheetId`, `rowId`, `fieldId`, `value` 或 `value-json` | `version`, `columnId` | 服务端真实契约以 `fieldId` 为准；对象值用 `--value-json`，但 `workflow` 审批摘要通常应由后端托管回写 |
 
 ### 强调细节
 
@@ -135,6 +136,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - 如果字段语义是“选部门 / 归属部门 / 所属组织”，则这不是普通 `select`，应优先落到 `department`
 - 关联字段默认要明确：目标表、展示字段、是否多选、是否双向、编辑视图字段
 - 涉及工作流、AI 分析、审批、自动化入口时，还要同时检查系统视图字段映射
+- `workflow` 字段不是普通业务字段，它负责从行数据发起审批和展示摘要；真实审批状态以审批实例表为准，字段绑定、`sourceSnapshot` 和摘要回写规则看 `dimens-manager/references/workflow/references/field-binding.md`
 
 ### 3.1 报表联动边界
 
@@ -175,6 +177,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `dimens-manager/references/project/overview.md` | 项目创建、默认公开视图补偿、建表前置链路 | 用户还没完成项目初始化时必须先看 |
 | `dimens-manager/references/permission/overview.md` | 表级、列级、行级与协同权限边界 | 处理写入权限时建议看 |
 | `dimens-manager/references/workflow/overview.md` | 系统视图字段与工作流入口的映射关系 | 处理 AI 分析、审批、自动化入口时建议看 |
+| `dimens-manager/references/workflow/references/field-binding.md` | `workflow` 字段绑定、行数据发起、`sourceSnapshot`、摘要回写 | 处理审批字段、行数据绑定工作流、字段状态不刷新时必须看 |
 | `dimens-manager/references/report/overview.md` | 报表组件、字段映射、固定预检链 | 字段后续要进入看板、图表、统计分析时必须看 |
 | `references/field-design-patterns.md` | 字段设计模板、relation 结构 | 设计字段时必须看 |
 | `references/field-option-colors.md` | 单选/多选/下拉选择器颜色体系、默认颜色、自定义颜色协议 | 处理选项字段时必须看 |
