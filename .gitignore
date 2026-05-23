@@ -11,3 +11,4 @@ coverage/
 .pnpm-store/*
 ./pnpm-store/*
 文档/*
+dimens-web/.pnpm-store/*
