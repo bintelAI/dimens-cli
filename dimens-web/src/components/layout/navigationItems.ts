@@ -1,4 +1,4 @@
-import { Boxes, Database, LayoutDashboard, Settings, Wrench, type LucideIcon } from 'lucide-react';
+import { Boxes, Database, LayoutDashboard, PanelsTopLeft, Settings, Wrench, type LucideIcon } from 'lucide-react';
 import type { DimensWebAppConfig } from '@/config/appConfig';
 import type { ResolvedRuntimeContext } from '@/types/micro-module';
 
@@ -8,8 +8,13 @@ export interface AppNavItem {
   icon: LucideIcon;
 }
 
-const baseNavItems: AppNavItem[] = [
+const releaseNavItems: AppNavItem[] = [
   { to: '/', label: '概览', icon: LayoutDashboard },
+  { to: '/custom', label: '自定义页面', icon: PanelsTopLeft },
+];
+
+const developmentNavItems: AppNavItem[] = [
+  ...releaseNavItems,
   { to: '/records', label: '数据', icon: Database },
   { to: '/embed', label: '嵌入', icon: Boxes },
   { to: '/settings', label: '设置', icon: Settings },
@@ -20,7 +25,8 @@ export function getVisibleNavItems(
   context: ResolvedRuntimeContext,
   appConfig?: DimensWebAppConfig
 ): AppNavItem[] {
-  return baseNavItems.filter(item => isRouteAllowed(item.to, context, appConfig));
+  const navItems = isProductionNavigation() ? releaseNavItems : developmentNavItems;
+  return navItems.filter(item => isRouteAllowed(item.to, context, appConfig));
 }
 
 export function isRouteAllowed(
@@ -29,6 +35,9 @@ export function isRouteAllowed(
   appConfig?: DimensWebAppConfig
 ): boolean {
   const path = normalizePathname(pathname);
+  if (isProductionNavigation()) {
+    return path === '/' || path === '/custom';
+  }
   if (path === '/settings') {
     return appConfig?.features.settings !== false && context.permissions.canConfigure !== false;
   }
@@ -39,6 +48,10 @@ export function isRouteAllowed(
     return appConfig?.features.records !== false;
   }
   return true;
+}
+
+function isProductionNavigation() {
+  return import.meta.env.PROD || window.__DIMENS_WEB_RELEASE_MODE__ === true;
 }
 
 function normalizePathname(pathname: string) {

@@ -6,6 +6,7 @@ declare global {
     __WUJIE_MOUNT?: () => void;
     __WUJIE_UNMOUNT?: () => void;
     __DIMENS_WEB_HOST_PROPS__?: DimensWebHostProps;
+    __DIMENS_WEB_RELEASE_MODE__?: boolean;
     $wujie?: {
       props?: DimensWebHostProps;
       bus?: {

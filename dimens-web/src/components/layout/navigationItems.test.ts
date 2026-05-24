@@ -23,6 +23,10 @@ function makeContext(patch: Partial<ResolvedRuntimeContext> = {}): ResolvedRunti
 }
 
 describe('navigationItems', () => {
+  beforeEach(() => {
+    window.__DIMENS_WEB_RELEASE_MODE__ = undefined;
+  });
+
   it('hides settings when configure permission is disabled', () => {
     const context = makeContext({
       permissions: {
@@ -47,5 +51,15 @@ describe('navigationItems', () => {
 
     expect(isRouteAllowed('/records', makeContext(), config)).toBe(false);
     expect(isRouteAllowed('/debug/context', makeContext(), config)).toBe(false);
+  });
+
+  it('only exposes overview and custom page in release mode', () => {
+    window.__DIMENS_WEB_RELEASE_MODE__ = true;
+
+    expect(getVisibleNavItems(makeContext(), DEFAULT_APP_CONFIG).map(item => item.to)).toEqual(['/', '/custom']);
+    expect(isRouteAllowed('/records', makeContext(), DEFAULT_APP_CONFIG)).toBe(false);
+    expect(isRouteAllowed('/settings', makeContext(), DEFAULT_APP_CONFIG)).toBe(false);
+    expect(isRouteAllowed('/debug/context', makeContext(), DEFAULT_APP_CONFIG)).toBe(false);
+    expect(isRouteAllowed('/custom', makeContext(), DEFAULT_APP_CONFIG)).toBe(true);
   });
 });

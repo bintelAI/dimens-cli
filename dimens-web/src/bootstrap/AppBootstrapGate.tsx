@@ -57,13 +57,13 @@ export default function AppBootstrapGate() {
     );
   }
 
-  if (status === 'needs-config' && location.pathname === '/settings') {
+  if (!import.meta.env.PROD && status === 'needs-config' && location.pathname === '/settings') {
     return <Outlet />;
   }
 
-  if (status === 'needs-config') {
+  if (!import.meta.env.PROD && status === 'needs-config') {
     return (
-      <div className="min-h-screen bg-[#f5f2ec] p-6">
+      <div className="min-h-screen bg-transparent p-6">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
           <StateView
             compact
@@ -78,6 +78,17 @@ export default function AppBootstrapGate() {
           />
         </div>
       </div>
+    );
+  }
+
+  if (status === 'needs-config') {
+    return (
+      <StateView
+        icon={<TriangleAlert size={24} />}
+        title="运行上下文不完整"
+        description={`缺少关键配置：${missing.join(', ')}。请确认宿主已注入 teamId / projectId / token 等运行参数。`}
+        tone="error"
+      />
     );
   }
 

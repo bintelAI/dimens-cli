@@ -1,4 +1,4 @@
-import { ExternalLink, KeyRound, Route, ShieldCheck } from 'lucide-react';
+import { ExternalLink, KeyRound, Link2, Route, ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 import KeyValueGrid from '@/components/common/KeyValueGrid';
 import { getAuthStatus } from '@/lib/dimens/auth/authService';
@@ -8,6 +8,7 @@ import { useRuntimeStore } from '@/store/runtimeStore';
 export default function DashboardPage() {
   const context = useRuntimeStore(state => state.context);
   const appConfig = useRuntimeStore(state => state.appConfig);
+  const relativeUrls = getReleaseRelativeUrls();
   const authStatus = getAuthStatus(getLocalDevAuth() || {
     token: context.token,
     refreshToken: context.refreshToken,
@@ -18,12 +19,14 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <section className="border border-ink-900/10 bg-white p-6 shadow-panel">
         <div className="max-w-3xl">
-          <div className="text-xs uppercase tracking-[0.24em] text-copper-500">Dimens Web Scaffold</div>
+          <div className="text-xs uppercase tracking-[0.24em] text-copper-500">
+            {appConfig?.appName || 'Dimens Web'}
+          </div>
           <h1 className="mt-4 text-3xl font-semibold tracking-normal text-ink-950 md:text-5xl">
-            维表自定义前端的基础运行台
+            维表自定义前端概览
           </h1>
           <p className="mt-4 text-sm leading-7 text-ink-700">
-            当前模板已接入 Hash 路由、Wujie 运行上下文、token provider、应用配置等待和 browser-safe Dimens 调用层。
+            当前应用已接入维表运行上下文，可在普通页面或 Wujie 微前端环境中使用。
           </p>
         </div>
       </section>
@@ -47,6 +50,25 @@ export default function DashboardPage() {
           { label: 'contextSource', value: context.source },
         ]}
       />
+
+      <section className="border border-ink-900/10 bg-white p-5 shadow-panel">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-copper-500">
+          <Link2 size={15} />
+          Relative URLs
+        </div>
+        <h2 className="mt-3 text-lg font-semibold text-ink-950">发布包相对路径</h2>
+        <div className="mt-4 grid gap-3">
+          {relativeUrls.map(item => (
+            <div
+              key={item.path}
+              className="grid gap-2 border border-ink-900/10 bg-[#faf8f3] p-3 text-sm md:grid-cols-[120px_1fr]"
+            >
+              <div className="font-medium text-ink-700">{item.label}</div>
+              <code className="break-all font-mono text-ink-950">{item.path}</code>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -59,4 +81,11 @@ function Metric({ icon, label, value }: { icon: ReactNode; label: string; value:
       <div className="mt-2 truncate text-lg font-semibold text-ink-950">{value}</div>
     </div>
   );
+}
+
+function getReleaseRelativeUrls() {
+  return [
+    { label: '概览首页', path: './index.html#/' },
+    { label: '自定义页面', path: './index.html#/custom' },
+  ];
 }

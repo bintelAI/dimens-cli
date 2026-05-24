@@ -15,7 +15,7 @@ interface StateViewProps {
 export default function StateView({ icon, title, description, tone = 'neutral', compact = false, action }: StateViewProps) {
   const outerClassName = compact
     ? ''
-    : 'flex min-h-screen items-center justify-center bg-[#f5f2ec] p-6';
+    : 'flex min-h-screen items-center justify-center bg-transparent p-6';
   const innerClassName = [
     'w-full border border-ink-900/10 bg-white p-8 shadow-panel',
     compact ? '' : 'max-w-lg',

@@ -18,7 +18,6 @@ export default function SettingsPage() {
     baseUrl: context.baseUrl || '/api',
     teamId: context.teamId,
     projectId: context.projectId,
-    sheetId: context.sheetId || appConfig?.defaultSheetId || '',
     instanceId: context.instanceId,
     moduleCode: context.moduleCode,
     initialRoute: context.initialRoute || appConfig?.defaultRoute || '/',
@@ -82,7 +81,6 @@ export default function SettingsPage() {
       baseUrl: form.baseUrl,
       teamId: form.teamId,
       projectId: form.projectId,
-      sheetId: form.sheetId || undefined,
       instanceId: form.instanceId || 'dev-instance',
       moduleCode: form.moduleCode || 'dimens-web',
       initialRoute: form.initialRoute || '/',
@@ -100,7 +98,6 @@ export default function SettingsPage() {
       appName: form.appName,
       moduleCode: form.moduleCode,
       defaultRoute: form.initialRoute || '/',
-      defaultSheetId: form.sheetId || undefined,
     });
     if (form.token) {
       saveLocalDevAuth({
@@ -193,7 +190,6 @@ export default function SettingsPage() {
         <Field label="应用名称" value={form.appName} onChange={value => update('appName', value)} placeholder="Dimens Web" />
         <Field label="团队 ID" value={form.teamId} onChange={value => update('teamId', value)} placeholder="TEAM1" required />
         <Field label="项目 ID" value={form.projectId} onChange={value => update('projectId', value)} placeholder="PROJ1" required />
-        <Field label="工作表 ID" value={form.sheetId} onChange={value => update('sheetId', value)} placeholder="SHEET1" />
         <Field label="实例 ID" value={form.instanceId} onChange={value => update('instanceId', value)} placeholder="dev-instance" />
         <Field label="模块编码" value={form.moduleCode} onChange={value => update('moduleCode', value)} placeholder="dimens-web" />
         <Field label="初始路由" value={form.initialRoute} onChange={value => update('initialRoute', value)} placeholder="/records" />

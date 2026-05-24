@@ -45,4 +45,27 @@ describe('createDimensAppSdkFromRuntime', () => {
     expect(fetchMock.mock.calls[1][0]).toContain('/api/refreshToken');
     expect(fetchMock.mock.calls[2][1].headers.get('Authorization')).toBe('Bearer fresh-token');
   });
+
+  it('reads row pages through the sheet-scoped row endpoint with project context', async () => {
+    saveLocalDevAuth({ token: 'token' });
+    const fetchMock = vi.fn()
+      .mockResolvedValue(new Response(JSON.stringify({ code: 200, data: { list: [], pagination: { total: 0 } } })));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const sdk = await createDimensAppSdkFromRuntime(makeContext());
+    await sdk.row.page('S1', { page: 1, size: 50 });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/app/mul/sheet/S1/row/page'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          page: 1,
+          size: 50,
+          teamId: 'T1',
+          projectId: 'P1',
+        }),
+      })
+    );
+  });
 });
