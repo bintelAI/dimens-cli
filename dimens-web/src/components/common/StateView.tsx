@@ -5,16 +5,25 @@ interface StateViewProps {
   title: string;
   description?: string;
   tone?: 'neutral' | 'error';
+  compact?: boolean;
   action?: {
     label: string;
     onClick: () => void;
   };
 }
 
-export default function StateView({ icon, title, description, tone = 'neutral', action }: StateViewProps) {
+export default function StateView({ icon, title, description, tone = 'neutral', compact = false, action }: StateViewProps) {
+  const outerClassName = compact
+    ? ''
+    : 'flex min-h-screen items-center justify-center bg-[#f5f2ec] p-6';
+  const innerClassName = [
+    'w-full border border-ink-900/10 bg-white p-8 shadow-panel',
+    compact ? '' : 'max-w-lg',
+  ].join(' ');
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f5f2ec] p-6">
-      <div className="w-full max-w-lg border border-ink-900/10 bg-white p-8 shadow-panel">
+    <div className={outerClassName}>
+      <div className={innerClassName}>
         <div
           className={[
             'mb-6 flex h-12 w-12 items-center justify-center rounded-sm',

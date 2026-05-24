@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2, Settings, TriangleAlert } from 'lucide-react';
 import { notifyRouteChange, onHostEvent } from '@/bridge/wujieBridge';
+import WujiePropsDebugPanel from '@/components/debug/WujiePropsDebugPanel';
 import { useRuntimeStore } from '@/store/runtimeStore';
 import type { DimensWebHostProps } from '@/types/micro-module';
 import StateView from '@/components/common/StateView';
@@ -62,12 +63,21 @@ export default function AppBootstrapGate() {
 
   if (status === 'needs-config') {
     return (
-      <StateView
-        icon={<Settings size={24} />}
-        title="需要补充开发配置"
-        description={`缺少关键配置：${missing.join(', ')}。请进入设置页补充后重试。`}
-        action={{ label: '打开设置', onClick: () => navigate('/settings') }}
-      />
+      <div className="min-h-screen bg-[#f5f2ec] p-6">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+          <StateView
+            compact
+            icon={<Settings size={24} />}
+            title="需要补充开发配置"
+            description={`缺少关键配置：${missing.join(', ')}。下面是当前微前端实际获取到的参数，用来判断宿主是否已注入 teamId / projectId / token。`}
+            action={{ label: '打开设置', onClick: () => navigate('/settings') }}
+          />
+          <WujiePropsDebugPanel
+            title="当前微前端获取到的参数"
+            description="这里展示原始 Wujie props、本地缓存 props，以及脚手架合并后实际用于初始化的 props。敏感字段会脱敏显示。"
+          />
+        </div>
+      </div>
     );
   }
 

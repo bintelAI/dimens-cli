@@ -1,4 +1,5 @@
 import KeyValueGrid from '@/components/common/KeyValueGrid';
+import WujiePropsDebugPanel from '@/components/debug/WujiePropsDebugPanel';
 import { getAuthStatus } from '@/lib/dimens/auth/authService';
 import { getLocalDevAuth } from '@/lib/dimens/auth/localDevTokenProvider';
 import { useRuntimeStore } from '@/store/runtimeStore';
@@ -34,6 +35,7 @@ export default function ContextDebugPage() {
           { label: 'runtime', value: context },
         ]}
       />
+      <WujiePropsDebugPanel />
     </div>
   );
 }
