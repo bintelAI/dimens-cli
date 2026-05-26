@@ -1493,7 +1493,35 @@ describe('Sheet Column Row Commands', () => {
     expect(sheetSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1');
     expect(sheetSdkSpies.update).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
       name: '旧名称',
-      folderId: 'folder_customer',
+      parentId: 'folder_customer',
+    });
+    expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  it('should execute sheet move command with parentId payload', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const moveSheet = getCommandGroup('sheet')?.commands.find(
+      command => command.name === 'move'
+    );
+    await moveSheet?.handler([
+      'S1',
+      '--team-id',
+      'TEAM1',
+      '--project-id',
+      'PROJ1',
+      '--folder-id',
+      'folder_customer',
+    ]);
+
+    expect(sheetSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1');
+    expect(sheetSdkSpies.update).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      name: '旧名称',
+      parentId: 'folder_customer',
     });
     expect(logSpy).toHaveBeenCalled();
     logSpy.mockRestore();

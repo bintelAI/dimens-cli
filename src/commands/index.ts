@@ -25,6 +25,7 @@ import { createCommandGroup } from './registry';
 import { registerAuthCommands } from './auth/index';
 import { registerCanvasCommands } from './canvas/index';
 import { registerColumnCommands } from './column/index';
+import { registerCreateCommands } from './create/index';
 import { registerDocCommands } from './doc/index';
 import { registerProjectCommands } from './project/index';
 import { registerPermissionCommands } from './permission/index';
@@ -35,7 +36,9 @@ import { registerRowAclCommands } from './row-acl/index';
 import { registerRowPolicyCommands } from './row-policy/index';
 import { registerSheetCommands } from './sheet/index';
 import { registerSkillCommands } from './skill/index';
+import { registerTeamCommands } from './team/index';
 import { registerUploadCommands } from './upload/index';
+import { registerUserCommands } from './user/index';
 import { registerViewCommands } from './view/index';
 
 export function registerCommands(): void {
@@ -44,7 +47,10 @@ export function registerCommands(): void {
   createCommandGroup('system', '系统命令');
   registerHelpCommand();
   registerVersionCommand();
+  registerCreateCommands();
   registerAuthCommands();
+  registerUserCommands();
+  registerTeamCommands();
   registerSkillCommands();
   registerUploadCommands();
   registerProjectCommands();

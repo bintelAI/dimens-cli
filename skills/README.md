@@ -81,7 +81,7 @@ windows-utf8.md
 | --- | --- | --- | --- |
 | `dimens-system-orchestrator` | 系统级编排命令、Skill 路由 | 负责系统搭建、模块拆解、执行顺序规划 | 适合“帮我搭一个系统/平台”这类总控任务，不直接替代具体资源命令 |
 | `dimens-manager/references/key-auth/overview.md` | `dimens-cli auth api-key-login`、`api_key_*` | 负责 Key 登录、token 复用、第三方接入边界 | 这是认证入口，不是资源更新入口；登录成功不代表自动有资源权限 |
-| `dimens-manager/references/team/overview.md` | `team info`、`project list/info`、上下文切换 | 负责团队、项目、租户、默认上下文判断 | 很多问题先确认 `teamId/projectId`，上下文不对，后面所有结论都不稳 |
+| `dimens-manager/references/team/overview.md` | `auth me`、`user me`、`team info/users`、`project list/info`、上下文切换 | 负责当前用户、团队、成员、项目、租户、默认上下文判断 | 很多问题先确认 `userId/teamId/projectId`，上下文不对，后面所有结论都不稳 |
 | `dimens-manager/references/project/overview.md` | `project *`、`upload file`、`doc *`、`report *` 起始链路 | 负责项目创建、项目初始化、三驾马车入口 | 资源类更新默认先上传拿 `url`，项目和文档更新默认先读当前数据再提交 |
 | `dimens-manager/references/table/overview.md` | `sheet *`、`column *`、`view *`、`row *` | 负责工作表、字段、视图、行数据建模与更新 | `sheet/column/row` 的更新都走“先读再改再更”，字段设计还要考虑后续报表映射 |
 | `dimens-manager/references/permission/overview.md` | `role *`、`permission *`、`row-policy *`、`row-acl *` | 负责角色、项目权限、行级策略、单行 ACL | 权限类更新也走“先拿当前记录再更新”，CLI 成功不等于权限快照已全部收敛 |

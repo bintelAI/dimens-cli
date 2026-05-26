@@ -1,5 +1,8 @@
 # React / Vue 前端登录态接入示例
 
+> 这份文档适用于普通 React / Vue 项目自己接维表 SDK。  
+> 如果用户基于 `dimens-cli/dimens-web` 开发维表自定义页面，优先使用 `references/dimens-web-scaffold.md`，不要照本页再生成一套 `dimens-storage.ts / dimens-auth.ts / dimens-sdk.ts / dimens-request.ts`。
+
 ## 1. 推荐目录结构
 
 ```text

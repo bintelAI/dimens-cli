@@ -9,6 +9,7 @@
 | 选择 SDK 还是 HTTP | 先定接入架构 | `../integration-paths.md` |
 | 确认 SDK 模块能力 | 对照当前已封装模块 | `../capability-status.md` |
 | 服务端资源调用 | `createSDK({ baseUrl, token })` | `../bff-examples.md` |
+| 当前用户与团队上下文 | `sdk.user.me()`、`sdk.team.info()`、`sdk.team.members()` | `../capability-status.md` |
 | AI 聊天兼容调用 | 使用 `sdk.ai` 或 CLI 预检 | `../ai-examples.md` |
 
 ## 当前基础要求
@@ -21,7 +22,7 @@
 
 1. 给安装方式：`pnpm add @bintel/dimens-cli` 或当前仓库本地开发路径。
 2. 给 `createSDK` 初始化片段。
-3. 根据资源域选择 `project/sheet/column/view/row/document/report/canvas/upload/ai` 示例。
+3. 根据资源域选择 `user/team/project/sheet/column/view/row/document/report/canvas/upload/ai` 示例。
 4. 写操作必须说明读取当前版本或当前数据后再更新。
 5. 给 CLI 预检命令和 SDK 代码的对应关系。
 

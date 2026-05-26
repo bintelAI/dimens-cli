@@ -4,6 +4,11 @@
 
 如果你是前端开发者，第一次接入 `dimens-sdk`，先不要把所有文档都看一遍。
 
+先判断是不是基于 `dimens-cli/dimens-web` 做维表自定义页面：
+
+- 是：先看 `references/dimens-web-scaffold.md`，直接复用脚手架。
+- 不是：再按本页的通用前端接入链路做登录态、SDK、retry 分层。
+
 按下面顺序就行：
 
 1. 先理解登录与 token 主链
@@ -13,6 +18,7 @@
 
 对应文档：
 
+- 维表自定义页面脚手架：`references/dimens-web-scaffold.md`
 - 登录与 token 主链：`references/frontend-auth-flow.md`
 - React / Vue 示例：`references/react-auth-example.md`
 - 最佳实践：`references/sdk-best-practices.md`
@@ -20,7 +26,7 @@
 
 ## 2. 你最终要实现的目标
 
-前端项目里，最终应该落成这条链：
+普通前端项目里，最终应该落成这条链：
 
 ```text
 login -> save token -> createAuthedSdk(teamId, projectId) -> createDimensAppSdk(teamId, projectId) -> page call app sdk -> 401 refresh -> retry -> logout
@@ -35,9 +41,19 @@ login -> save token -> createAuthedSdk(teamId, projectId) -> createDimensAppSdk(
 - 浏览器里不保存 `apiSecret`，只保存用户态 token 或服务端签发的短期 token
 - 401 只触发 refresh / retry，403 和 404 不要误判成 token 过期
 
+如果使用 `dimens-web` 脚手架，这条链已经落在脚手架内：
+
+- `src/runtime/resolveRuntimeContext.ts` 负责上下文来源合并
+- `src/store/runtimeStore.ts` 负责运行上下文和 auth 状态
+- `src/lib/dimens/appSdk.ts` 负责应用级 SDK 聚合
+- `src/lib/dimens/useDimens.ts` 负责 React 页面内使用
+- `src/lib/dimens/retry.ts` 负责 token 失效后的刷新和重试
+
+页面开发只需要在 `src/pages` 里使用 `useDimens()` 和 `useRuntimeStore`。
+
 ## 3. 第一步：先把登录态链跑通
 
-你最先要落的文件一般是：
+普通前端项目最先要落的文件一般是：
 
 ```text
 src/lib/dimens-storage.ts
@@ -58,6 +74,8 @@ src/lib/dimens-sdk.ts
 必看：
 
 - `references/frontend-auth-flow.md`
+
+`dimens-web` 脚手架不需要按这一节新建文件，先看 `references/dimens-web-scaffold.md`。
 
 ## 4. 第二步：初始化时写入 teamId / projectId
 
@@ -179,7 +197,7 @@ await withDimensRetry(() =>
 
 ## 9. 最短执行清单
 
-如果你只想看最短版，就按这个做：
+如果你只想看普通前端最短版，就按这个做：
 
 1. 先写 `dimens-storage.ts`
 2. 再写 `dimens-auth.ts`
@@ -189,6 +207,14 @@ await withDimensRetry(() =>
 6. 跑通项目列表请求
 7. 再补 `withDimensRetry`
 8. 最后再接表格 / 文档 / 报表 / AI
+
+如果是 `dimens-web` 自定义页面，最短版是：
+
+1. 在 `dimens-cli/dimens-web/src/pages` 新增或改造页面。
+2. 在 `src/router/routes.tsx` 注册路由。
+3. 用 `useRuntimeStore` 读取 `context` 和 `permissions`。
+4. 用 `useDimens()` 调 `sheet / row / document / report / ai`。
+5. 跑 `pnpm run typecheck && pnpm run test && pnpm run build`。
 
 ## 10. 最小验证命令
 

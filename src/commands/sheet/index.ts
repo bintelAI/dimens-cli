@@ -1,5 +1,5 @@
-import { createCommand, createCommandGroup, registerGroupCommand } from '../registry';
 import { SheetSDK } from '../../sdk/sheet';
+import { createCommand, createCommandGroup, registerGroupCommand } from '../registry';
 import {
   createClient,
   getContext,
@@ -174,7 +174,7 @@ export function registerSheetCommands(): void {
           const sdk = new SheetSDK(createClient(context));
           const currentSheetResult = await sdk.info(teamId, projectId, sheetId);
           const currentSheet = currentSheetResult.data;
-          const payload: { name?: string; folderId?: string } = {};
+          const payload: { name?: string; parentId?: string } = {};
           if (typeof currentSheet.name === 'string') {
             payload.name = currentSheet.name;
           }
@@ -182,7 +182,7 @@ export function registerSheetCommands(): void {
             payload.name = flags.name;
           }
           if (flags['folder-id']) {
-            payload.folderId = flags['folder-id'];
+            payload.parentId = flags['folder-id'];
           }
           const result = await sdk.update(teamId, projectId, sheetId, payload);
           printSuccess(context, '资源节点更新成功', result.data);
@@ -197,6 +197,51 @@ export function registerSheetCommands(): void {
           'sheet update folder_customer --team-id TEAM1 --project-id PROJ1 --name 客户中心',
           'sheet update sheet_customer --team-id TEAM1 --project-id PROJ1 --name 客户主表',
           'sheet update sheet_customer --team-id TEAM1 --project-id PROJ1 --folder-id folder_customer',
+        ],
+      }
+    )
+  );
+
+  registerGroupCommand(
+    'sheet',
+    createCommand(
+      'move',
+      '把已有表格、报表、文档或画布移动到项目菜单目录',
+      async args => {
+        const flags = parseFlags(args);
+        const context = getContext(flags);
+
+        try {
+          const teamId = requireTeamId(context, flags);
+          const projectId = requireProjectId(context, flags);
+          const sheetId = requireSheetId(flags, args);
+          const folderId = flags['folder-id'];
+          if (!folderId) {
+            throw new Error('缺少目标目录，请传入 --folder-id <folderSheetId>');
+          }
+
+          const sdk = new SheetSDK(createClient(context));
+          const currentSheetResult = await sdk.info(teamId, projectId, sheetId);
+          const currentSheet = currentSheetResult.data;
+          const payload: { name?: string; parentId: string } = {
+            parentId: folderId,
+          };
+          if (typeof currentSheet.name === 'string') {
+            payload.name = currentSheet.name;
+          }
+
+          const result = await sdk.update(teamId, projectId, sheetId, payload);
+          printSuccess(context, '资源节点移动成功', result.data);
+        } catch (error) {
+          printError(context, error);
+        }
+      },
+      {
+        usage:
+          'sheet move <sheetId> --folder-id <folderSheetId> [--project-id <projectId>] [--team-id <teamId>] [--app-url <url>]',
+        examples: [
+          'sheet move sheet_customer --team-id TEAM1 --project-id PROJ1 --folder-id folder_customer',
+          'sheet tree --team-id TEAM1 --project-id PROJ1',
         ],
       }
     )

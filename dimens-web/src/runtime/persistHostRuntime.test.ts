@@ -55,4 +55,42 @@ describe('persistHostRuntimeForDev', () => {
     }));
     expect(JSON.stringify(getLocalAppConfig())).not.toContain('secret_should_not_store');
   });
+
+  it('strips secrets from nested view and action snapshots', () => {
+    persistHostRuntimeForDev({
+      teamId: 'team_1',
+      projectId: 'project_1',
+      sourceLocation: 'ROW_BUTTON_MODAL',
+      viewState: {
+        viewId: 'view_1',
+        viewType: 'plugin',
+        filters: [],
+        filterMatchType: 'and',
+        sortRule: null,
+        groupBy: [],
+        hiddenColumnIds: [],
+        selectedRowIds: ['row_1'],
+        displayRows: [
+          {
+            rowId: 'row_1',
+            title: '客户 A',
+            apiSecret: 'nested_secret_should_not_store',
+          },
+        ],
+      },
+      actionSnapshot: {
+        trigger: { type: 'button', id: 'button_1' },
+        rowId: 'row_1',
+        rowSnapshot: {
+          rowId: 'row_1',
+          title: '客户 A',
+          token: 'nested_token_should_not_store',
+        },
+      },
+    });
+
+    expect(JSON.stringify(getLocalRuntime())).toContain('客户 A');
+    expect(JSON.stringify(getLocalRuntime())).not.toContain('nested_secret_should_not_store');
+    expect(JSON.stringify(getLocalRuntime())).not.toContain('nested_token_should_not_store');
+  });
 });

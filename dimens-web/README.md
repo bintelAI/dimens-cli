@@ -18,7 +18,7 @@
 ## 本地启动
 
 ```bash
-cd /Users/lixiang/data/代码库管理/binterAi/多维项目开发/dimens-web
+cd /Users/lixiang/data/代码库管理/binterAi/多维项目开发/dimens-cli/dimens-web
 pnpm install
 pnpm run dev
 ```
@@ -38,6 +38,8 @@ pnpm run build
 ```text
 https://cdn.example.com/dimens-web/index.html#/
 https://cdn.example.com/dimens-web/index.html#/records
+https://cdn.example.com/dimens-web/index.html#/view-context
+https://cdn.example.com/dimens-web/index.html#/button-context
 https://cdn.example.com/dimens-web/index.html#/settings
 https://cdn.example.com/dimens-web/index.html#/embed
 https://cdn.example.com/dimens-web/index.html#/debug/context
@@ -54,7 +56,9 @@ https://cdn.example.com/dimens-web/index.html
 https://cdn.example.com/dimens-web/index.html#/records
 ```
 
-宿主 props 示例：
+### 页面微模块 props
+
+页面型微模块从项目菜单打开，`sourceLocation` 固定为 `PROJECT_MENU`。
 
 ```ts
 {
@@ -81,6 +85,93 @@ https://cdn.example.com/dimens-web/index.html#/records
   }
 }
 ```
+
+### 视图微模块 props
+
+视图型微模块从多维表格视图标签打开，`sourceLocation` 固定为 `SHEET_VIEW`。宿主传入的 `displayRows` 是当前视图轻量快照，不承诺全量数据。
+
+```ts
+{
+  teamId: 'TEAM1',
+  projectId: 'PROJ1',
+  token: 'user-token',
+  instanceId: 'mmi_view_customer',
+  moduleCode: 'customer-view',
+  sourceLocation: 'SHEET_VIEW',
+  sourceId: 'VIEW1',
+  sheetId: 'SHEET1',
+  viewId: 'VIEW1',
+  initialRoute: '/view-context',
+  viewState: {
+    viewId: 'VIEW1',
+    viewType: 'plugin',
+    filters: [],
+    filterMatchType: 'and',
+    sortRule: null,
+    groupBy: [],
+    hiddenColumnIds: [],
+    selectedRowIds: ['ROW1'],
+    displayRows: [{ rowId: 'ROW1', title: '客户 A' }],
+    displayState: { source: 'filtered', lastUpdatedAt: Date.now() }
+  },
+  permissions: {
+    visible: true,
+    editable: true,
+    canConfigure: true,
+    canReadData: true,
+    canWriteData: true
+  },
+  instanceConfig: {
+    fieldMapping: {
+      titleColumnId: 'fld_title'
+    }
+  }
+}
+```
+
+### 按钮微模块 props
+
+按钮型微模块从行按钮或单元格按钮打开，默认使用 `ROW_BUTTON_MODAL`。宿主传入的 `rowSnapshot` 是点击时轻量快照，微模块需要最新数据时应通过 SDK 按 `sheetId/rowId` 重新拉取。
+
+```ts
+{
+  teamId: 'TEAM1',
+  projectId: 'PROJ1',
+  token: 'user-token',
+  instanceId: 'mmi_button_customer',
+  moduleCode: 'customer-action',
+  sourceLocation: 'ROW_BUTTON_MODAL',
+  sourceId: 'ROW1',
+  sheetId: 'SHEET1',
+  viewId: 'VIEW1',
+  rowId: 'ROW1',
+  columnId: 'fld_action',
+  initialRoute: '/button-context',
+  actionSnapshot: {
+    trigger: { type: 'button', id: 'fld_action', label: '处理客户' },
+    sheetId: 'SHEET1',
+    viewId: 'VIEW1',
+    rowId: 'ROW1',
+    columnId: 'fld_action',
+    fieldId: 'fld_action',
+    recordIds: ['ROW1'],
+    selectedRowIds: ['ROW1'],
+    rowSnapshot: { rowId: 'ROW1', title: '客户 A' }
+  },
+  permissions: {
+    visible: true,
+    editable: false,
+    canConfigure: false,
+    canReadData: true,
+    canWriteData: false
+  },
+  instanceConfig: {
+    actionName: '处理客户'
+  }
+}
+```
+
+快照只用于首屏展示和交互上下文，不是权威数据源。任何写入、最新数据读取和权限裁决都必须走维表 SDK/API，由后端完成最终校验。
 
 ## Token 获取机制
 

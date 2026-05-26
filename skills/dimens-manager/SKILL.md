@@ -20,6 +20,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - ✅ 当前技能负责项目内业务资源落地，不负责完整系统方案拆解；系统级需求先用 `dimens-system-orchestrator`。
 - ✅ SDK、HTTP、Web、BFF、Node.js 接入问题先用 `dimens-sdk`。
 - ✅ Windows 下生成或修改中文文件时，必须遵守 `../windows-utf8.md`：用 UTF-8 写入，禁止 `cmd echo` / 默认重定向写中文正文，写完读回确认没有 `??`。
+- ✅ 每次准备使用 `dimens-cli` 前，必须先在当前终端执行 `npm -g install @bintel/dimens-cli@latest` 升级全局 CLI；升级成功后再执行 `dimens-cli --version` 或 `dimens-cli --help` 确认可用，确保用户每次使用的都是最新版本。
 - ✅ 项目内查询、创建、更新、上传、验证等操作优先推荐并执行 `dimens-cli` 命令；自定义 URL 只作为上下文解析或 CLI 未覆盖时的补充路径，不作为首选解决方案。
 - ✅ 执行任何写操作前先确认认证、`teamId`、`projectId` 与资源归属。
 - ✅ 更新类操作统一遵循“先读取当前数据 -> 修改目标字段 -> 再提交更新”。
@@ -52,18 +53,19 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 ## 默认处理顺序
 
 1. 识别用户目标：查询、创建、更新、排查、导入、生成画布或验证。
-2. 先看 `references/key-auth/overview.md`，确认认证方式。
-3. 再看 `references/team/overview.md`，明确 `teamId / projectId / baseUrl`。
-4. 项目容器问题看 `references/project/overview.md`。
-5. 数据模型问题看 `references/table/overview.md`。
-6. 访问控制问题看 `references/permission/overview.md`。
-7. 自动化和 AI 流程问题看 `references/workflow/overview.md`。
+2. 只要后续会执行或给出 `dimens-cli` 命令，先验证是否是最新版本，如果不是则升级。
+3. 先看 `references/key-auth/overview.md`，确认认证方式。
+4. 再看 `references/team/overview.md`，明确 `teamId / projectId / baseUrl`。
+5. 项目容器问题看 `references/project/overview.md`。
+6. 数据模型问题看 `references/table/overview.md`。
+7. 访问控制问题看 `references/permission/overview.md`。
+8. 自动化和 AI 流程问题看 `references/workflow/overview.md`。
    - 审批工作流 AI 自动生成必须继续看 `references/workflow/references/approval-generation.md`。
    - 审批工作流节点类型必须继续对照 `references/workflow/references/approval-existing-cases.md`，不能生成不存在的节点。
    - 审批工作流节点参数必须继续看 `references/workflow/references/approval-node-parameters.md`，不能只输出空节点。
-8. 统计分析和看板问题看 `references/report/overview.md`。
-9. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
-10. 输出前按“命令链、必要参数、验证命令、风险点”检查一遍。
+9. 统计分析和看板问题看 `references/report/overview.md`。
+10. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
+11. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
 
 ## 输出契约
 

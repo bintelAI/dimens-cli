@@ -41,7 +41,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - ✅ 项目封面 SVG 默认规格是 `250x150px`，建议写入 `width="250" height="150" viewBox="0 0 250 150"`；背景使用淡色系，动画使用轻量 SVG 动态效果，不要做高饱和、强闪烁或过重动画
 - ✅ 所有更新类操作默认都按“先拿数据 -> 改数据 -> 更新数据”执行，不能把局部字段 patch 当成通用更新模型
 - ✅ 用户创建项目时，如果还没有现成封面，技能可以先调用 SVG 工具生成一个“符合项目主题、具备动态动画效果”的 SVG 封面，再走上传拿 URL，最后进入项目创建
-- ✅ 目录创建成功不代表其他菜单会自动进入目录；表格/目录资源创建时必须带 `--folder-id`，已有资源归位必须再执行 `sheet update --folder-id`
+- ✅ 目录创建成功不代表其他菜单会自动进入目录；表格/目录资源创建时必须带 `--folder-id`，已有资源归位必须再执行 `sheet move --folder-id`
 - ✅ 项目资源默认按“三驾马车”理解：表格、文档、报表；不要只初始化其中一个就停下
 - ✅ 三驾马车的推荐初始化顺序是：先定项目，再补核心表格，再补在线文档，再补经营报表，最后回到视图、字段、权限和报表预检
 - ✅ 如果项目初始化包含报表，不要只执行 `report create`；默认还应继续进入 `report create -> report preview -> report widget-add -> report query-widget -> report query` 这条固定预检链
@@ -74,7 +74,8 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 | `dimens-cli auth use-project` | 切换本地默认项目上下文 | `projectId` | - | 只影响默认上下文，不会替代真实的项目详情读取和更新流程 |
 | `dimens-cli upload file` | 上传封面、图标、文档图片、附件等资源，先拿 URL | `file` | `team-id`, `project-id`, `scene`, `source`, `classify-id`, `app-url` | 所有资源类更新先走上传，再把返回 `url` 写回业务数据，最后执行 update；要进入素材管理必须显式传 `--source material` |
 | `dimens-cli sheet create` | 创建项目目录节点或表格节点 | `projectId`, `name` | `type=folder`, `folder-id`, `teamId`, `app-url` | 项目创建后优先补菜单骨架；创建子资源时要显式传 `--folder-id` |
-| `dimens-cli sheet update` | 更新资源名称或把已有菜单资源移动到目录 | `teamId`, `projectId`, `sheetId` | `name`, `folder-id`, `app-url` | 已创建资源不会因为目录创建自动归位，移动时必须显式执行 `sheet update --folder-id` |
+| `dimens-cli sheet move` | 把已有菜单资源移动到目录 | `teamId`, `projectId`, `sheetId`, `folder-id` | `app-url` | 已创建资源不会因为目录创建自动归位，移动时优先执行 `sheet move --folder-id`，再用 `sheet tree` 回查 |
+| `dimens-cli sheet update` | 更新资源名称，兼容移动菜单归属 | `teamId`, `projectId`, `sheetId` | `name`, `folder-id`, `app-url` | `--folder-id` 会映射为后端真实字段 `parentId`；纯移动场景优先用 `sheet move` |
 | `dimens-cli doc create` | 创建在线文档资源 | `teamId`, `projectId`, `title` | `content`, `format`, `parent-id`, `app-url` | 文档是项目核心资源；可在 `content` 中写入 Mermaid 流程图 |
 | `dimens-cli doc info` | 获取文档详情和当前内容 | `teamId`, `projectId`, `documentId` | `app-url` | 文档修改前默认先读当前内容和 `version`，后续再改内容并 update |
 | `dimens-cli doc update` | 更新 TipTap 在线文档内容 | `teamId`, `projectId`, `documentId`, `content`, `version` | `create-version`, `change-summary`, `app-url` | 必须遵循“先 `doc info` -> 改内容 -> `doc update`”；流程类内容优先补 Mermaid 图表块 |

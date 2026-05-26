@@ -6,10 +6,10 @@ export default function EmbedPage() {
 
   return (
     <div className="space-y-5">
-      <section className="border border-ink-900/10 bg-white p-5 shadow-panel">
-        <div className="text-xs uppercase tracking-[0.18em] text-copper-500">Embed</div>
-        <h1 className="mt-2 text-2xl font-semibold">Wujie 嵌入检查</h1>
-        <p className="mt-2 text-sm leading-6 text-ink-700">
+      <section className="app-card">
+        <div className="app-eyebrow">Embed</div>
+        <h1 className="app-title mt-2">Wujie 嵌入检查</h1>
+        <p className="app-muted mt-2">
           用于验证宿主传入的上下文、权限与实例配置。此页不会主动请求维表数据。
         </p>
       </section>
@@ -19,6 +19,8 @@ export default function EmbedPage() {
           { label: 'source', value: context.source },
           { label: 'initialRoute', value: context.initialRoute },
           { label: 'sourceId', value: context.sourceId },
+          { label: 'viewState', value: context.viewState },
+          { label: 'actionSnapshot', value: context.actionSnapshot },
           { label: 'permissions', value: context.permissions },
           { label: 'instanceConfig', value: context.instanceConfig },
         ]}

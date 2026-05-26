@@ -8,6 +8,8 @@
 
 | 资源域 | SDK 模块 | 必读文档 | 关键风险 |
 | --- | --- | --- | --- |
+| 当前用户 | `sdk.auth.me` / `sdk.user.me` | `../capability-status.md` | 登录返回的 `userInfo` 不是当前详情回查 |
+| 团队 / 成员 | `sdk.team` | `../../../dimens-manager/references/team/overview.md` | `teamId` 是隔离边界，成员列表可按项目再收敛 |
 | 项目 | `sdk.project` | `../bff-examples.md` | `teamId` 与项目归属 |
 | 表格 / 字段 / 视图 / 行 | `sdk.sheet/column/view/row` | `../table-examples.md` | `teamId/projectId/sheetId`、行版本 |
 | 文档 | `sdk.document` | `../document-examples.md` | 富文本内容、`version`、版本恢复 |
@@ -19,7 +21,7 @@
 ## 默认输出顺序
 
 1. 先说明这是不是“代码接入”；不是则转 `dimens-manager`。
-2. 说明资源上下文：`teamId/projectId/sheetId/reportId/documentId/canvasId`。
+2. 说明资源上下文：`userId/teamId/projectId/sheetId/reportId/documentId/canvasId`。
 3. 先给 CLI 预检命令，证明认证、权限、资源 ID 正确。
 4. 再给 SDK / HTTP 最小调用片段。
 5. 更新类统一体现“先读 -> 合并 -> 更新”。

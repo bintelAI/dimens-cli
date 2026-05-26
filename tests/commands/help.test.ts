@@ -146,6 +146,19 @@ describe('Help Command', () => {
     logSpy.mockRestore();
   });
 
+  it('should print sheet move help with folder usage examples', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    await getCommand('help')?.handler(['sheet', 'move']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('命令: sheet move');
+    expect(output).toContain('把已有表格、报表、文档或画布移动到项目菜单目录');
+    expect(output).toContain('sheet move sheet_customer --team-id TEAM1 --project-id PROJ1 --folder-id folder_customer');
+    logSpy.mockRestore();
+  });
+
   it('should print sheet delete help with menu impact semantics', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 

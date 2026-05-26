@@ -240,7 +240,7 @@ dimens-cli column create \
   --sheet-id sh_ja2IwgaBhV1jUWB4 \
   --label 提交状态 \
   --type select \
-  --options 待提交,提交中,已提交,已驳回
+  --options '[{"id":"submit_pending","label":"待提交","color":"bg-slate-100 text-slate-700"},{"id":"submit_processing","label":"提交中","color":"bg-blue-100 text-blue-700"},{"id":"submit_done","label":"已提交","color":"bg-emerald-100 text-emerald-700"},{"id":"submit_rejected","label":"已驳回","color":"bg-rose-100 text-rose-700"}]'
 ```
 
 服务端 body：
@@ -251,10 +251,10 @@ dimens-cli column create \
   "type": "select",
   "config": {
     "options": [
-      { "label": "待提交" },
-      { "label": "提交中" },
-      { "label": "已提交" },
-      { "label": "已驳回" }
+      { "id": "submit_pending", "label": "待提交", "color": "bg-slate-100 text-slate-700" },
+      { "id": "submit_processing", "label": "提交中", "color": "bg-blue-100 text-blue-700" },
+      { "id": "submit_done", "label": "已提交", "color": "bg-emerald-100 text-emerald-700" },
+      { "id": "submit_rejected", "label": "已驳回", "color": "bg-rose-100 text-rose-700" }
     ],
     "dataSourceType": "manual",
     "dictionaryId": null
@@ -266,7 +266,9 @@ dimens-cli column create \
 
 - `select` / `multiSelect` 当前先走自定义选项模式
 - 创建这类字段时不能只传 `--type select`，还必须同时传 `--options`
+- 稳定有限集合优先建成 `select` 或 `multiSelect`，不要用普通 `text` 承接状态、阶段、等级、分类、来源、优先级这类字段
 - 技能生成字段方案时，也必须把候选项一并生成出来
+- `--options` 规范写法是 JSON 对象数组；每个选项至少包含唯一 `id`、非空 `label`、合法 `color`
 - 同一个字段的选项 `id` 必须唯一，不能重复，否则前端下拉映射和后续统计都有概率异常
 
 ### 4.5 `workflow` 字段案例：审批入口

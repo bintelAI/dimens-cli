@@ -29,15 +29,16 @@
 ## 默认工作流
 
 1. 按 `references/scenario-taxonomy.md` 判断是项目梳理、新建项目、修改、查询还是分类路由。
-2. 判断只是输出方案，还是要真实执行查询、创建或修改。
-3. 需要真实执行时，先按 `references/auth-prerequisite.md` 完成 `auth api-key-login`；URL 只能解析 `teamId / projectId / sheetId / viewId`，不能替代 token。
-4. 解析或确认 `teamId / projectId / baseUrl`。
-5. 先拆项目资源：目录、表格、文档、报表、业务场景画布。
-6. 再拆数据模型：表、字段、关联、示例数据、查询案例。
-7. 如果涉及流程、审批或多角色协作，补业务场景画布；审批场景补审批工作流画布，并明确可执行工作流另走 workflow 章节。
-8. 按需补权限、工作流、外部对接。
-9. 输出 `dimens-manager` 或 `dimens-sdk` 的具体章节路由和执行顺序。
-10. 执行后必须回查：`project info` 验证上传 URL 写回，`sheet tree` 验证目录归位，报表链路至少跑到 `query-widget` 或 `query`。
+2. 新建项目场景先检查用户输入或已有文档是否符合 `references/new-project-design-template.md`；不符合就先新建或重写维表设计文档。
+3. 判断只是输出方案，还是要真实执行查询、创建或修改。
+4. 需要真实执行时，先按 `references/auth-prerequisite.md` 完成 `auth api-key-login`；URL 只能解析 `teamId / projectId / sheetId / viewId`，不能替代 token。
+5. 解析或确认 `teamId / projectId / baseUrl`。
+6. 先拆项目资源：目录、表格、文档、报表、业务场景画布。
+7. 再拆数据模型：表、字段、关联、示例数据、查询案例。
+8. 如果涉及流程、审批或多角色协作，补业务场景画布；审批场景补审批工作流画布，并明确可执行工作流另走 workflow 章节。
+9. 按需补权限、工作流、外部对接。
+10. 输出 `dimens-manager` 或 `dimens-sdk` 的具体章节路由和执行顺序。
+11. 执行后必须回查：`project info` 验证上传 URL 写回，`sheet tree` 验证目录归位，报表链路至少跑到 `query-widget` 或 `query`。
 
 ## `dimens-manager` 章节入口
 
@@ -55,14 +56,18 @@
 ## 核心原则
 
 - 先方案，后执行。
+- 新建项目必须先形成维表设计文档；已有 PRD 或需求文档要先按 `references/new-project-design-template.md` 校验结构，不合格先重写再创建项目。
 - 总控只做系统级拆解、路由和验收口径；项目内落地交给 `dimens-manager`，接入代码交给 `dimens-sdk`。
 - 系统搭建不要只建表，默认考虑表格、文档、报表。
 - 涉及流程或审批的系统，默认补业务场景画布；画布用于表达场景，不替代真实工作流。
 - 表格建模必须细到字段类型、关联、候选项、示例数据和视图。
+- 建表后必须检查默认“名称”字段：能作为主展示字段就改名复用，不能用就按表格规则清理，不要留下无意义字段影响视图、报表和 relation 展示。
 - 权限不是最后补丁，涉及角色、公开访问、部门可见、行级控制时要前置设计。
-- 报表不要直接从 `widget-add` 开始，先走 `report create -> preview -> widget-add -> query-widget -> query`。
+- 报表不要直接从 `widget-add` 开始，先确认数据源表有样例数据，再走 `report create -> preview -> widget-add -> query-widget -> query`；查询为空时必须说明并修正原因。
+- 系统搭建只创建业务角色，不重复创建平台内置的超级管理员、系统管理员、管理员、编辑者、查看者、公开角色。
+- 创建业务角色后必须继续配置权限和绑定用户：`permission create/update`、`permission set-resource`、字段权限、行级策略、`role assign-user`、`myPermissions` 回查。
 - 修改数据必须先读取当前数据，再分析修改，再提交更新。
-- 创建目录不会自动移动已有菜单；新资源用 `--folder-id`，已有资源用 `sheet update --folder-id`，最后用 `sheet tree` 验证。
+- 创建目录不会自动移动已有菜单；新资源用 `--folder-id`，已有资源用 `sheet move --folder-id`，最后用 `sheet tree` 验证。
 - SVG 封面/图标默认生成 `250x150px`、淡色背景、轻量动态效果的 SVG；必须保留 `.svg` 扩展名，上传后还要把返回 `url` 写回项目或文档。
 
 ## 参考资料

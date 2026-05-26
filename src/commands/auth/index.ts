@@ -153,6 +153,33 @@ export function registerAuthCommands(): void {
   registerGroupCommand(
     'auth',
     createCommand(
+      'me',
+      '获取当前用户信息',
+      async args => {
+        const flags = parseFlags(args);
+        const context = getContext(flags);
+
+        try {
+          const sdk = new AuthSDK(createClient(context));
+          const result = await sdk.me();
+          printSuccess(context, '当前用户信息获取成功', result.data);
+        } catch (error) {
+          printError(context, error);
+        }
+      },
+      {
+        usage: 'auth me [--base-url <url>] [--token <token>]',
+        examples: [
+          'dimens-cli auth me',
+          'dimens-cli auth me --base-url https://dimens.bintelai.com/api --token TOKEN',
+        ],
+      }
+    )
+  );
+
+  registerGroupCommand(
+    'auth',
+    createCommand(
       'status',
       '查看当前上下文',
       async args => {

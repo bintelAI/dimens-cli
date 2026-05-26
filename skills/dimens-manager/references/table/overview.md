@@ -25,9 +25,11 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 字段、视图、行数据都属于工作表上下文，不能脱离 `sheetId` 单独判断
 - ✅ 默认要优先帮助用户把“项目 -> 表 -> 字段 -> 关联 -> 示例数据 -> 查询案例”搭起来
 - ✅ 字段设计必须细到可落地，不能只写“有客户名称、状态、时间”这种抽象描述
+- ✅ 创建字段前必须先判断是否存在稳定枚举语义；如果字段天然是状态、阶段、等级、分类、来源、标签、优先级、风险级别等有限集合，优先使用 `select` 或 `multiSelect`，不要退化成普通 `text`
 - ✅ relation 字段创建必须补齐目标表，推荐显式传 `--target-sheet-id`，并尽量补 `--display-column-id`
 - ✅ `select` / `multiSelect` 字段在技能创建时必须同时给出完整候选项，不能只定义字段名和类型
-- ✅ `select` / `multiSelect` / 下拉选择类配置在技能输出时必须同时给出候选项颜色策略：默认颜色还是自定义颜色，不能只给 `label`
+- ✅ `select` / `multiSelect` / 下拉选择类配置在技能输出时必须同时给出规范 `options`：每个选项至少包含唯一 `id`、非空 `label`、合法 `color`；不要只给字符串数组或只给 `label`
+- ✅ `options` 推荐始终使用 JSON 对象数组传给 `--options`；逗号分隔字符串只是 CLI 兼容能力，不作为技能生成规范
 - ✅ 用户上传 Excel 并要求创建选择器字段时，必须先从 Excel 表头和样本值提取候选项，用 `column create --options` 创建完整下拉；行数据写入必须映射到这些候选项，不能把不存在的下拉值直接写入
 - ✅ 选项颜色字符串要与前端真实实现对齐：内置颜色使用 `bg-xxx-100 text-xxx-700`，自定义颜色使用 `custom:{\"bg\":\"#xxxxxx\",\"text\":\"#xxxxxx\"}`
 - ✅ 当前 `dimens-cli` 对字段选项颜色的内置白名单已与前端真实字段配置对齐为 12 色；如果超出这 12 种内置色，优先改用 `custom:{...}`，不要直接写扩展类名
@@ -51,10 +53,11 @@ tags: [table, sheet, row, column, view, dimens-cli]
 2. 把本该用于统计的字段建成文本字段
 3. 把人员、部门字段误建成普通 `select`
 4. 认为 `select` 只要有字段名就行，忘记补候选项
-5. 给了候选项，但没给颜色，导致前端标签风格不统一
-6. 把前端支持的 `custom:` 自定义颜色写丢，导致技能输出只能覆盖一半能力
-7. 建表时没考虑哪些字段后面要做报表维度、数值轴、筛选项
-8. 只关心表能录数据，不关心字段是否可用于 `preview` 和报表映射
+5. 明明是稳定枚举，却建成 `text`，导致后续筛选、分组、报表维度不可控
+6. 给了候选项，但没给唯一 `id` 或合法 `color`，导致前端标签风格、更新和统计不稳定
+7. 把前端支持的 `custom:` 自定义颜色写丢，导致技能输出只能覆盖一半能力
+8. 建表时没考虑哪些字段后面要做报表维度、数值轴、筛选项
+9. 只关心表能录数据，不关心字段是否可用于 `preview` 和报表映射
 
 对应提醒：
 
@@ -70,7 +73,8 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `dimens-cli sheet list` | 查询项目下工作表列表 | `projectId` | `teamId` | 表入口通常先从项目进入，排查问题时建议显式补 `teamId` |
 | `dimens-cli sheet info` | 获取工作表详情 | `teamId`, `projectId`, `sheetId` | - | 表更新前默认先读当前表数据，确认结构和归属 |
 | `dimens-cli sheet create` | 创建表或目录节点 | `projectId`, `name` | `teamId`, `folder-id`, `type` | 新表落地后还要继续检查默认公开视图是否存在；要放入目录时必须显式传 `--folder-id` |
-| `dimens-cli sheet update` | 更新表基础信息或移动菜单归属 | `projectId`, `sheetId` | `teamId`, `name`, `folder-id`, `app-url` | 默认先 `sheet info` 拿当前数据，再改字段后更新；已有资源移入目录用 `--folder-id` |
+| `dimens-cli sheet update` | 更新表基础信息，兼容移动菜单归属 | `projectId`, `sheetId` | `teamId`, `name`, `folder-id`, `app-url` | 默认先 `sheet info` 拿当前数据，再改字段后更新；`--folder-id` 会映射为后端 `parentId` |
+| `dimens-cli sheet move` | 把已有表格、报表、文档或画布移动到项目菜单目录 | `teamId`, `projectId`, `sheetId`, `folder-id` | `app-url` | 移动已有资源优先用这个命令；执行后必须 `sheet tree` 回查目录归位 |
 | `dimens-cli column list` | 查询字段列表 | `teamId`, `projectId`, `sheetId` | - | 用于先确认字段结构、字段类型和现有字段 ID |
 | `dimens-cli column create` | 创建字段 | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `property`, `uiType`, `config`, `required`, `unique`, `key`, `options`, `flow-id`, `system-view` | `select/multiSelect` 必须补完整 `options`；`workflow` 字段可用 `--flow-id --system-view approval` 绑定审批入口 |
 | `dimens-cli column update` | 更新字段定义 | `teamId`, `projectId`, `sheetId`, `fieldId` | `label`, `title`, `type`, `config`, `required`, `unique`, `app-url`, `flow-id`, `system-view` | 默认先拿当前表结构，从 `structure.columns` 找到目标字段后再合并更新；`--config` 与 `--flow-id/--system-view` 会合并字段配置 |
@@ -85,7 +89,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 ### 强调细节
 
 - 表、字段、行的更新类命令默认都按“拿数据 -> 改数据 -> 更新数据”执行，不能把局部 patch 当成稳定更新方式。
-- `sheet update` 前默认先 `sheet info`；`column update` 前默认先取当前 `structure.columns`；`row update` 前默认先读取当前行数据。
+- `sheet update` / `sheet move` 前默认先 `sheet info`；移动目录时 CLI 的 `--folder-id` 会提交为后端真实字段 `parentId`；`column update` 前默认先取当前 `structure.columns`；`row update` 前默认先读取当前行数据。
 - 涉及搜索、筛选、排序、统计分析、报表预检时，不能直接盲猜字段名调用 `row page`；必须先 `column list` 拿到字段 ID、字段类型、选项值，再组装 `search-field-ids`、`filters`、`sort-rule`。
 - 初始化、迁移、补数据这类多行写入优先用 `row batch-create --file`，不要让技能循环调用 `row create` 逐条写入；CLI 默认按 200 行稳定分片，后端只保证每个分片事务原子。
 - 如果字段后续要进入报表，建模阶段就要把字段类型、选项、数值字段和维度字段设计清楚，不要拖到报表阶段返工。
@@ -127,6 +131,8 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - 字段设计默认至少要明确：字段名、类型、是否必填、是否唯一、默认值、是否参与筛选、是否参与排序、是否用于主展示
 - 如果字段类型是 `select` 或 `multiSelect`，还必须同步明确候选项列表；没有选项值就不是完整字段设计
 - 如果字段类型是 `select` 或 `multiSelect`，每个候选项默认至少明确：`id`、`label`、`color`
+- 如果字段语义是稳定有限集合，优先设计为 `select`；如果一个单元格允许多个标签或多种分类同时存在，优先设计为 `multiSelect`；只有开放文本、长说明、不可预知输入才使用 `text`
+- 创建 `select` / `multiSelect` 时，`options` 默认生成 JSON 对象数组，结构必须是 `{ "id": "稳定唯一值", "label": "展示文案", "color": "合法颜色" }`；同一字段内 `id` 不能重复，`label` 不能为空
 - 如果数据来源是 Excel，创建 `select` / `multiSelect` 字段前必须先扫描该列实际值，把去重后的合法值转成候选项；后续 `row batch-create` 写入时只能写已有候选项对应的 `label` 或 `id`，发现新值要先补字段选项再导入
 - 下拉候选项颜色必须区分两类：
   1. 内置默认颜色：使用前端内置的 Tailwind 类名组合

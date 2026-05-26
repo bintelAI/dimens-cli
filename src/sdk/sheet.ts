@@ -12,6 +12,7 @@ export interface SheetMutationPayload {
   icon?: string;
   type?: 'sheet' | 'folder' | 'document' | 'report' | 'canvas';
   folderId?: string;
+  parentId?: string | null;
   [key: string]: unknown;
 }
 

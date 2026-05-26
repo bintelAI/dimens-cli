@@ -289,6 +289,23 @@ node ./bin/dimens-cli.js sheet tree --project-id PROJ1
 - 创建完成后用 `sheet tree` 回查目录和资源归位
 - 如果要查看命令级帮助，直接执行 `node ./bin/dimens-cli.js help sheet`、`node ./bin/dimens-cli.js help sheet create`、`node ./bin/dimens-cli.js help sheet tree`
 
+自定义页面脚手架初始化：
+
+```bash
+node ./bin/dimens-cli.js create --dir
+node ./bin/dimens-cli.js create --dir ./my-custom-page
+node ./bin/dimens-cli.js create --dir=./my-custom-page
+```
+
+说明：
+
+- `create --dir` 会从 `https://imgs.bintelai.com/dimens-web.zip` 下载 `dimens-web` 自定义页面脚手架并解压到目标目录。
+- `--dir` 不带目录值时，CLI 会交互询问目录名，默认推荐 `dimens-web`。
+- 目标目录不存在时自动创建；目标目录为空时直接解压。
+- 目标目录已存在且非空时，CLI 会询问是否覆盖；确认后不会删除旧文件，而是把旧内容迁移到同级 `backupDel/<目录名>-<时间戳>/`。
+- 下载失败会直接失败并提示检查网络，不使用本地 zip 兜底。
+- 创建完成后进入目录执行 `pnpm install`，如果项目没有热加载进程，再执行 `pnpm run dev`。
+
 文档主链示例：
 
 ```bash

@@ -9,6 +9,7 @@
   -> dimens-system-orchestrator 拆模块、排顺序、识别风险
   -> dimens-manager 对应业务章节落地
   -> dimens-sdk 仅在需要开发者集成时进入
+  -> references/custom-page-scaffold.md 仅在基于 dimens-web 做自定义页面时进入
 ```
 
 路由输出必须保持两层边界：
@@ -23,6 +24,7 @@
 | `dimens-system-orchestrator` | 系统级拆解与编排 |
 | `dimens-manager` | 项目内业务操作与排查 |
 | `dimens-sdk` | SDK 与集成代码 |
+| `references/custom-page-scaffold.md` | `dimens-web` 自定义页面脚手架开发说明 |
 
 ## 2. `dimens-manager` 章节路由表
 
@@ -39,6 +41,7 @@
 | 业务场景画布、审批工作流画布、流程图、思维导图 | `references/business-canvas-flow.md` -> `dimens-manager/references/canvas/overview.md` -> `dimens-manager/references/canvas/references/generation-guide.md` | 生成 `nodes/edges` 并保存画布版本，不等同于可执行工作流 |
 | PPT 画布、演示稿画布、幻灯片画布 | `dimens-manager/references/canvas/overview.md` -> `dimens-manager/references/canvas/references/generation-guide.md#8-ppt--演示稿画布规则` | 16:9，一页一个 `SECTION` 分区，所有内容放在对应分区内 |
 | Node.js、Web、BFF、移动端接入 | `dimens-sdk/SKILL.md` | 只有开发者集成问题才进入 SDK |
+| 维表自定义页面、Wujie 嵌入、`dimens-web` 脚手架 | `references/custom-page-scaffold.md` | 开发 React 自定义页面、读取运行上下文、调用 SDK、CDN 部署和宿主嵌入 |
 
 ## 3. 默认路由顺序
 
@@ -76,6 +79,16 @@
 | 报表 / 图表 / 数据源 | `report` |
 | 画布 / 白板 / 流程图 / 思维导图 / PPT / 演示稿 / 幻灯片 | `dimens-manager/references/canvas/overview.md` |
 | 业务场景画布 / 审批工作流画布 | `references/business-canvas-flow.md`，再进入 `dimens-manager/references/canvas/overview.md` |
+| 自定义页面 / SDK 页面 / Wujie 嵌入页面 / 脚手架页面 | `references/custom-page-scaffold.md` |
+
+### 3.4 SDK 自定义页面开发
+
+如果用户要开发页面，不要把问题拆成完整系统搭建。按下面顺序处理：
+
+1. 进入 `references/custom-page-scaffold.md`，确认页面入口、运行上下文、权限和数据来源。
+2. 如果页面依赖还不存在的项目、表、视图或示例数据，再回到 `references/command-mapping.md` 和 `dimens-manager` 对应章节补资源。
+3. 页面代码基于 `dimens-cli/dimens-web`，优先使用 `useDimens()` 和 `useRuntimeStore`。
+4. 验收按 `typecheck / test / build / Wujie props / CDN Hash 路由` 逐项回查。
 
 ## 4. 章节依赖关系
 
@@ -86,6 +99,7 @@
 - 审批工作流画布和可执行审批工作流必须拆开：前者路由到 `dimens-manager/references/canvas/overview.md`，后者路由到 `workflow/references/approval-generation.md`。
 - `permission` 不是最后补丁，只要用户提到可见范围、公开访问、部门隔离、只看自己，就要提前设计。
 - `sdk` 不替代业务章节；SDK 只是接入方式，业务规则仍以 `dimens-manager` 为准。
+- `custom-page-scaffold` 不替代 CLI 资源操作；它只负责自定义页面开发、SDK 调用、宿主嵌入和部署说明。
 
 ## 5. 输出路由时的最低要求
 
@@ -102,6 +116,13 @@
 
 - `references/command-mapping.md`
 - `dimens-manager` 对应章节下的 `references/*.md`
+
+如果涉及自定义页面开发，还要同时引用：
+
+- `references/custom-page-scaffold.md`
+- `dimens-cli/dimens-web/src/lib/dimens/useDimens.ts`
+- `dimens-cli/dimens-web/src/runtime/resolveRuntimeContext.ts`
+- `dimens-cli/dimens-web/src/types/micro-module.ts`
 
 如果涉及验收，还要写清楚回查证据，例如：
 
@@ -121,3 +142,4 @@
 | 只路由到 `dimens-manager`，不说章节 | 必须给出具体业务域章节 |
 | 系统需求直接进入 `table` | 先由总控拆项目、文档、报表、权限边界 |
 | SDK 问题混到 manager | 开发者集成进入 `dimens-sdk`，业务规则再回 manager |
+| 自定义页面开发只说“看 SDK” | 基于 `dimens-web` 的页面开发必须进入 `references/custom-page-scaffold.md`，并说明脚手架文件路径 |

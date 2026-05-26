@@ -79,7 +79,7 @@
 report create -> report preview -> report widget-add -> report query-widget -> report query
 ```
 
-如果前面还创建了目录，报表创建后要用返回的 `reportId`（也就是菜单资源 `sheetId`）执行 `sheet update --folder-id`，然后用 `sheet tree` 验证它进入经营分析目录。
+如果前面还创建了目录，报表创建后要用返回的 `reportId`（也就是菜单资源 `sheetId`）执行 `sheet move --folder-id`，然后用 `sheet tree` 验证它进入经营分析目录。
 
 ## 3. 案例：已有项目链接，修改表数据
 

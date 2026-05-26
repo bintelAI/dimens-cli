@@ -30,6 +30,44 @@ BFF 侧安全边界：
 ## 2. BFF 代理项目查询
 
 ```ts
+export async function getCurrentUser(token: string) {
+  const sdk = createDimensService(token);
+  return sdk.user.me();
+}
+```
+
+说明：
+
+- `sdk.user.me()` 和 `sdk.auth.me()` 都读取 `GET /app/user/info/person`。
+- 登录返回的 `userInfo` 适合保存登录态快照；进入页面或做权限判断前，建议回查一次当前用户信息。
+
+## 3. BFF 代理团队详情与成员列表
+
+```ts
+export async function getTeamContext(token: string, teamId: string, keyword?: string) {
+  const sdk = createDimensService(token);
+
+  const [team, members] = await Promise.all([
+    sdk.team.info(teamId),
+    sdk.team.members(teamId, { keyword }),
+  ]);
+
+  return {
+    team: team.data,
+    members: members.data,
+  };
+}
+```
+
+说明：
+
+- `sdk.team.info(teamId)` 读取 `/app/org/:teamId/team/info`。
+- `sdk.team.members(teamId, query?)` 读取 `/app/org/:teamId/team_user/list`，可传 `projectId` 收敛到项目成员范围。
+- 不要用团队名替代 `teamId`；缺 ID 时先通过宿主上下文、URL 或 CLI profile 明确。
+
+## 4. BFF 代理项目查询
+
+```ts
 export async function listProjects(token: string, teamId: string, keyword?: string) {
   const sdk = createDimensService(token);
 
@@ -41,7 +79,7 @@ export async function listProjects(token: string, teamId: string, keyword?: stri
 }
 ```
 
-## 3. BFF 创建项目并初始化第一张表
+## 5. BFF 创建项目并初始化第一张表
 
 ```ts
 export async function bootstrapProject(token: string, teamId: string) {
@@ -66,7 +104,7 @@ export async function bootstrapProject(token: string, teamId: string) {
 }
 ```
 
-## 4. BFF 查询表格结构并补字段
+## 6. BFF 查询表格结构并补字段
 
 ```ts
 export async function ensureCoreColumns(
@@ -88,7 +126,7 @@ export async function ensureCoreColumns(
 }
 ```
 
-## 5. BFF 分页读取行数据并做二次转换
+## 7. BFF 分页读取行数据并做二次转换
 
 ```ts
 export async function getSheetRows(
@@ -111,7 +149,7 @@ export async function getSheetRows(
 }
 ```
 
-## 6. BFF 更新单元格并处理版本冲突
+## 8. BFF 更新单元格并处理版本冲突
 
 ```ts
 export async function updateStatus(
@@ -135,7 +173,7 @@ export async function updateStatus(
 }
 ```
 
-## 7. BFF 文档富文本更新
+## 9. BFF 文档富文本更新
 
 ```ts
 export async function updateDocumentWeeklyReport(
@@ -158,7 +196,7 @@ export async function updateDocumentWeeklyReport(
 }
 ```
 
-## 8. BFF 上传文件后返回 URL 给前端
+## 10. BFF 上传文件后返回 URL 给前端
 
 ```ts
 export async function uploadAttachment(token: string, filePath: string) {
@@ -174,7 +212,7 @@ export async function uploadAttachment(token: string, filePath: string) {
 }
 ```
 
-## 9. BFF 创建报表并预览数据
+## 11. BFF 创建报表并预览数据
 
 ```ts
 export async function createSalesReport(token: string, projectId: string) {
@@ -198,7 +236,7 @@ export async function createSalesReport(token: string, projectId: string) {
 
 注意：当前新建项目报表走项目菜单 `sheet/create type=report` 链路，SDK 会把服务端返回的 `sheetId` 兼容成 `reportId`。不要在 BFF 新建报表时继续调用旧 `sdk.report.create()` 并期待后端直接返回 `data.reportId`。
 
-## 10. BFF 调用 AI 聊天兼容接口
+## 12. BFF 调用 AI 聊天兼容接口
 
 ```ts
 export async function summarizeByAi(token: string, teamId: string, content: string) {
@@ -216,9 +254,11 @@ export async function summarizeByAi(token: string, teamId: string, content: stri
 }
 ```
 
-## 11. BFF 高风险误区
+## 13. BFF 高风险误区
 
 - 不要把 `teamId/projectId` 偷偷写死在单例里导致跨团队串数据
+- 不要把登录响应里的 `userInfo` 当成长期有效的当前用户详情；需要最新数据时用 `sdk.user.me()`
+- 不要只用 `auth use-team` 判断团队真实存在；需要团队详情时用 `sdk.team.info()` 或 `dimens-cli team info`
 - 不要把项目接口和表格接口当成同一路径模板
 - 不要在 SDK 返回失败时只把原始错误直接透传给前端
 - 不要在更新行和文档时忽略版本号

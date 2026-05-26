@@ -1,5 +1,7 @@
 # Web / H5 接入案例
 
+如果是 `dimens-cli/dimens-web` 自定义页面，不优先使用本页手写 HTTP 示例。应先看 `references/dimens-web-scaffold.md`，用 `useDimens()` 调用脚手架 SDK；只有脚手架资源层尚未封装某个接口时，才参考本页的 HTTP 路径补 resource 方法。
+
 ## 1. 浏览器端用 token 直连项目列表
 
 ```ts

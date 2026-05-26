@@ -103,33 +103,33 @@ export default function RecordsPage() {
 
   return (
     <div className="space-y-5">
-      <section className="flex flex-col justify-between gap-4 border border-ink-900/10 bg-white p-5 shadow-panel md:flex-row md:items-center">
+      <section className="app-card flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-copper-500">Rows</div>
-          <h1 className="mt-2 text-2xl font-semibold">行数据示例</h1>
-          <p className="mt-2 text-sm text-ink-700">
-            当前表：<span className="font-mono">{currentSheet?.name || selectedSheetId || '-'}</span>
+          <div className="app-eyebrow">Rows</div>
+          <h1 className="app-title mt-2">行数据示例</h1>
+          <p className="app-muted mt-2">
+            当前表：<span className="font-mono text-slate-950">{currentSheet?.name || selectedSheetId || '-'}</span>
           </p>
         </div>
         <button
           type="button"
           onClick={loadRows}
           disabled={loading || sheetLoading || !selectedSheetId}
-          className="inline-flex h-10 items-center justify-center gap-2 border border-ink-950 bg-ink-950 px-4 text-sm font-medium text-white transition hover:bg-ink-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="app-button-primary"
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
           读取行数据
         </button>
       </section>
 
-      <section className="grid gap-4 border border-ink-900/10 bg-white p-5 shadow-panel lg:grid-cols-[280px_1fr]">
+      <section className="app-card grid gap-4 lg:grid-cols-[280px_1fr]">
         <label>
-          <span className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-ink-700/60">
+          <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             <Table2 size={15} />
             选择数据表
           </span>
           <select
-            className="mt-2 h-10 w-full border border-ink-900/10 bg-[#faf8f3] px-3 text-sm outline-none transition focus:border-copper-500 focus:bg-white"
+            className="app-input mt-2 h-10"
             value={selectedSheetId}
             onChange={event => {
               const nextSheetId = event.target.value;
@@ -147,31 +147,31 @@ export default function RecordsPage() {
             ))}
           </select>
         </label>
-        <div className="border border-ink-900/10 bg-[#faf8f3] px-3 py-2 text-sm leading-6 text-ink-700">
+        <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-600">
           {sheetLoading ? '正在读取项目表列表...' : selectedSheetId ? (
             <>
-              将读取 <span className="font-mono text-ink-950">{selectedSheetId}</span> 的前 50 行数据。
+              将读取 <span className="font-mono text-slate-950">{selectedSheetId}</span> 的前 50 行数据。
             </>
           ) : '当前项目未读取到可选择的数据表。'}
         </div>
       </section>
 
       {error ? (
-        <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
+        <div className="app-alert-error">{error}</div>
       ) : null}
 
       {loading || lastLoadedSheetId ? (
-        <div className="border border-ink-900/10 bg-white p-4 text-sm text-ink-700">
+        <div className="app-alert-info">
           {loading ? '正在读取行数据...' : (
             <>
-              已读取 <span className="font-mono text-ink-950">{lastLoadedSheetId}</span> 的行数据，
+              已读取 <span className="font-mono text-slate-950">{lastLoadedSheetId}</span> 的行数据，
               返回 {readRowsCount(result)} 条记录。
             </>
           )}
         </div>
       ) : null}
 
-      <pre className="min-h-[420px] overflow-auto border border-ink-900/10 bg-ink-950 p-5 text-xs leading-6 text-moss-100">
+      <pre className="app-code-panel min-h-[420px]">
         {result ? JSON.stringify(result, null, 2) : '点击“读取行数据”后会展示接口返回。'}
       </pre>
     </div>

@@ -150,8 +150,8 @@ dimens-cli sheet tree --project-id PROJECT_ID
 - `project-cover.svg` 建议由 SVG 工具提前生成，要求符合项目主题、`250x150px`、淡色背景且具备轻量动态效果；上传文件名必须保留 `.svg`，CLI 会按 `image/svg+xml` 提交
 - `FOLDER_CUSTOMER_ID`、`FOLDER_DOC_ID` 等目录 ID 可以在创建目录后，从返回结果里拿到
 - 文档当前走 `doc create --parent-id` 挂到目录下；表格当前走 `sheet create --folder-id`
-- 创建目录只会生成目录节点，不会自动把其他菜单移动进去；已存在的表格/报表/目录资源必须再执行 `sheet update --folder-id`
-- 报表创建返回的 `reportId` 等于菜单资源 `sheetId`，如果需要移动到目录，使用这个 ID 执行 `sheet update REPORT_SHEET_ID --folder-id FOLDER_REPORT_ID`
+- 创建目录只会生成目录节点，不会自动把其他菜单移动进去；已存在的表格/报表/目录资源必须再执行 `sheet move --folder-id`
+- 报表创建返回的 `reportId` 等于菜单资源 `sheetId`，如果需要移动到目录，使用这个 ID 执行 `sheet move REPORT_SHEET_ID --folder-id FOLDER_REPORT_ID`
 - `sheet tree` 是这组命令的最后一步，不要省略
 
 ## 4. 切换默认项目

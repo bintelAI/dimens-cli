@@ -17,15 +17,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="border border-ink-900/10 bg-white p-6 shadow-panel">
+      <section className="app-hero">
         <div className="max-w-3xl">
-          <div className="text-xs uppercase tracking-[0.24em] text-copper-500">
+          <div className="app-eyebrow">
             {appConfig?.appName || 'Dimens Web'}
           </div>
-          <h1 className="mt-4 text-3xl font-semibold tracking-normal text-ink-950 md:text-5xl">
+          <h1 className="app-page-title mt-4">
             维表自定义前端概览
           </h1>
-          <p className="mt-4 text-sm leading-7 text-ink-700">
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
             当前应用已接入维表运行上下文，可在普通页面或 Wujie 微前端环境中使用。
           </p>
         </div>
@@ -51,20 +51,20 @@ export default function DashboardPage() {
         ]}
       />
 
-      <section className="border border-ink-900/10 bg-white p-5 shadow-panel">
-        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-copper-500">
+      <section className="app-card">
+        <div className="app-eyebrow">
           <Link2 size={15} />
           Relative URLs
         </div>
-        <h2 className="mt-3 text-lg font-semibold text-ink-950">发布包相对路径</h2>
+        <h2 className="mt-3 text-lg font-semibold text-slate-950">发布包相对路径</h2>
         <div className="mt-4 grid gap-3">
           {relativeUrls.map(item => (
             <div
               key={item.path}
-              className="grid gap-2 border border-ink-900/10 bg-[#faf8f3] p-3 text-sm md:grid-cols-[120px_1fr]"
+              className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm md:grid-cols-[120px_1fr]"
             >
-              <div className="font-medium text-ink-700">{item.label}</div>
-              <code className="break-all font-mono text-ink-950">{item.path}</code>
+              <div className="font-medium text-slate-600">{item.label}</div>
+              <code className="break-all font-mono text-slate-950">{item.path}</code>
             </div>
           ))}
         </div>
@@ -75,10 +75,10 @@ export default function DashboardPage() {
 
 function Metric({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="border border-ink-900/10 bg-white p-4 shadow-insetLine">
-      <div className="flex items-center gap-2 text-copper-500">{icon}</div>
-      <div className="mt-4 text-xs uppercase tracking-[0.18em] text-ink-700/60">{label}</div>
-      <div className="mt-2 truncate text-lg font-semibold text-ink-950">{value}</div>
+    <div className="app-surface rounded-lg p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
+      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-blue-600">{icon}</div>
+      <div className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</div>
+      <div className="mt-2 truncate text-lg font-semibold text-slate-950">{value}</div>
     </div>
   );
 }

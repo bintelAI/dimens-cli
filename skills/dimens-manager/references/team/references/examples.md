@@ -8,7 +8,7 @@
 
 示例使用约束：
 
-- 上下文确认优先使用 `dimens-cli auth use-team/use-project`、`project list/info` 和显式参数复跑。
+- 上下文确认优先使用 `dimens-cli auth me/user me`、`team info/users`、`auth use-team/use-project`、`project list/info` 和显式参数复跑。
 - 示例中的团队名、项目名不能替代真实 `teamId/projectId`；缺 ID 时先查询或询问。
 - 排查“数据不对”时必须同时说明显式参数、本地 profile、环境变量三类上下文来源。
 - Windows 下保存含中文上下文记录或排查日志时，必须使用 UTF-8 并读回确认。
@@ -21,7 +21,128 @@
 
 ---
 
-## 1. 设置默认团队
+## 1. 获取当前用户信息
+
+### 1.1 服务端接口
+
+| 项 | 内容 |
+| --- | --- |
+| 方法 | `GET` |
+| 路径 | `/app/user/info/person` |
+| 入口角色 | 当前 token 用户详情 |
+| 鉴权 | `Authorization: Bearer {token}` |
+
+返回字段重点：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `data.id` | `number \| string` | 用户 ID |
+| `data.username` | `string` | 登录用户名 |
+| `data.name` / `data.nickName` | `string` | 用户显示名称 |
+| `data.email` / `data.phone` | `string` | 联系方式 |
+
+### 1.2 CLI 命令
+
+```bash
+dimens-cli auth me --output json
+dimens-cli user me --output json
+```
+
+说明：
+
+- 两个命令读取同一个接口，`auth me` 适合登录态排查，`user me` 适合用户域表达。
+- 登录接口返回的 `userInfo` 是登录响应快照；需要确认当前 token 对应用户时使用这里的命令。
+
+### 1.3 SDK 调用
+
+```ts
+const user = await sdk.user.me();
+// 或 const user = await sdk.auth.me();
+```
+
+---
+
+## 2. 查询团队详情
+
+### 2.1 服务端接口
+
+| 项 | 内容 |
+| --- | --- |
+| 方法 | `GET` |
+| 路径 | `/app/org/:teamId/team/info` |
+| 入口角色 | 团队详情 |
+| 鉴权 | `Authorization: Bearer {token}` |
+
+返回字段重点：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `data.id` | `string` | 团队 ID |
+| `data.name` | `string` | 团队名称 |
+| `data.remark` / `data.description` | `string` | 团队说明 |
+| `data.billingPlanCode` | `string` | 当前套餐代码 |
+| `data.billingSubscription` | `object \| null` | 当前订阅信息 |
+
+### 2.2 CLI 命令
+
+```bash
+dimens-cli team info --team-id TTFFEN --output json
+```
+
+### 2.3 SDK 调用
+
+```ts
+const team = await sdk.team.info('TTFFEN');
+```
+
+说明：
+
+- `auth use-team TTFFEN` 只是写本地默认团队，不会读取团队详情。
+- 排查团队上下文时，优先用显式 `--team-id` 跑一次 `team info`。
+
+---
+
+## 3. 查询团队成员列表
+
+### 3.1 服务端接口
+
+| 项 | 内容 |
+| --- | --- |
+| 方法 | `GET` |
+| 路径 | `/app/org/:teamId/team_user/list` |
+| 入口角色 | 团队成员列表 |
+| 鉴权 | `Authorization: Bearer {token}` |
+
+查询参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `projectId` | `string` | 否 | 传入后返回项目成员范围 |
+
+### 3.2 CLI 命令
+
+```bash
+dimens-cli team users --team-id TTFFEN --output json
+dimens-cli team users --team-id TTFFEN --project-id PUQUNFE --output json
+dimens-cli team users --team-id TTFFEN --keyword 张三 --output json
+```
+
+说明：
+
+- `--keyword` 会在 CLI 层对返回成员按姓名、昵称、用户名、邮箱、手机号、ID 做本地过滤。
+- 判断“用户是否属于团队”时，先查 `team users`；判断“是否能进某项目”时，再传 `--project-id` 收敛。
+
+### 3.3 SDK 调用
+
+```ts
+const members = await sdk.team.members('TTFFEN', { projectId: 'PUQUNFE' });
+// userList 是 members 的别名
+const sameMembers = await sdk.team.userList('TTFFEN');
+```
+
+---
+
+## 4. 设置默认团队
 
 ### CLI 命令
 
@@ -54,9 +175,9 @@ dimens-cli auth use-team TTFFEN
 
 ---
 
-## 2. 查询团队下的项目列表
+## 5. 查询团队下的项目列表
 
-### 2.1 服务端接口
+### 5.1 服务端接口
 
 | 项 | 内容 |
 | --- | --- |
@@ -97,7 +218,7 @@ dimens-cli auth use-team TTFFEN
 | `data.pagination.size` | `number` | 每页大小 |
 | `data.pagination.total` | `number` | 总数 |
 
-### 2.2 CLI 命令
+### 5.2 CLI 命令
 
 ```bash
 dimens-cli project list --team-id TTFFEN --output json
@@ -140,9 +261,9 @@ CLI 入参：
 
 ---
 
-## 3. 查询项目详情
+## 6. 查询项目详情
 
-### 3.1 服务端接口
+### 6.1 服务端接口
 
 | 项 | 内容 |
 | --- | --- |
@@ -168,13 +289,13 @@ CLI 入参：
 | `data.visibility` | `string` | 可见性 |
 | `data.publicRoleId` | `string` | 公开项目角色 ID |
 
-### 3.2 CLI 命令
+### 6.2 CLI 命令
 
 ```bash
 dimens-cli project info --team-id TTFFEN --id PUQUNFE --output json
 ```
 
-### 3.3 菜单配置案例
+### 6.3 菜单配置案例
 
 本次实测项目 `PUQUNFE` 返回的菜单配置位于：
 
@@ -208,7 +329,7 @@ dimens-cli project info --team-id TTFFEN --id PUQUNFE --output json
 
 ---
 
-## 4. 切换默认项目
+## 7. 切换默认项目
 
 ### CLI 命令
 
@@ -229,15 +350,17 @@ dimens-cli auth use-project PUQUNFE
 
 ---
 
-## 5. Skill 输出要求
+## 8. Skill 输出要求
 
 当用户问团队、项目、上下文时，Skill 至少要说清这几件事：
 
-1. 当前问题依赖哪个 `teamId`。
-2. 项目接口是从哪个团队路径进入的。
-3. `project list` 和 `project info` 的必填入参分别是什么。
-4. 项目详情里哪些字段可以反映菜单、可见性和公开角色。
-5. profile 默认值、显式参数、环境变量会共同影响结果，不能只看一条命令表面参数。
+1. 当前 token 对应哪个用户，可用 `auth me` / `user me` 校验。
+2. 当前问题依赖哪个 `teamId`，可用 `team info` 校验真实团队。
+3. 如涉及成员或权限，先用 `team users` 确认用户是否在团队范围内。
+4. 项目接口是从哪个团队路径进入的。
+5. `project list` 和 `project info` 的必填入参分别是什么。
+6. 项目详情里哪些字段可以反映菜单、可见性和公开角色。
+7. profile 默认值、显式参数、环境变量会共同影响结果，不能只看一条命令表面参数。
 
 ## 6. 这份文档的职责边界
 

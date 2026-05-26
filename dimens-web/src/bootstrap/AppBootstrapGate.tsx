@@ -63,7 +63,7 @@ export default function AppBootstrapGate() {
 
   if (!import.meta.env.PROD && status === 'needs-config') {
     return (
-      <div className="min-h-screen bg-transparent p-6">
+      <div className="min-h-screen p-6">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
           <StateView
             compact

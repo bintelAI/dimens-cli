@@ -2,7 +2,7 @@
 
 ## 1. 先记住一个核心原则
 
-前端对接 `dimens-sdk` 时，最稳定的做法不是“全局创建一个 SDK 然后到处复用”，而是：
+普通前端项目对接 `dimens-sdk` 时，最稳定的做法不是“全局创建一个 SDK 然后到处复用”，而是：
 
 1. 登录后把 token 存起来
 2. 初始化时把 `teamId/projectId` 一起写进前端封装
@@ -11,6 +11,16 @@
 
 这是因为当前 SDK 的 `token` 是初始化时写入的，不是响应式自动更新的。
 同时当前仓库里的很多底层方法仍然要求显式 `teamId/projectId` 参数，所以前端最好自己再包一层。
+
+如果使用 `dimens-cli/dimens-web` 脚手架，上面这些分层已经由脚手架承担。不要重复生成通用前端封装，应复用：
+
+- `src/lib/dimens/useDimens.ts`
+- `src/lib/dimens/appSdk.ts`
+- `src/lib/dimens/retry.ts`
+- `src/runtime/resolveRuntimeContext.ts`
+- `src/store/runtimeStore.ts`
+
+脚手架场景先看 `references/dimens-web-scaffold.md`。
 
 ## 2. 推荐做法
 
@@ -97,6 +107,27 @@
 - 如果不自己再封一层，页面层还是要一直传
 
 ## 4. 最推荐的代码分层
+
+### 4.1 dimens-web 自定义页面
+
+```text
+src/lib/dimens/
+  useDimens.ts
+  appSdk.ts
+  client.ts
+  retry.ts
+  resources/
+src/runtime/
+  resolveRuntimeContext.ts
+src/store/
+  runtimeStore.ts
+src/pages/
+  CustomPage.tsx
+```
+
+页面只负责业务展示和交互；SDK、token、上下文和重试复用脚手架。
+
+### 4.2 普通前端项目
 
 ```text
 lib/

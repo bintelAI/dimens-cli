@@ -25,12 +25,14 @@
 ## 阅读顺序
 
 1. 先看命中的 `overview.md`，确认接入位置和安全边界。
-2. 再看 `integration-paths.md` 与 `capability-status.md`，确认 SDK / HTTP / BFF 选型。
-3. 最后进入对应 `*-examples.md`，只读取当前任务需要的案例。
+2. 如果是维表自定义页面或 `dimens-web` 脚手架开发，先确认/安装并使用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）完成 UI/UX 设计，再进入 `references/dimens-web-scaffold.md`。
+3. 再看 `integration-paths.md` 与 `capability-status.md`，确认 SDK / HTTP / BFF 选型。
+4. 最后进入对应 `*-examples.md`，只读取当前任务需要的案例。
 
 ## 维护原则
 
 - `SKILL.md` 只保留入口、路由和风险约束。
 - 端侧、服务端、资源域、上传等细节下沉到 `references` 子目录的 `overview.md`。
+- 自定义页面提示语必须把 UI/UX 前置：先确认/安装并使用 `ui-ux-pro-max-plus`，再写 `dimens-web` 页面代码。
 - 具体代码片段放在 `references` 下的 `*-examples.md`。
 - 文档里的 SDK 模块和方法名必须以 `dimens-cli/src/sdk/` 当前实现为准。

@@ -11,15 +11,19 @@
 - `report`
 - `role`
 - `sheet`
+- `team`
 - `view`
 - `row`
 - `rowPolicy`
 - `rowAcl`
 - `ai`
 - `upload`
+- `user`
 
 ## 当前适合直接使用 SDK 的场景
 
+- 当前用户信息读取
+- 团队详情与团队成员列表读取
 - 项目创建与查询
 - 表格、字段、行数据基础调用
 - 文档读写与版本恢复
@@ -43,6 +47,7 @@
 - `RoleSDK`
 - `PermissionSDK`
 - `SheetSDK`
+- `TeamSDK`
 - `ColumnSDK`
 - `DocumentSDK`
 - `ViewSDK`
@@ -51,6 +56,34 @@
 - `RowAclSDK`
 - `FlowChatSDK`
 - `UploadSDK`
+- `UserSDK`
+
+## 用户与团队上下文能力
+
+当前用户信息：
+
+| 入口 | 方法 / 命令 | 接口 |
+| --- | --- | --- |
+| SDK | `sdk.auth.me()` | `GET /app/user/info/person` |
+| SDK | `sdk.user.me()` | `GET /app/user/info/person` |
+| CLI | `dimens-cli auth me` | `GET /app/user/info/person` |
+| CLI | `dimens-cli user me` | `GET /app/user/info/person` |
+
+团队信息与成员：
+
+| 入口 | 方法 / 命令 | 接口 |
+| --- | --- | --- |
+| SDK | `sdk.team.info(teamId)` | `GET /app/org/:teamId/team/info` |
+| SDK | `sdk.team.members(teamId, query?)` | `GET /app/org/:teamId/team_user/list` |
+| SDK | `sdk.team.userList(teamId, query?)` | `GET /app/org/:teamId/team_user/list` |
+| CLI | `dimens-cli team info --team-id TEAM1` | `GET /app/org/:teamId/team/info` |
+| CLI | `dimens-cli team users --team-id TEAM1 [--project-id PROJ1] [--keyword 张三]` | `GET /app/org/:teamId/team_user/list` |
+
+注意：
+
+- `team users --keyword` 在 CLI 层会对返回成员做本地过滤，避免后端只读取 `projectId` 时关键词无效。
+- `auth use-team` 只写入本地默认 `teamId`，不等于读取团队详情；需要校验团队真实存在时使用 `team info`。
+- 登录返回的 `userInfo` 只能代表登录响应里的快照；需要当前用户详情时使用 `auth me` / `user me` / `sdk.user.me()`。
 
 `@bintel/dimens-cli` 的 Node.js 要求是 `>=20`。
 
@@ -87,6 +120,9 @@
 
 ```bash
 dimens-cli auth status
+dimens-cli auth me
+dimens-cli team info --team-id TEAM_ID
+dimens-cli team users --team-id TEAM_ID
 dimens-cli project info PROJECT_ID --team-id TEAM_ID
 dimens-cli sheet info SHEET_ID --team-id TEAM_ID --project-id PROJECT_ID
 dimens-cli report info REPORT_ID --project-id PROJECT_ID

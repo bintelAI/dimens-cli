@@ -72,6 +72,7 @@ export interface MicroModuleActionSnapshot {
   fieldId?: string;
   recordIds?: string[];
   selectedRowIds?: string[];
+  rowSnapshot?: Record<string, unknown>;
   activeCell?: {
     rowId: string;
     columnId: string;
@@ -111,6 +112,8 @@ export interface ResolvedRuntimeContext extends MicroModuleBaseContext, RuntimeR
   rowId?: string;
   columnId?: string;
   selectedRowIds?: string[];
+  viewState?: MicroModuleViewState;
+  actionSnapshot?: MicroModuleActionSnapshot;
   source: 'host' | 'url' | 'local' | 'env' | 'mixed';
   isWujie: boolean;
 }

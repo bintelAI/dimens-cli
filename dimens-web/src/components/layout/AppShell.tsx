@@ -13,23 +13,23 @@ export default function AppShell() {
   const isReleaseMode = import.meta.env.PROD || window.__DIMENS_WEB_RELEASE_MODE__ === true;
 
   return (
-    <div className="min-h-screen bg-transparent text-ink-950">
+    <div className="min-h-screen bg-transparent text-slate-950">
       <div className="flex min-h-screen">
         {!isReleaseMode ? (
           <aside
             className={[
-              'hidden border-r border-ink-900/10 bg-white/78 backdrop-blur md:block',
+              'hidden border-r border-slate-200/80 bg-white/85 shadow-[8px_0_30px_rgba(15,23,42,0.04)] backdrop-blur md:block',
               sidebarOpen ? 'w-64' : 'w-20',
             ].join(' ')}
           >
-            <div className="flex h-16 items-center gap-3 border-b border-ink-900/10 px-5">
-              <div className="flex h-9 w-9 items-center justify-center bg-ink-950 text-white">
+            <div className="flex h-16 items-center gap-3 border-b border-slate-200/80 px-5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-lg">
                 <Boxes size={18} />
               </div>
               {sidebarOpen ? (
-                <div>
-                  <div className="text-sm font-semibold">{appConfig?.appName || 'Dimens Web'}</div>
-                  <div className="text-xs text-ink-700/60">{context.source}</div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-slate-950">{appConfig?.appName || 'Dimens Web'}</div>
+                  <div className="text-xs text-slate-500">{context.source}</div>
                 </div>
               ) : null}
             </div>
@@ -43,8 +43,10 @@ export default function AppShell() {
                     end={item.to === '/'}
                     className={({ isActive }) =>
                       [
-                        'flex h-11 items-center gap-3 px-3 text-sm transition',
-                        isActive ? 'bg-ink-950 text-white' : 'text-ink-800 hover:bg-ink-950/5',
+                        'flex h-11 items-center gap-3 rounded-md px-3 text-sm transition',
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-lg'
+                          : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700',
                       ].join(' ')
                     }
                   >
@@ -59,15 +61,15 @@ export default function AppShell() {
         <main className="min-w-0 flex-1">
           <header
             className={[
-              'sticky top-0 z-10 flex h-16 items-center justify-between border-b border-ink-900/10 px-5 backdrop-blur',
-              'bg-transparent',
+              'sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200/80 px-5 backdrop-blur',
+              'bg-white/72',
             ].join(' ')}
           >
             <div className="flex items-center gap-3">
               {!isReleaseMode ? (
                 <button
                   type="button"
-                  className="hidden h-9 w-9 items-center justify-center border border-ink-900/10 bg-white md:flex"
+                  className="hidden h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 md:flex"
                   onClick={toggleSidebar}
                   aria-label="切换导航"
                 >
@@ -75,17 +77,17 @@ export default function AppShell() {
                 </button>
               ) : null}
               <div>
-                <div className="text-sm font-semibold">{context.moduleCode}</div>
-                <div className="text-xs text-ink-700/60">
+                <div className="text-sm font-semibold text-slate-950">{context.moduleCode}</div>
+                <div className="text-xs text-slate-500">
                   {context.teamId || '-'} / {context.projectId || '-'}
                 </div>
               </div>
             </div>
-            <div className="border border-ink-900/10 bg-white px-3 py-1.5 text-xs text-ink-700">
+            <div className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
               {context.isWujie ? 'Wujie' : 'Standalone'}
             </div>
           </header>
-          <div className="p-5 lg:p-8">
+          <div className="mx-auto w-full max-w-7xl p-5 lg:p-8">
             <Outlet />
           </div>
         </main>

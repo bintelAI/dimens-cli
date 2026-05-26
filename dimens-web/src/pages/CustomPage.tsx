@@ -9,16 +9,16 @@ export default function CustomPage() {
 
   return (
     <div className="space-y-5">
-      <section className="border border-ink-900/10 bg-white p-6 shadow-panel">
+      <section className="app-hero">
         <div className="max-w-3xl">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-copper-500">
+          <div className="app-eyebrow">
             <PanelsTopLeft size={16} />
             Custom Page
           </div>
-          <h1 className="mt-4 text-3xl font-semibold tracking-normal text-ink-950">
+          <h1 className="app-page-title mt-4">
             自定义业务页面
           </h1>
-          <p className="mt-3 text-sm leading-7 text-ink-700">
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
             这里承载维表自定义前端的业务内容，发布包默认只保留业务页面与概览首页。
           </p>
         </div>
@@ -44,10 +44,10 @@ export default function CustomPage() {
 
 function InfoCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="border border-ink-900/10 bg-white p-4 shadow-insetLine">
-      <div className="flex items-center gap-2 text-copper-500">{icon}</div>
-      <div className="mt-4 text-xs uppercase tracking-[0.18em] text-ink-700/60">{label}</div>
-      <div className="mt-2 truncate text-lg font-semibold text-ink-950">{value}</div>
+    <div className="app-surface rounded-lg p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
+      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-cyan-50 text-cyan-600">{icon}</div>
+      <div className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</div>
+      <div className="mt-2 truncate text-lg font-semibold text-slate-950">{value}</div>
     </div>
   );
 }

@@ -13,5 +13,15 @@
     "id": "orchestrator-003",
     "prompt": "我的 Web 项目想调用维表智联接口读取报表数据。",
     "expected": "应识别为 SDK/Web 接入，不强行做系统拆解，路由到 dimens-sdk 的 integration-paths、frontend-auth-flow 和 report-examples。"
+  },
+  {
+    "id": "orchestrator-004",
+    "prompt": "帮我新增一个维表自定义页面，用来展示客户跟进数据，还没有页面目录。",
+    "expected": "应识别为 SDK 自定义页面开发，先询问或建议用 dimens-cli create --dir <目录名> 初始化目录，再路由到 references/custom-page-scaffold.md，不应直接开始写页面代码。"
+  },
+  {
+    "id": "orchestrator-005",
+    "prompt": "基于已有 ./customer-page 自定义页面目录，新增一个客户看板页面。",
+    "expected": "应复用已有目录，检查脚手架结构并进入 custom-page-scaffold 流程，不应再次执行 create --dir 覆盖目录。"
   }
 ]

@@ -90,6 +90,26 @@ export async function runCLI(argv: string[]): Promise<number> {
     return 0;
   }
 
+  if (first === 'create') {
+    setExecutionContext({
+      groupName: 'system',
+      commandName: 'create',
+    });
+    const commandArgs = [second, ...rest].filter(Boolean) as string[];
+    const flags = parseFlags(commandArgs);
+    const showSkillMode = flags['show-skill'];
+    if (showSkillMode === 'true' || showSkillMode === 'summary') {
+      printSkillSummary();
+    } else if (showSkillMode === 'mapping') {
+      printSkillMapping();
+    } else if (showSkillMode === 'full') {
+      printSkillFull();
+    }
+    await getCommand('create')?.handler(commandArgs);
+    clearExecutionContext();
+    return process.exitCode ?? 0;
+  }
+
   const group = getCommandGroup(first);
   if (!group) {
     console.log(`未找到命令组: ${first}`);

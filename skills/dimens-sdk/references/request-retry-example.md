@@ -12,6 +12,8 @@
 
 这份文档就只解决这条链。
 
+如果项目使用 `dimens-cli/dimens-web` 脚手架，优先复用脚手架已有的 `src/lib/dimens/retry.ts` 和 `createRetryableDimensAppSdk()`。本页代码主要给普通前端项目或需要补齐脚手架资源层时参考。
+
 ## 2. 推荐分层
 
 ```text

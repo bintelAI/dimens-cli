@@ -205,13 +205,21 @@ dimens-cli view create \
 
 如果是 `select` 或 `multiSelect` 字段，还要继续确认：
 
-- 候选项列表
-- 每个候选项的显示文案
-- 是否需要颜色
+- 候选项列表，且创建时必须一次生成到 `options`
+- 每个候选项的唯一 `id`
+- 每个候选项的显示文案 `label`
+- 每个候选项的合法颜色 `color`
 - 如果来源是 Excel，先扫描该列去重值生成候选项，再创建字段；不要只按表头创建一个空 `select`
 - 行数据导入前要把 Excel 单元格值映射到字段已有 `options` 的 `label` 或 `id`；遇到不存在的值，先补选项再写入
 
 不要只创建空的 `select` 字段，否则前端新增数据时会直接报错或不可用。
+
+稳定枚举字段要优先使用选择类字段：
+
+- 状态、阶段、等级、分类、来源、优先级、风险级别、审批结果这类单值枚举，优先用 `select`
+- 标签、适用范围、能力集合、多个分类并存这类多值枚举，优先用 `multiSelect`
+- 开放说明和不可预知文本才用 `text`
+- 技能输出里的 `--options` 默认必须是 JSON 对象数组，包含 `id / label / color`；不要输出逗号分隔字符串作为规范方案
 
 如果字段语义本身就是“人员”或“部门”，不要退化成普通下拉：
 
@@ -249,6 +257,7 @@ dimens-cli column create \
 - 最后建 relation 字段
 - 当前 CLI 已兼容旧参数 `--title`，但推荐统一改用 `--label`，与服务端字段名保持一致
 - `select` / `multiSelect` 创建时必须同步补 `--options`，推荐直接传 JSON 数组对象，便于补齐颜色等配置
+- `--options` 规范对象至少包含 `id / label / color`，同一字段内 `id` 不重复；颜色必须符合 `field-option-colors.md` 的 12 色池或 `custom:` 协议
 - relation 字段当前复杂配置仍建议按 API 的 `relationConfig` 结构校验，不能只看 CLI 成功提示
 
 如果目标里明确包含报表，字段设计时默认再补下面 4 个判断：

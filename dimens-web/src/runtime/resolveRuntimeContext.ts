@@ -53,6 +53,8 @@ export function resolveRuntimeContext(hostPatch?: DimensWebHostProps): RuntimeRe
     rowId: merged.rowId,
     columnId: merged.columnId,
     selectedRowIds: merged.selectedRowIds,
+    viewState: merged.viewState,
+    actionSnapshot: merged.actionSnapshot,
     initialRoute: normalizeRoute(merged.initialRoute),
     source: resolveSource(isWujie, host, url, local),
     isWujie,

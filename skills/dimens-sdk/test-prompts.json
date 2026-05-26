@@ -23,5 +23,35 @@
     "id": "sdk-005",
     "prompt": "我的 Web 项目只想读报表数据，不创建报表，应该直接 HTTP 还是走 BFF？403 和 404 怎么判断？",
     "expected": "应命中前端和资源域接入，先确认 token 安全来源、teamId/projectId/reportId，说明 reportId=sheetId 口径，403 查权限，404 查资源或上下文，并给 CLI 预检。"
+  },
+  {
+    "id": "sdk-006",
+    "prompt": "Node.js 服务端拿到维表 token 后，怎么获取当前用户信息、团队详情和团队成员列表？",
+    "expected": "应说明 sdk.user.me/auth.me 调用 /app/user/info/person，sdk.team.info 调 /app/org/:teamId/team/info，sdk.team.members/userList 调 /app/org/:teamId/team_user/list，并给出 auth me、team info、team users 的 CLI 验证命令。"
+  },
+  {
+    "id": "sdk-007",
+    "prompt": "我要新增一个维表自定义页面，但还没有目录，应该怎么开始？",
+    "expected": "应命中 dimens-web 脚手架接入，先确认/安装并使用 ui-ux-pro-max-plus 完成页面 UI/UX 设计，再建议 dimens-cli create --dir <目录名> 初始化目录，说明覆盖会迁移到 backupDel、下载失败不兜底，并给出后续 pnpm install/typecheck/test/build。"
+  },
+  {
+    "id": "sdk-008",
+    "prompt": "我已经有 ./approval-page 脚手架目录，想加一个审批详情页。",
+    "expected": "应先确认/安装并使用 ui-ux-pro-max-plus 设计审批详情页的布局、组件和状态，再复用已有目录，读取 package.json/src/vite.config.ts 后在 src/pages 和 routes.tsx 增加页面，不应重复执行 create --dir 或重写通用 auth/sdk/retry。"
+  },
+  {
+    "id": "sdk-009",
+    "prompt": "我要做一个 dimens-web 微前端，同时支持项目页面、表格视图和按钮弹窗，Wujie props 应该怎么传？",
+    "expected": "应读取 dimens-web-scaffold.md 和 micro-module-wujie-context.md，区分 INSERT_PAGE/FULL_PAGE、VIEW_DISPLAY/SHEET_VIEW_TAB、BUTTON_PLUGIN/TABLE_ROW_ACTION，以及 PROJECT_MENU、SHEET_VIEW、ROW_BUTTON_MODAL 三类 sourceLocation，给出页面、视图、按钮三份 props demo。"
+  },
+  {
+    "id": "sdk-010",
+    "prompt": "按钮字段保存的 pluginId 是 test，点击时报未找到按钮微模块 test，该怎么排查？",
+    "expected": "应说明按钮运行器不能只依赖 keyword=test；需要按 BUTTON_PLUGIN + TABLE_ROW_ACTION 查询，先 keyword 后无 keyword 兜底，并在前端按 moduleCode/code/id/name 精确匹配。"
+  },
+  {
+    "id": "sdk-011",
+    "prompt": "视图微模块里 displayRows 和按钮里的 rowSnapshot 能不能当作最终数据直接写回？",
+    "expected": "应说明 displayRows/rowSnapshot 是轻量快照，不是权威数据；最新或完整数据必须通过 useDimens SDK/API 重新读取，写入必须走后端权限校验。"
   }
 ]

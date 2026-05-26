@@ -13,6 +13,16 @@
 
 这个技能在前端场景下，优先解释这条链。
 
+但如果用户说的是“维表自定义页面 / Wujie 嵌入 / `dimens-web` 脚手架”，不要按本页重新生成 auth/storage/sdk/retry 文件。脚手架已经包含：
+
+- `src/runtime/resolveRuntimeContext.ts`
+- `src/store/runtimeStore.ts`
+- `src/lib/dimens/useDimens.ts`
+- `src/lib/dimens/appSdk.ts`
+- `src/lib/dimens/retry.ts`
+
+此时先读 `references/dimens-web-scaffold.md`，页面只消费宿主或开发配置传入的 token。
+
 安全边界必须同时说清：
 
 - 浏览器端不要保存 `apiSecret`

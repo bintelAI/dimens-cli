@@ -74,4 +74,35 @@ describe('AuthSDK', () => {
       })
     );
   });
+
+  it('should request current user info via /app/user/info/person', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 1000,
+        message: 'success',
+        data: { id: 1001, username: 'demo' },
+      }),
+    });
+
+    const sdk = new AuthSDK(
+      new DimensClient({
+        baseUrl: 'https://api.example.com',
+        token: 'token-1',
+      })
+    );
+
+    const result = await sdk.me();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/app/user/info/person',
+      expect.objectContaining({
+        method: 'GET',
+        headers: expect.objectContaining({
+          Authorization: 'Bearer token-1',
+        }),
+      })
+    );
+    expect(result.data.username).toBe('demo');
+  });
 });

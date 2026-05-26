@@ -32,6 +32,13 @@
 | 是否参与排序 | 建议 | 是否适合 `sortRule` |
 | 备注 | 建议 | 字段用途、值约束、是否需要枚举 |
 
+字段类型选择先按业务语义判断：
+
+- 稳定有限集合优先用 `select`，例如状态、阶段、等级、分类、来源、优先级、风险级别、审批结果。
+- 一个单元格可能同时拥有多个标签、能力、适用范围或分类时优先用 `multiSelect`。
+- 开放输入、长说明、不可预知内容才用 `text`；不要把明显可枚举的值做成文本。
+- 人员、部门、relation、workflow 是特殊语义字段，即使界面看起来像下拉，也不要当普通 `select` 处理。
+
 如果是 relation 字段，还要继续补齐：
 
 | relation 设计项 | 是否建议默认提供 | 说明 |
@@ -47,6 +54,9 @@
 | 枚举设计项 | 是否建议默认提供 | 说明 |
 | --- | --- | --- |
 | 候选项 `options` | 是 | 例如 `潜客 / 跟进中 / 成交 / 流失` |
+| 选项 `id` | 是 | 同一字段内必须唯一，建议稳定英文或业务编码 |
+| 选项 `label` | 是 | 展示文案，不能为空 |
+| 选项 `color` | 是 | 只能使用前端 12 色池或 `custom:{...}` 协议 |
 | 数据源类型 | 是 | 自定义场景固定用 `manual` |
 | 默认值 | 建议 | 必须来自候选项之一 |
 | 是否允许后续扩展 | 建议 | 先确认是否稳定枚举 |
@@ -56,6 +66,7 @@
 - 如果字段看起来像“负责人、处理人、成员、审批人、跟进人、归属人”这类人员选择，而且项目本身已经有自己的用户体系、部门体系和内置角色，这通常不是普通 `select`，而应优先设计为 `person`
 - 如果字段看起来像“所属部门、负责部门、归属组织、发起部门”这类组织选择，这通常不是普通 `select`，而应优先设计为 `department`
 - `select` / `multiSelect` 只适合稳定静态枚举；人员、部门这类组织型字段属于特殊情况，不要混用
+- `select` / `multiSelect` 的 `options` 必须在创建字段时一次生成到位；不能只输出字段类型，让用户后续手工补选项
 
 ## 2.1 与报表联动的字段设计原则
 
@@ -126,7 +137,7 @@
 CLI 参数：
 
 - `--type select` 或 `--type multiSelect`
-- `--options <JSON 选项数组或逗号分隔选项列表>`
+- `--options <JSON 选项对象数组>`
 
 CLI 示例：
 
@@ -137,7 +148,7 @@ dimens-cli column create \
   --sheet-id sh_customer \
   --label 提交状态 \
   --type select \
-  --options '[{"label":"待提交","color":"bg-slate-100 text-slate-700"},{"label":"提交中","color":"bg-blue-100 text-blue-700"},{"label":"已提交","color":"bg-emerald-100 text-emerald-700"},{"label":"已驳回","color":"bg-rose-100 text-rose-700"}]'
+  --options '[{"id":"submit_pending","label":"待提交","color":"bg-slate-100 text-slate-700"},{"id":"submit_processing","label":"提交中","color":"bg-blue-100 text-blue-700"},{"id":"submit_done","label":"已提交","color":"bg-emerald-100 text-emerald-700"},{"id":"submit_rejected","label":"已驳回","color":"bg-rose-100 text-rose-700"}]'
 ```
 
 ```bash
@@ -147,7 +158,7 @@ dimens-cli column create \
   --sheet-id sh_customer \
   --label 群组类型 \
   --type multiSelect \
-  --options 系统群,业务群,临时群,项目群
+  --options '[{"id":"group_system","label":"系统群","color":"bg-indigo-100 text-indigo-700"},{"id":"group_business","label":"业务群","color":"bg-blue-100 text-blue-700"},{"id":"group_temp","label":"临时群","color":"bg-yellow-100 text-yellow-700"},{"id":"group_project","label":"项目群","color":"bg-emerald-100 text-emerald-700"}]'
 ```
 
 API body 格式：
@@ -158,10 +169,10 @@ API body 格式：
   "type": "select",
   "config": {
     "options": [
-      { "label": "待提交", "color": "bg-slate-100 text-slate-700" },
-      { "label": "提交中", "color": "bg-blue-100 text-blue-700" },
-      { "label": "已提交", "color": "bg-emerald-100 text-emerald-700" },
-      { "label": "已驳回", "color": "bg-rose-100 text-rose-700" }
+      { "id": "submit_pending", "label": "待提交", "color": "bg-slate-100 text-slate-700" },
+      { "id": "submit_processing", "label": "提交中", "color": "bg-blue-100 text-blue-700" },
+      { "id": "submit_done", "label": "已提交", "color": "bg-emerald-100 text-emerald-700" },
+      { "id": "submit_rejected", "label": "已驳回", "color": "bg-rose-100 text-rose-700" }
     ],
     "dataSourceType": "manual",
     "dictionaryId": null
@@ -172,9 +183,10 @@ API body 格式：
 说明：
 
 - 当前先支持“自定义选项”模式，不扩展字典模式
-- `--options` 推荐传 JSON 选项对象数组，CLI 会优先按对象数组映射为 `config.options`
-- 旧的逗号分隔字符串仍兼容，但只适合最简单的文本选项
+- `--options` 生成规范必须使用 JSON 选项对象数组，CLI 会按对象数组映射为 `config.options`
+- 旧的逗号分隔字符串只是兼容旧输入，不作为技能输出规范；它会缺少稳定业务 `id` 和语义颜色
 - 技能生成字段方案时，凡是 `select` / `multiSelect`，都应直接产出这组候选项，而不是留空
+- 每个选项必须至少包含 `id`、`label`、`color`；`id` 同字段内唯一，`label` 非空，`color` 只使用前端 12 色池或 `custom:{\"bg\":\"#xxxxxx\",\"text\":\"#xxxxxx\"}`
 - 如果用户实际要的是“选人”或“选部门”，不要为了看起来像下拉就继续用 `select` / `multiSelect`
 
 ### 3.4 时间字段

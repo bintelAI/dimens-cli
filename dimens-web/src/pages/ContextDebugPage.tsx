@@ -16,10 +16,10 @@ export default function ContextDebugPage() {
 
   return (
     <div className="space-y-5">
-      <section className="border border-ink-900/10 bg-white p-5 shadow-panel">
-        <div className="text-xs uppercase tracking-[0.18em] text-copper-500">Debug</div>
-        <h1 className="mt-2 text-2xl font-semibold">上下文调试</h1>
-        <p className="mt-2 text-sm leading-6 text-ink-700">
+      <section className="app-card">
+        <div className="app-eyebrow">Debug</div>
+        <h1 className="app-title mt-2">上下文调试</h1>
+        <p className="app-muted mt-2">
           token 仅展示脱敏预览。不要把 apiSecret 放进浏览器配置或 CDN 配置文件。
         </p>
       </section>

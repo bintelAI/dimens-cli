@@ -26,6 +26,18 @@ export interface RefreshTokenResult {
   expire?: number;
 }
 
+export interface CurrentUserInfo {
+  id?: number | string;
+  username?: string;
+  name?: string;
+  nickName?: string;
+  email?: string;
+  phone?: string;
+  headImg?: string;
+  avatar?: string;
+  [key: string]: unknown;
+}
+
 export class AuthSDK {
   constructor(private readonly client: DimensClient) {}
 
@@ -45,5 +57,9 @@ export class AuthSDK {
 
   refreshToken(): Promise<APIResponse<RefreshTokenResult>> {
     return this.client.get<RefreshTokenResult>('/refreshToken');
+  }
+
+  me(): Promise<APIResponse<CurrentUserInfo>> {
+    return this.client.get<CurrentUserInfo>('/app/user/info/person');
   }
 }

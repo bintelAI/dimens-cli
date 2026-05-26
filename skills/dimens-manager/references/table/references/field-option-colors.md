@@ -90,10 +90,10 @@
 
 ```json
 [
-  { "label": "待提交", "color": "bg-slate-100 text-slate-700" },
-  { "label": "提交中", "color": "bg-blue-100 text-blue-700" },
-  { "label": "已提交", "color": "bg-emerald-100 text-emerald-700" },
-  { "label": "已驳回", "color": "bg-rose-100 text-rose-700" }
+  { "id": "submit_pending", "label": "待提交", "color": "bg-slate-100 text-slate-700" },
+  { "id": "submit_processing", "label": "提交中", "color": "bg-blue-100 text-blue-700" },
+  { "id": "submit_done", "label": "已提交", "color": "bg-emerald-100 text-emerald-700" },
+  { "id": "submit_rejected", "label": "已驳回", "color": "bg-rose-100 text-rose-700" }
 ]
 ```
 
@@ -136,6 +136,14 @@ custom:{"bg":"#e0e7ff","text":"#3730a3"}
 - `id`
 - `label`
 - `color`
+
+规范要求：
+
+- `options` 必须是对象数组，不要输出字符串数组。
+- `id` 必须在同一个字段内唯一，建议使用稳定英文或业务编码，例如 `status_pending`、`priority_high`。
+- `label` 必须是非空展示文案。
+- `color` 必须来自前端 12 色池，或使用 `custom:{"bg":"#xxxxxx","text":"#xxxxxx"}`。
+- CLI 示例默认使用 `--options '[{...}]'` 这种 JSON 对象数组；逗号分隔字符串只是兼容旧输入，不作为技能生成规范。
 
 不要只输出：
 

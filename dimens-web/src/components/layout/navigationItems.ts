@@ -1,4 +1,14 @@
-import { Boxes, Database, LayoutDashboard, PanelsTopLeft, Settings, Wrench, type LucideIcon } from 'lucide-react';
+import {
+  Boxes,
+  SquareMousePointer,
+  Database,
+  LayoutDashboard,
+  PanelsTopLeft,
+  Settings,
+  TableProperties,
+  Wrench,
+  type LucideIcon,
+} from 'lucide-react';
 import type { DimensWebAppConfig } from '@/config/appConfig';
 import type { ResolvedRuntimeContext } from '@/types/micro-module';
 
@@ -16,6 +26,8 @@ const releaseNavItems: AppNavItem[] = [
 const developmentNavItems: AppNavItem[] = [
   ...releaseNavItems,
   { to: '/records', label: '数据', icon: Database },
+  { to: '/view-context', label: '视图', icon: TableProperties },
+  { to: '/button-context', label: '按钮', icon: SquareMousePointer },
   { to: '/embed', label: '嵌入', icon: Boxes },
   { to: '/settings', label: '设置', icon: Settings },
   { to: '/debug/context', label: '调试', icon: Wrench },

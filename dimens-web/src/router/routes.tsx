@@ -1,6 +1,7 @@
 import { createHashRouter, Navigate } from 'react-router-dom';
 import AppBootstrapGate from '@/bootstrap/AppBootstrapGate';
 import AppShell from '@/components/layout/AppShell';
+import ButtonContextPage from '@/pages/ButtonContextPage';
 import ContextDebugPage from '@/pages/ContextDebugPage';
 import CustomPage from '@/pages/CustomPage';
 import DashboardPage from '@/pages/DashboardPage';
@@ -8,6 +9,7 @@ import EmbedPage from '@/pages/EmbedPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import RecordsPage from '@/pages/RecordsPage';
 import SettingsPage from '@/pages/SettingsPage';
+import ViewContextPage from '@/pages/ViewContextPage';
 
 const routeItems = import.meta.env.PROD
   ? [
@@ -19,6 +21,8 @@ const routeItems = import.meta.env.PROD
       { index: true, element: <DashboardPage /> },
       { path: 'custom', element: <CustomPage /> },
       { path: 'records', element: <RecordsPage /> },
+      { path: 'view-context', element: <ViewContextPage /> },
+      { path: 'button-context', element: <ButtonContextPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'embed', element: <EmbedPage /> },
       { path: 'debug/context', element: <ContextDebugPage /> },

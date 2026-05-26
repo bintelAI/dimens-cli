@@ -4,6 +4,8 @@
 
 - 前端接入总览：`references/frontend/overview.md`
 - 前端快速开始：`references/frontend-quickstart.md`
+- dimens-web 脚手架：`references/dimens-web-scaffold.md`
+- 页面 / 视图 / 按钮三类微模块 Wujie 上下文：`references/micro-module-wujie-context.md`
 - 前端登录与 token 主链：`references/frontend-auth-flow.md`
 - React/Vue 登录态示例：`references/react-auth-example.md`
 - SDK 最佳实践：`references/sdk-best-practices.md`
@@ -18,6 +20,7 @@
 ## 按业务域查看
 
 - 资源域接入总览：`references/resources/overview.md`
+- 当前用户与团队上下文：`references/capability-status.md`
 - 文件与媒体接入总览：`references/media/overview.md`
 - 多维表格案例：`references/table-examples.md`
 - 在线文档案例：`references/document-examples.md`
@@ -46,3 +49,10 @@
 - Web/H5：`references/web-examples.md`
 - 移动端：`references/mobile-examples.md`
 - BFF：`references/bff-examples.md`
+
+如果你要开发或排查 `dimens-web` 微模块，按下面顺序看：
+
+1. 脚手架基础：`references/dimens-web-scaffold.md`
+2. 三类微模块上下文协议：`references/micro-module-wujie-context.md`
+3. 需要读取表格数据时再看：`references/table-examples.md`
+4. 涉及 BFF 或密钥托管时再看：`references/bff/overview.md`

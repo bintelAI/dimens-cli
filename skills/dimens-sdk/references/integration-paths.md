@@ -10,6 +10,10 @@
 - 内部自动化脚本
 - 需要统一封装 token、错误处理、重试和日志的场景
 
+如果是维表自定义页面、Wujie 嵌入或用户明确提到 `dimens-web`，优先使用 `dimens-cli/dimens-web` 脚手架的内置 SDK 封装，而不是从零创建前端 SDK 层。入口文档：
+
+- `references/dimens-web-scaffold.md`
+
 核心原因：
 
 - 便于统一 `baseUrl`
@@ -41,6 +45,24 @@
 - 端侧 HTTP 示例必须只使用已经安全取得的 token
 
 ## 3. Web / H5 推荐路径
+
+### 3.1 维表自定义页面
+
+推荐：
+
+1. 使用 `dimens-cli/dimens-web` 脚手架。
+2. 宿主通过 Wujie props 或开发配置传入 `teamId/projectId/token/permissions`。
+3. 页面通过 `useRuntimeStore` 读取上下文。
+4. 页面通过 `useDimens()` 读取项目、表、行、文档、报表或 AI 数据。
+5. 如脚手架缺少某资源方法，先补 `src/lib/dimens/resources/*` 和 `appSdk.ts`，再在页面调用。
+
+不推荐：
+
+- 在脚手架里重复实现 auth/storage/sdk/retry。
+- 页面组件直接拼 HTTP URL。
+- 页面组件直接保存或读取 `apiSecret`。
+
+### 3.2 普通 Web / H5
 
 推荐：
 
@@ -77,6 +99,7 @@
 | 用户输入 | 应走技能 |
 | --- | --- |
 | “Web 项目调用维表接口读取报表/表格/文档” | `dimens-sdk` |
+| “基于 dimens-web 做自定义页面 / Wujie 嵌入页” | `dimens-sdk` -> `references/dimens-web-scaffold.md` |
 | “Node 服务端读取行数据并处理 401” | `dimens-sdk` |
 | “创建报表、加组件、查 query 结果” | `dimens-manager`，除非明确要代码接入 |
 | “生成一个 CRM / 审批系统 / 项目管理平台” | `dimens-system-orchestrator` |
