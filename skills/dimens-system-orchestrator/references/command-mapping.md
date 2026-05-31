@@ -85,8 +85,8 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 创建公开默认视图 | `dimens-cli view create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --name 默认视图 --type grid --is-public true --config '{"filters":[],"filterMatchType":"and","sortRule":null,"groupBy":[],"hiddenColumnIds":[],"rowHeight":"medium"}'` | 技能建表链路默认要求至少补一个公开默认视图 |
 | 查看字段列表 | `dimens-cli column list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 写入行数据前必须先取字段；如果有无用默认“名称”字段，先改名复用或清理 |
 | 创建字段 | `dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 字段名 --type text` | 推荐统一使用 `--label`；`select/multiSelect` 必须同步传 `--options`；如果语义是选人或选部门，优先改配 `person` / `department`，不要误落成普通下拉 |
-| 创建行 | `dimens-cli row create --sheet-id SHEET_ID --values '{\"fld_xxx\":\"值\"}'` | CLI 会映射到服务端 `data` |
-| 批量创建行 | `dimens-cli row batch-create --sheet-id SHEET_ID --file ./rows.json [--batch-size 200]` | 系统初始化、迁移、批量补数据优先用这个命令；后端单批最高 1000 行，但真实导入默认按 200 行稳定分片 |
+| 创建行 | `dimens-cli row batch-create --sheet-id SHEET_ID --file ./rows.json [--batch-size 200]` | 初始化、迁移、补数据、示例数据统一用 JSON 文件导入；不要用 `row create --data/--values` 直接传 JSON 字符串 |
+| 单行补录 | `dimens-cli row create --sheet-id SHEET_ID --values '{\"fld_xxx\":\"值\"}'` | 仅限少量交互式单行补录；写后仍必须 `row page` 验证，不用于系统初始化 |
 | 更新行 | `dimens-cli row update --sheet-id SHEET_ID --row-id ROW_ID --version 1 --values '{\"fld_xxx\":\"新值\"}'` | 更新前要拿到版本号 |
 | 更新单元格 | `dimens-cli row set-cell --sheet-id SHEET_ID --row-id ROW_ID --field-id FIELD_ID --value 新值 --version 1` | 推荐用 `fieldId`，不要用中文字段名 |
 | 查询行数据 | `dimens-cli row page --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --page 1 --size 20` | 验证表是否可用 |
@@ -263,13 +263,7 @@ dimens-cli column list \
 
 ### 4.6 用 fieldId 写入行
 
-```bash
-dimens-cli row create \
-  --sheet-id SHEET_ID \
-  --values '{"fld_customerName":"华东智造","fld_customerLevel":"A"}'
-```
-
-批量初始化示例数据时，不要循环执行单行 `row create`，应写入 JSON 文件后走批量命令：
+初始化、迁移、补录多行或示例数据时，不要用 `row create --data/--values` 直接传 JSON 字符串。正确做法是先写 JSON 文件，再走批量命令：
 
 ```bash
 dimens-cli row batch-create \
@@ -283,6 +277,7 @@ dimens-cli row batch-create \
 - `customers.json` 顶层必须是数组，每一项可以是 `{ "fld_xxx": "值" }` 或 `{ "data": { "fld_xxx": "值" } }`。
 - 后端单批最多 1000 行；CLI 会按 `--batch-size` 自动分片，默认使用 200 行。不要为了减少请求数改成 1000 行，真实导入中 1000 行分片存在静默丢数据风险。
 - 多批导入时只保证每个后端分片事务原子，不保证整个文件全局事务。
+- `row create --data/--values` 的命令行 JSON 字符串容易受 shell 转义、引号和字段值结构影响；如果行存在但业务 `data` 为空，改用 `row batch-create --file`，不要继续重试命令行 JSON 字符串。
 
 ## 5. 必须显式提醒的坑
 
@@ -298,6 +293,7 @@ dimens-cli row batch-create \
 | relation 字段创建显示成功但没真正落库 | 当前复杂 relation 仍需按 API 的 `relationConfig` 校验，不要只看 CLI 成功提示 |
 | 行写入直接用中文字段名 | 先查字段列表，拿 `fieldId` 再写 |
 | 批量导入还循环调用 `row create` | 使用 `row batch-create --file`，让 CLI 默认按 200 行稳定分片，减少 HTTP 和数据库压力 |
+| 用 `row create --data/--values` JSON 字符串初始化数据 | 改为写 JSON 文件后执行 `row batch-create --file`，再用 `row page` 验证 `data` 非空 |
 | 报表查询为空还说完成 | 先查 `row page`、`report preview`、`query-widget`、`query`，定位是无数据、参数过窄、字段映射错还是组件配置错 |
 | 重复创建内置管理角色 | 超级管理员、系统管理员、管理员、编辑者、查看者、公开角色由平台内置管理；系统搭建只创建业务角色 |
 | 只创建业务角色不配权限 | 继续执行 `permission create/set-resource`、字段权限、行级策略、`role assign-user` 和 `myPermissions` 回查 |

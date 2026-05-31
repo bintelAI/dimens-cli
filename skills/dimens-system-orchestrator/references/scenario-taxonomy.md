@@ -323,12 +323,21 @@ dimens-cli row page \
   --size 20
 ```
 
-拿到客户 `rowId` 后，再写联系人：
+拿到客户 `rowId` 后，再写联系人。不要用 `row create --values` 直接传 JSON 字符串；先把联系人数据写入 JSON 文件：
+
+```json
+[
+  { "fld_name": "王明", "fld_customer": ["CUSTOMER_ROW_ID"] }
+]
+```
+
+再批量导入：
 
 ```bash
-dimens-cli row create \
+dimens-cli row batch-create \
   --sheet-id CONTACT_SHEET_ID \
-  --values '{"fld_name":"王明","fld_customer":["CUSTOMER_ROW_ID"]}'
+  --file ./data/contacts.json \
+  --batch-size 200
 ```
 
 如果后端 relation 值要求对象结构，要按当前字段 `relationConfig` 和行数据返回格式调整。不要只凭中文名称写关联。

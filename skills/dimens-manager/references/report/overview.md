@@ -25,7 +25,9 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - ✅ 报表可访问不代表底层数据源一定可访问，项目权限和数据源约束可能继续收窄
 - ✅ 涉及多维表格数据源时，还要联动检查表格权限和字段映射
 - ✅ 当前报表前端图表主渲染基于 `recharts@3.6.0`，生成组件时必须按前端真实支持的 `type` 和字段映射输出
+- ✅ 统计卡片组件类型使用 `stat`，不要使用 `statistic`；生成组件前必须对照 `references/recharts-widget-guide.md` 的组件白名单。
 - ✅ 当报表组件来自多维表格时，不能只给 `sheetId`，必须同时补 `sheet.columns`、`fieldIds`、`recommendedMapping`、`previewMapping`、`dataMapping`
+- ✅ 报表依赖的数据源表必须先 `row page` 验证有数据且业务 `data` 非空；如果表格行存在但 `data:{}`，先回到表格章节修字段 ID 和导入数据。
 - ✅ 报表主资源和报表组件的更新都应默认按“先拿数据 -> 改数据 -> 更新数据”执行，不要直接把局部 patch 当成通用模式
 - ✅ Windows 下写入含中文的报表配置、组件 JSON 或调试记录时，必须使用 UTF-8 并读回确认
 
@@ -41,12 +43,15 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 6. 不要把系统字段默认拿来做主维度或主指标
 7. 不要把 `query`、`query-widget`、`preview` 三者混成一件事
 8. 不要跳过 `report info` 或现有组件读取，直接覆盖更新报表或组件
+9. 不要使用前端不支持的组件类型，例如把统计卡片写成 `statistic`
+10. 不要在数据源表无数据、业务 `data` 为空或数值字段类型错误时继续创建组件
 
 对应解释：
 
 - 当前 `report create` 创建的是项目菜单中的 `type=report` 资源，底层走 `/app/mul/project/:projectId/sheet/create`
 - 该接口返回 `sheetId`，CLI 会把 `sheetId` 归一化为后续可用的 `reportId`
 - `report create` 只会创建报表主资源和空 dashboard，不会自动补组件
+- 报表主资源创建后也要做菜单归位验证：如果目标目录为空或报表散落根目录，使用 `sheet move REPORT_ID --folder-id FOLDER_ID`，再 `sheet tree` 回查
 - `preview` 是看数据源是否能出数，`query-widget` 是看组件配置后能不能正确跑，`query` 是整报表结果校验
 - `recommendedMapping` 更偏规范层，真正给前端渲染的是 `dataMapping`
 - 对多维表格数据源，通常至少要有：`sheetId + columns + fieldIds + recommendedMapping + previewMapping + dataMapping`
@@ -93,7 +98,9 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - 报表主资源更新和组件更新都默认遵循“拿数据 -> 改数据 -> 更新数据”，不能把局部 patch 当通用更新模型。
 - `report update` 前默认先 `report info`；`widget-update` 前默认先拿当前报表和当前组件数据，再合并目标字段。
 - 报表链路不要只执行 `report create` 或 `widget-add`，固定预检链是 `report preview -> widget-add/widget-update -> query-widget -> query`。
+- `report preview` 前先跑数据源表 `row page`；如果 `rows.length=0` 或业务 `data` 为空，先补表格数据，不要继续创建空图表。
 - 如果组件来自多维表格数据源，不能只传 `sheetId`，还要把 `columns`、`fieldIds`、映射信息一起带齐。
+- 组件类型必须是前端真实白名单值；统计类卡片使用 `stat`，对应 `dataMapping` 至少包含 `nameKey` 和 `valueKey`。
 - `widget-batch` 是整数组覆盖操作，风险高，默认先读取当前 `widgets` 并明确覆盖范围后再提交。
 
 ## 输出与验证契约
@@ -197,13 +204,14 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 1. 是否已经锁定 `projectId`
 2. 组件 `type` 是否属于前端真实支持列表
 3. 如果数据源来自多维表格，是否已经明确 `sheetId`
-4. `sheet.columns` 是否包含真实字段标签和类型
-5. `fieldIds` 是否与选中字段一致
-6. `recommendedMapping` 是否使用规范键名
-7. `previewMapping` 是否存在
-8. `dataMapping` 是否使用真实字段标签
-9. 是否能先用 `report preview` 预览
-10. 是否需要再用 `report query-widget` 做单组件试跑
+4. 数据源表 `row page` 是否确认有行且业务 `data` 非空
+5. `sheet.columns` 是否包含真实字段标签和类型
+6. `fieldIds` 是否与选中字段一致
+7. `recommendedMapping` 是否使用规范键名
+8. `previewMapping` 是否存在
+9. `dataMapping` 是否使用真实字段标签，且符合组件类型要求
+10. 是否能先用 `report preview` 预览
+11. 是否需要再用 `report query-widget` 做单组件试跑
 
 只要上面任一项不完整，就不要直接输出“可一次成功创建”的结论。
 
@@ -247,6 +255,17 @@ dimens-cli report create \
 
 ### 10. 先预览数据再加组件
 
+先确认数据源表不是空表，且行内业务 `data` 非空：
+
+```bash
+dimens-cli row page \
+  --team-id TTFFEN \
+  --project-id PROJ1 \
+  --sheet-id S1 \
+  --page 1 \
+  --size 5
+```
+
 ```bash
 dimens-cli report preview \
   --project-id PROJ1 \
@@ -275,6 +294,34 @@ dimens-cli report query-widget \
   --widget-id widget_1 \
   --params '{"month":"2026-04"}'
 ```
+
+### 12.1 统计卡片最小配置
+
+统计卡片使用组件类型 `stat`，不要使用 `statistic`。最小成功配置必须同时包含数据源元信息和 `nameKey/valueKey` 映射：
+
+```bash
+dimens-cli report preview \
+  --project-id PROJ1 \
+  --data-source '{"mode":"sheet","sheet":{"sheetId":"S1","columns":[{"fieldId":"fld_name","label":"指标名称","type":"text"},{"fieldId":"fld_count","label":"参与人数","type":"number"}],"fieldIds":["fld_name","fld_count"],"recommendedMapping":{"nameKey":"name","valueKey":"value"},"previewMapping":{"nameKey":"name","valueKey":"value","aggregation":"sum","limit":1}}}' \
+  --data-mapping '{"nameKey":"指标名称","valueKey":"参与人数"}'
+```
+
+```bash
+dimens-cli report widget-add \
+  --project-id PROJ1 \
+  --report-id REPORT_1 \
+  --type stat \
+  --title "参与人数" \
+  --data-source '{"mode":"sheet","sheet":{"sheetId":"S1","columns":[{"fieldId":"fld_name","label":"指标名称","type":"text"},{"fieldId":"fld_count","label":"参与人数","type":"number"}],"fieldIds":["fld_name","fld_count"],"recommendedMapping":{"nameKey":"name","valueKey":"value"},"previewMapping":{"nameKey":"name","valueKey":"value","aggregation":"sum","limit":1}}}' \
+  --data-mapping '{"nameKey":"指标名称","valueKey":"参与人数"}' \
+  --layout '{"x":0,"y":0,"w":3,"h":2}'
+```
+
+注意：
+
+- `参与人数`、金额、数量、时长等指标字段必须是 `number`。
+- `recommendedMapping` 和 `previewMapping` 使用组件规范键，`dataMapping` 使用前端最终消费的真实字段标签或消费键。
+- 创建后必须执行 `query-widget`，再执行整报表 `query`。
 
 ## 必查文档
 
@@ -353,6 +400,8 @@ dimens-cli report query-widget \
 | 报表查多维表格数据失败 | 底层表格权限、字段映射或数据源配置有问题 | 联动检查 `dimens-manager/references/table/overview.md` 和权限链路 |
 | AI 生成的图表创建失败或渲染空白 | 图表类型、`dataMapping`、`sheet.columns`、`previewMapping` 其中一层缺失 | 必须回到 `references/recharts-widget-guide.md` 按 checklist 重建 |
 | AI 直接创建组件就失败 | 没先执行 `report preview` 或 `report query-widget` 做预检 | 先预览数据源，再创建组件 |
+| 统计卡片创建失败 | 使用了不存在的 `statistic` 类型，或缺少 `nameKey/valueKey` | 改用 `type=stat`，补齐 `recommendedMapping/previewMapping/dataMapping` |
+| 报表组件创建成功但没有数据 | 数据源表为空、行 `data` 为空、筛选参数过窄或字段映射错误 | 先 `row page` 验证表数据，再按 `preview -> query-widget -> query` 缩小问题 |
 | 报表迁移后打不开 | 只做了资源移动，没有继续校验数据源和查询 | 迁移后立即执行 `report info`、`report preview` 或 `report query` |
 | 以为 Skill 说得通就一定能创建成功 | 技能和命令之间少了预检步骤 | 把 `report create -> report preview -> report widget-add -> report query-widget -> report query` 当成固定预检链 |
 | 把字段标签和字段 ID 混用 | 映射层和元信息层混在一起了 | `sheet.columns/fieldIds` 保留字段 ID，`dataMapping` 使用真实字段标签或前端消费键 |

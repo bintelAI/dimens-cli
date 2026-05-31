@@ -321,18 +321,31 @@ relation 的目标不是“看起来有关系”，而是为了后续能做：
 | --- | --- |
 | `POST` | `/app/mul/sheet/:sheetId/row/create` |
 
-CLI 命令：
+初始化或示例数据写入不要用 `row create --values` 直接传 JSON 字符串；先写 JSON 文件：
+
+```json
+[
+  {
+    "fld_customerName": "华东智造",
+    "fld_customerLevel": "A",
+    "fld_customerStatus": "跟进中"
+  }
+]
+```
+
+再使用批量导入命令：
 
 ```bash
-dimens-cli row create \
+dimens-cli row batch-create \
   --sheet-id sh_customer \
-  --values '{"fld_customerName":"华东智造","fld_customerLevel":"A","fld_customerStatus":"跟进中"}'
+  --file ./data/customers.json \
+  --batch-size 200
 ```
 
 注意：
 
 - 行创建前要先通过 `column list` 查询字段列表，拿到真实 `fieldId`
-- `--values` 只是 CLI 参数名，CLI 内部会映射为服务端需要的 `data`
+- `row create --data/--values` 的命令行 JSON 字符串容易出现解析或转义问题，不作为初始化数据写入方式
 - 不要直接把中文字段名当请求体 key，服务端真实写入以 `fieldId` 为准
 
 ---

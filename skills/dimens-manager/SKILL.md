@@ -28,6 +28,9 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - ✅ 报表创建当前走项目菜单 `sheet/create type=report`；返回的 `reportId` 等于 `sheetId`。
 - ✅ 用户只给自然语言目标时，先把目标归类到业务域，再给 CLI 步骤；不要直接编造不存在的命令或字段。
 - ✅ 如果上下文、权限或资源 ID 缺失，先列出缺口和最小补齐命令，再继续执行或给方案。
+- ✅ 创建项目内资源时，不能只看命令返回 success；目录必须 `sheet tree` 回查，表格必须逐表 `column list` 获取真实 `fieldId`，行数据必须写后 `row page` 验证 `data` 非空，报表必须跑 `preview / query-widget / query`。
+- ✅ `sheet create --folder-id` 当前不能作为最终归位证据；创建后如果 `parentId` 为空、菜单树不在目标目录或目录为空，立即用 `sheet move --folder-id` 修正并再次 `sheet tree`。
+- ✅ 字段 ID 是表级独立生成的系统 ID；同名字段在不同表也不能复用。行数据 JSON 只能使用目标表 `column list` 返回的真实 `fieldId`。
 
 ## 职责边界
 
@@ -66,6 +69,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 9. 统计分析和看板问题看 `references/report/overview.md`。
 10. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
 11. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
+12. 如果是项目初始化或批量建表，最后必须执行一次全量验收：`sheet tree` 确认无空目录，逐表 `column list` 确认字段，逐表 `row page` 确认非空数据，逐报表 `query-widget/query` 确认可出数。
 
 ## 输出契约
 
@@ -91,6 +95,9 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - 不要为审批流编造节点类型；AI 自动审批放在 `approval` 节点配置里，项目表回写用已存在的 `mul_update_row`，不要生成 `action`、`sync_workflow_cell` 或 `approval_ai_review`。
 - 不要只生成 `id/type/label` 空节点；每个审批节点都要按 `approval-node-parameters.md` 补齐必填参数。
 - 不要只看 CLI 命令执行成功就判断权限生效；还要关注缓存失效、权限快照和前端刷新。
+- 不要只看 `sheet create --folder-id` 就判断资源已进入目录；必须 `sheet tree` 回查，必要时 `sheet move`。
+- 不要复用其它表的 `fieldId` 写入当前表；`row batch-create` 即使返回成功，也可能因为字段 ID 错误导致业务 `data` 为空。
+- 不要把空目录、空表、行 `data:{}`、空报表留到用户反馈后再修；这些都属于执行阶段必须主动发现的问题。
 
 ## 常见错误与修正
 
@@ -100,6 +107,9 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 | 直接局部 update | 先读取当前数据，再合并目标字段 |
 | 报表创建后读取不到 `reportId` | 使用返回的 `sheetId` 作为 `reportId`，或使用已归一化的 CLI 输出 |
 | 权限创建成功就认为前端已生效 | 继续检查权限快照、缓存失效和前端刷新 |
+| `sheet create --folder-id` 后目录仍为空 | 执行 `sheet move RESOURCE_ID --folder-id FOLDER_ID`，再 `sheet tree` 回查 |
+| 行创建成功但表格业务字段为空 | 逐表 `column list` 获取真实 `fieldId`，重建数据 JSON 后重新导入，并用 `row page` 验证 `data` 非空 |
+| 报表资源存在但无组件或无数据 | 先 `row page` 查数据源，再 `report preview -> widget-add -> query-widget -> query`，不能把空壳当完成 |
 | AI 只输出审批说明，没有图草案 | 按 `approval-generation.md` 补齐 `pluginType=approval` 的 `nodes/edges/globalVariables/meta` |
 | AI 生成了不存在的审批节点 | 对照 `approval-existing-cases.md` 和 `approval-generation.md` 白名单，把节点收敛到 `start/approval/condition/notification/end`；项目表回写只用 `mul_update_row` 并说明发布边界 |
 | AI 生成了空壳节点 | 按 `approval-node-parameters.md` 补齐 `start.approvalInputConfig`、`approval.participantRules`、`condition.IF`、`notification` 接收人、`end.result` 等参数 |

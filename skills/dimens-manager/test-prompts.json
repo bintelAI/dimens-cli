@@ -15,6 +15,21 @@
     "expected": "应命中权限章节，先确认 teamId/projectId/角色/表格/部门字段，说明项目权限、表权限、行级策略或 ACL 的差异，并给出创建后回查和缓存刷新风险。"
   },
   {
+    "id": "manager-003a",
+    "prompt": "我创建了一套项目管理系统，但发现有些文件夹是空的，有些表格有行但业务字段没数据，还有报表没有数据，帮我排查并说明以后怎么一次性避免。",
+    "expected": "应先 sheet tree 检查空目录并用 sheet move 归位；逐表 column list 获取真实 fieldId，指出同名字段不能跨表复用；row page 验证 rows>0 且 data 非空；报表先 row page 再 preview/query-widget/query，空报表不能算完成。"
+  },
+  {
+    "id": "manager-003b",
+    "prompt": "我要给报表加一个统计卡片，显示参与人数，数据来自多维表格。",
+    "expected": "应使用 report/recharts 指南，组件类型必须是 stat 而不是 statistic；参与人数字段必须是 number；dataSource 要包含 sheet.columns、fieldIds、recommendedMapping、previewMapping，dataMapping 要有 nameKey/valueKey，并先 row page 和 report preview 再 widget-add/query-widget。"
+  },
+  {
+    "id": "manager-003c",
+    "prompt": "我要一次创建多张表，其中部分表有单向绑定和 relation，帮我安排建表和案例数据导入顺序，别漏任何表的数据。",
+    "expected": "应先拆依赖批次：无依赖表有限并发，被引用基础表先创建并写入样例数据，有单向绑定/relation 依赖的表最后创建；案例数据必须按完整表清单逐表生成 JSON 文件、row batch-create --file 导入、row page 验证，未全部通过不得进入报表。"
+  },
+  {
     "id": "manager-004",
     "prompt": "参考现有审批流，帮我生成一个报销审批工作流：低于 5000 主管审批，高于 5000 加财务复核，审批通过后要回写项目表。",
     "expected": "应命中 workflow/approval-generation，并读取 approval-existing-cases；输出业务蓝图、pluginType=approval 草案和落地计划；节点类型必须限制在 start/approval/condition/notification/end，项目表回写只能说明 mul_update_row 后置能力或通用兼容节点，不能生成 action、sync_workflow_cell、approval_ai_review。"

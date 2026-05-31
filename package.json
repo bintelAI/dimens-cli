@@ -14,7 +14,9 @@
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "bin": {
-    "dimens-cli": "bin/dimens-cli.js"
+    "dimens-cli": "bin/dimens-cli.js",
+    "dimens-mcp-server": "bin/dimens-mcp-server.js",
+    "dimens-mcp-http-server": "bin/dimens-mcp-http-server.js"
   },
   "files": [
     "bin/",
@@ -41,6 +43,7 @@
     "release:major": "npm version major"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@sinclair/typebox": "^0.34.48",
     "adm-zip": "^0.5.17",
     "zod": "^3.23.8"

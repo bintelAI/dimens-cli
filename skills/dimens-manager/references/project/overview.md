@@ -42,6 +42,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - ✅ 所有更新类操作默认都按“先拿数据 -> 改数据 -> 更新数据”执行，不能把局部字段 patch 当成通用更新模型
 - ✅ 用户创建项目时，如果还没有现成封面，技能可以先调用 SVG 工具生成一个“符合项目主题、具备动态动画效果”的 SVG 封面，再走上传拿 URL，最后进入项目创建
 - ✅ 目录创建成功不代表其他菜单会自动进入目录；表格/目录资源创建时必须带 `--folder-id`，已有资源归位必须再执行 `sheet move --folder-id`
+- ✅ `sheet create --folder-id` 不能作为最终归位证据；创建表格、报表、文档、画布后必须 `sheet tree` 回查，发现 `parentId=null`、资源散落根目录或目录为空时，立即执行 `sheet move --folder-id` 修正。
 - ✅ 项目资源默认按“三驾马车”理解：表格、文档、报表；不要只初始化其中一个就停下
 - ✅ 三驾马车的推荐初始化顺序是：先定项目，再补核心表格，再补在线文档，再补经营报表，最后回到视图、字段、权限和报表预检
 - ✅ 如果项目初始化包含报表，不要只执行 `report create`；默认还应继续进入 `report create -> report preview -> report widget-add -> report query-widget -> report query` 这条固定预检链
@@ -55,6 +56,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - 不要跳过多表、多字段、关联和案例数据这条基础路径
 - 不要只建表格，不补文档和报表入口
 - 不要漏掉项目菜单和目录；只创建资源、不做目录归位，后续导航和展示会很乱
+- 不要只信 `sheet create --folder-id`；如果创建结果或菜单树没有证明资源进入目标目录，就必须用 `sheet move` 补归位
 - 不要把在线文档误解成只创建一次、不需要维护的资源
 - 不要把 TipTap 文档写成没有层级、没有状态、没有颜色语义的一整块纯文本；默认至少补 2-3 处有意义的颜色表达
 - 不要把上传能力和文档写回能力混为一谈；当前应明确区分 `upload file / upload mode` 与 `doc attach-file / doc append-image`
@@ -73,7 +75,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 | `dimens-cli project info` | 获取项目详情 | `teamId`, `id` | `app-url` | 项目更新前默认先拿当前项目数据，避免把局部 patch 误当成完整更新数据 |
 | `dimens-cli auth use-project` | 切换本地默认项目上下文 | `projectId` | - | 只影响默认上下文，不会替代真实的项目详情读取和更新流程 |
 | `dimens-cli upload file` | 上传封面、图标、文档图片、附件等资源，先拿 URL | `file` | `team-id`, `project-id`, `scene`, `source`, `classify-id`, `app-url` | 所有资源类更新先走上传，再把返回 `url` 写回业务数据，最后执行 update；要进入素材管理必须显式传 `--source material` |
-| `dimens-cli sheet create` | 创建项目目录节点或表格节点 | `projectId`, `name` | `type=folder`, `folder-id`, `teamId`, `app-url` | 项目创建后优先补菜单骨架；创建子资源时要显式传 `--folder-id` |
+| `dimens-cli sheet create` | 创建项目目录节点或表格节点 | `projectId`, `name` | `type=folder`, `folder-id`, `teamId`, `app-url` | 项目创建后优先补菜单骨架；创建子资源时可显式传 `--folder-id`，但创建后仍必须 `sheet tree` 验证，不归位就执行 `sheet move` |
 | `dimens-cli sheet move` | 把已有菜单资源移动到目录 | `teamId`, `projectId`, `sheetId`, `folder-id` | `app-url` | 已创建资源不会因为目录创建自动归位，移动时优先执行 `sheet move --folder-id`，再用 `sheet tree` 回查 |
 | `dimens-cli sheet update` | 更新资源名称，兼容移动菜单归属 | `teamId`, `projectId`, `sheetId` | `name`, `folder-id`, `app-url` | `--folder-id` 会映射为后端真实字段 `parentId`；纯移动场景优先用 `sheet move` |
 | `dimens-cli doc create` | 创建在线文档资源 | `teamId`, `projectId`, `title` | `content`, `format`, `parent-id`, `app-url` | 文档是项目核心资源；可在 `content` 中写入 Mermaid 流程图 |
@@ -248,6 +250,17 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - 如果用户提到历史版本、误恢复、版本回退，默认继续进入 `doc versions / doc version / doc restore`
 - 报表资源默认要走固定预检链，不要只留下空壳
 - 如果用户还没提供多表、多字段、关联和案例数据，就不要过早声称项目初始化已闭环
+
+### 2.2 菜单归位强制流程
+
+项目初始化出现多个业务目录时，默认按下面流程执行，不要只依赖创建参数：
+
+1. `dimens-cli sheet create --type folder` 创建目录并记录目录 `sheetId`。
+2. 创建表格、文档、报表、画布资源，命令支持目录参数时可以带 `--folder-id` 或 `--parent-id`。
+3. 每个资源创建后执行 `dimens-cli sheet move RESOURCE_ID --folder-id FOLDER_ID` 做归位补偿；如果资源已经在目标目录，move 应保持幂等。
+4. 执行 `dimens-cli sheet tree --project-id PROJECT_ID --team-id TEAM_ID`。
+5. 对照设计菜单树确认：每个保留目录都有子资源；每个表格、文档、报表、画布在目标目录；没有资源散落根目录。
+6. 任一目录为空或资源不在目标目录时，重新确认目标 `folderId`，再次 `sheet move`，直到 `sheet tree` 通过。
 
 ## 必查文档
 

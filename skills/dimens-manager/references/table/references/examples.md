@@ -548,11 +548,12 @@ dimens-cli row info \
 
 ### 7.1 结论
 
-当前 `row create`、`row update`、`row set-cell` 的 CLI 请求体已按 server 真实契约对齐。
+当前 `row create`、`row update`、`row set-cell` 的 CLI 请求体已按 server 真实契约对齐。但初始化、迁移、补录多行和示例数据不要使用 `row create --data/--values` 直接传 JSON 字符串，应统一使用 `row batch-create --file <JSON文件路径>`。
 
 仍需提醒的点：
 
 - `row create` / `row update` 命令行参数仍然叫 `--values`，但 CLI 内部会映射为服务端需要的 `data`
+- 命令行 JSON 字符串仍可能受 shell 转义、引号、换行和值结构影响；写初始化数据时不要依赖它
 - `row set-cell` 推荐使用 `--field-id`，旧参数 `--column-id` 仅保留兼容
 - 行写入时，字段 key 应使用 `fieldId`，不要直接使用中文字段名
 
@@ -574,6 +575,7 @@ CLI 当前实现：
 
 - `server` 当前真实入参是 `data`
 - CLI 命令参数仍叫 `values`，但实际已映射为 `data`
+- 这只说明契约映射关系，不代表推荐用命令行 JSON 字符串做初始化数据。初始化、迁移、补录多行和示例数据应写成 JSON 文件，再执行 `row batch-create --file`
 
 ### 7.3 行更新
 

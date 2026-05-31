@@ -10,6 +10,16 @@
     "expected": "应区分业务场景画布和可执行审批工作流，补角色、对象、状态、异常路径，并路由到 manager 的 workflow approval-generation 和 canvas 章节。"
   },
   {
+    "id": "orchestrator-002a",
+    "prompt": "帮我直接生成一套工程项目管理系统，包含基础档案、项目管理、施工进度、财务管理、质量安全、文档管理和统计看板，要求一次性创建好。",
+    "expected": "应先输出符合 new-project-design-template 的设计文档；执行计划必须包含 create 后 sheet move 和 sheet tree 归位、逐表 column list 获取真实 fieldId、row batch-create 后 row page 验证 data 非空、报表 preview/widget-add/query-widget/query；不能只看命令 success 就宣称完成。"
+  },
+  {
+    "id": "orchestrator-002b",
+    "prompt": "帮我生成一个系统，里面有多张基础表、主业务表和带单向绑定的明细表，要求可以并发的并发创建，但不要漏任何案例数据。",
+    "expected": "应在设计文档中拆表依赖层级：无依赖表可有限并发，被引用基础表先创建并写样例数据，单向绑定/relation 依赖表最后创建；案例数据按完整表清单逐表 JSON 文件、batch-create、row page 验收，未全表通过不能进入报表或完成。"
+  },
+  {
     "id": "orchestrator-003",
     "prompt": "我的 Web 项目想调用维表智联接口读取报表数据。",
     "expected": "应识别为 SDK/Web 接入，不强行做系统拆解，路由到 dimens-sdk 的 integration-paths、frontend-auth-flow 和 report-examples。"

@@ -27,6 +27,20 @@ export {
 } from './src/commands';
 export { runCLI } from './src/cli';
 
+// 导出 MCP 服务
+export {
+  createDimensMcpServer,
+  createDimensMcpHttpApp,
+  runDimensMcpServer,
+  runDimensMcpHttpServer,
+  createMcpContext,
+  createMcpSDK,
+  createAllMcpTools,
+  createHttpMcpContextArgs,
+  extractBearerToken,
+  handleHttpMcpRequest,
+} from './src/mcp';
+
 // 导出技能
 export { SKILLS, getSkill, getAllSkills } from './src/skills';
 
