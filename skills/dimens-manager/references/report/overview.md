@@ -29,6 +29,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - ✅ 当报表组件来自多维表格时，不能只给 `sheetId`，必须同时补 `sheet.columns`、`fieldIds`、`recommendedMapping`、`previewMapping`、`dataMapping`
 - ✅ 报表依赖的数据源表必须先 `row page` 验证有数据且业务 `data` 非空；如果表格行存在但 `data:{}`，先回到表格章节修字段 ID 和导入数据。
 - ✅ 报表主资源和报表组件的更新都应默认按“先拿数据 -> 改数据 -> 更新数据”执行，不要直接把局部 patch 当成通用模式
+- ✅ 生成代码时不要直接读取 `createResult.data.reportId`；项目菜单报表创建可能只返回 `sheetId`，必须先归一化，否则会出现 `Cannot read properties of undefined (reading 'reportId')`
 - ✅ Windows 下写入含中文的报表配置、组件 JSON 或调试记录时，必须使用 UTF-8 并读回确认
 
 ## 高风险跑偏点
@@ -45,6 +46,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 8. 不要跳过 `report info` 或现有组件读取，直接覆盖更新报表或组件
 9. 不要使用前端不支持的组件类型，例如把统计卡片写成 `statistic`
 10. 不要在数据源表无数据、业务 `data` 为空或数值字段类型错误时继续创建组件
+11. 不要在 SDK / BFF / Web 示例里假设 `data.reportId` 一定存在；先兜底 `reportId ?? sheetId ?? id`
 
 对应解释：
 
@@ -56,6 +58,54 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - `recommendedMapping` 更偏规范层，真正给前端渲染的是 `dataMapping`
 - 对多维表格数据源，通常至少要有：`sheetId + columns + fieldIds + recommendedMapping + previewMapping + dataMapping`
 - 数值轴字段必须是数字或可稳定转数字，文本字段不要硬塞成 `valueKey`
+
+## reportId 归一化与空读取兜底
+
+用户反馈 `Cannot read properties of undefined (reading 'reportId')` 时，优先按“读取返回结构错误”处理，而不是先怀疑图表配置。
+
+当前项目报表创建走项目菜单资源链路，成功返回里稳定可用的是菜单资源 `sheetId`。后续 `report info / widget-add / query-widget / query` 使用的 `reportId` 就是这个 `sheetId`。CLI 和部分 SDK 会做兼容归一化，但 Skill 生成代码或排查用户代码时必须显式兜底：
+
+```ts
+type ReportCreatePayload = {
+  reportId?: string;
+  sheetId?: string;
+  id?: string;
+};
+
+function resolveReportId(result: { data?: ReportCreatePayload } | ReportCreatePayload) {
+  const data = "data" in result ? result.data : result;
+  const reportId = data?.reportId ?? data?.sheetId ?? data?.id;
+
+  if (!reportId) {
+    throw new Error("报表创建结果缺少 reportId/sheetId，不能继续创建组件");
+  }
+
+  return reportId;
+}
+```
+
+禁止生成下面这种代码：
+
+```ts
+const reportId = createResult.data.reportId;
+```
+
+正确输出必须同时说明：
+
+1. 如果 `data` 本身为 `undefined`，先打印完整返回体并检查请求是否成功。
+2. 如果只有 `sheetId`，把 `sheetId` 作为 `reportId` 继续后续命令。
+3. 拿到 ID 后立刻跑 `report info` 验证资源存在。
+4. 资源存在不代表组件和数据可用，继续跑 `preview -> widget-add -> query-widget -> query`。
+
+CLI 排查模板：
+
+```bash
+dimens-cli report info \
+  --project-id PROJ1 \
+  --report-id sh_xxx
+```
+
+如果这一步能查到报表，说明 `reportId` 口径没有问题；后续再排查组件、数据源和字段映射。
 
 ## 报表生成时禁止省略的关键层
 
@@ -160,12 +210,13 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 
 1. 先确认 `projectId`
 2. 执行 `dimens-cli report create`，并记录返回的 `reportId`（即菜单资源 `sheetId`）
-3. 如果要加组件，先回到 `references/recharts-widget-guide.md`
-4. 先执行 `dimens-cli report preview`
-5. 再执行 `dimens-cli report widget-add`
-6. 如需验证单个组件，再执行 `dimens-cli report query-widget`
-7. 全部组件补齐后，再执行 `dimens-cli report query`
-8. 确认结果可用后，再决定是否 `report publish`
+3. 立刻用 `report info` 验证这个 `reportId/sheetId` 能读取到报表主资源
+4. 如果要加组件，先回到 `references/recharts-widget-guide.md`
+5. 先执行 `dimens-cli report preview`
+6. 再执行 `dimens-cli report widget-add`
+7. 如需验证单个组件，再执行 `dimens-cli report query-widget`
+8. 全部组件补齐后，再执行 `dimens-cli report query`
+9. 确认结果可用后，再决定是否 `report publish`
 
 这条顺序就是报表生成时的固定预检链，不要跳过中间步骤。
 
@@ -402,6 +453,7 @@ dimens-cli report widget-add \
 | AI 直接创建组件就失败 | 没先执行 `report preview` 或 `report query-widget` 做预检 | 先预览数据源，再创建组件 |
 | 统计卡片创建失败 | 使用了不存在的 `statistic` 类型，或缺少 `nameKey/valueKey` | 改用 `type=stat`，补齐 `recommendedMapping/previewMapping/dataMapping` |
 | 报表组件创建成功但没有数据 | 数据源表为空、行 `data` 为空、筛选参数过窄或字段映射错误 | 先 `row page` 验证表数据，再按 `preview -> query-widget -> query` 缩小问题 |
+| `Cannot read properties of undefined (reading 'reportId')` | 代码假设创建接口返回 `data.reportId`，但真实返回可能是 `data.sheetId`，或请求失败导致 `data` 为空 | 先打印完整返回体；用 `data?.reportId ?? data?.sheetId ?? data?.id` 归一化；拿到 ID 后跑 `report info` |
 | 报表迁移后打不开 | 只做了资源移动，没有继续校验数据源和查询 | 迁移后立即执行 `report info`、`report preview` 或 `report query` |
 | 以为 Skill 说得通就一定能创建成功 | 技能和命令之间少了预检步骤 | 把 `report create -> report preview -> report widget-add -> report query-widget -> report query` 当成固定预检链 |
 | 把字段标签和字段 ID 混用 | 映射层和元信息层混在一起了 | `sheet.columns/fieldIds` 保留字段 ID，`dataMapping` 使用真实字段标签或前端消费键 |

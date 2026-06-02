@@ -8,16 +8,21 @@ const report = await sdk.report.createProjectReport('PROJ1', {
   description: '用于查看客户转化情况',
 });
 
-const reportId = report.data.reportId;
+const reportId = report.data?.reportId ?? report.data?.sheetId ?? report.data?.id;
+
+if (!reportId) {
+  throw new Error('报表创建结果缺少 reportId/sheetId，不能继续创建组件');
+}
 ```
 
 说明：
 
 - 当前产品创建报表走项目菜单资源链路：`/app/mul/project/:projectId/sheet/create`
 - 请求体固定使用 `type: 'report'`，SDK 会自动组装 `config.dashboardConfig`
-- 服务端返回的是 `sheetId`，SDK 会兼容补齐 `reportId = sheetId`
+- 服务端返回的是 `sheetId`，SDK 会兼容补齐 `reportId = sheetId`；业务代码仍建议用 `reportId ?? sheetId ?? id` 兜底，避免旧 SDK 或异常响应触发 `Cannot read properties of undefined (reading 'reportId')`
 - 这里只是创建报表主资源
 - 还不代表组件和查询链路已可用
+- 拿到 `reportId` 后建议先 `report.info` 或 CLI `report info` 验证资源存在，再继续 `preview -> addWidget -> queryWidget -> query`
 
 ## 2. 查询报表列表
 

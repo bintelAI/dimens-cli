@@ -10,6 +10,11 @@
     "expected": "应命中报表章节，说明 reportId=sheetId 口径，按 report info/preview/query-widget/query 的预检链路排查，不只看 create 是否成功。"
   },
   {
+    "id": "manager-002a",
+    "prompt": "我按技能生成报表后代码报 Cannot read properties of undefined (reading 'reportId')，帮我修正生成方式。",
+    "expected": "应命中报表章节，先判断创建接口返回结构；说明项目菜单报表创建可能只返回 sheetId，后续 reportId=sheetId；禁止继续生成 createResult.data.reportId 直读代码，改用 data?.reportId ?? data?.sheetId ?? data?.id 兜底；拿到 ID 后先 report info，再按 preview/widget-add/query-widget/query 验证。"
+  },
+  {
     "id": "manager-003",
     "prompt": "我想让某个角色只能看自己部门的数据，应该怎么配置权限？",
     "expected": "应命中权限章节，先确认 teamId/projectId/角色/表格/部门字段，说明项目权限、表权限、行级策略或 ACL 的差异，并给出创建后回查和缓存刷新风险。"

@@ -133,6 +133,25 @@
 
 说明：服务端创建项目菜单报表时返回主键是 `sheetId`。CLI / SDK 为兼容报表命令，会把 `reportId` 归一化为同一个值，即 `reportId = sheetId`。不要按旧口径等待 `data.reportId`。
 
+代码里不要直接写：
+
+```ts
+const reportId = result.data.reportId;
+```
+
+更稳妥的读取方式是：
+
+```ts
+const data = result.data;
+const reportId = data?.reportId ?? data?.sheetId ?? data?.id;
+
+if (!reportId) {
+  throw new Error("报表创建结果缺少 reportId/sheetId，不能继续创建组件");
+}
+```
+
+如果这里没有兜底，用户生成后常见报错就是 `Cannot read properties of undefined (reading 'reportId')`。出现该报错时先打印完整返回体并确认 `code/message/data`，再继续检查报表组件和数据源。
+
 ### 1.5 更新 / 删除 / 复制 / 发布 / 归档 / 排序 / 移动 / 校验
 
 | 方法 | 路径 | 说明 |
