@@ -27,6 +27,9 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - ✅ `chat/completions` 接口与普通工作流节点执行是两条不同链路，不能混为一谈
 - ✅ 涉及项目入口、AI 分析、审批、自动化时，要同时检查项目上下文和权限边界
 - ✅ AI 工作流和审批工作流共用节点词典，但不能混淆人工挂起语义与模型编排语义
+- ✅ 工作流节点必须先命中节点词典、节点模板或真实案例；禁止生成未知 workflow node type。
+- ✅ 生成 AI 工作流时，节点类型必须对照 `references/ai-node-templates.md` 和 `references/node-dictionary.md` 的 AI 工作流节点类型白名单。
+- ✅ 生成审批工作流时，节点类型必须对照 `references/node-dictionary.md` 的审批节点类型白名单和 `approval-existing-cases.md` 的真实案例。
 - ✅ AI 自动生成审批工作流时，必须同时输出业务蓝图、`pluginType=approval` 的图草案和项目落地计划
 - ✅ 审批工作流如果要从表格行发起，必须继续说明 `workflow` 字段绑定、`rowId`、`sourceSnapshot`、`bizData.payload` 和摘要回写边界
 - ✅ Windows 下写入含中文的工作流 JSON、审批草案或说明文档时，必须使用 UTF-8，并在提交前读回确认中文没有损坏
@@ -56,6 +59,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - 调用类输出必须包含：使用的 `teamId`、`model/flowId/label`、是否流式、CLI 命令或接口、返回摘要。
 - AI 工作流自动生成输出必须包含：业务目标、`pluginType=ai` 图草案、项目落地计划、当前未执行或未封装的边界说明。
 - 审批自动生成输出必须包含：业务蓝图、`pluginType=approval` 图草案、项目落地计划、当前未执行或未封装的边界说明。
+- 工作流 JSON 草案输出前必须列出节点类型来源：AI 节点来自 `ai-node-templates.md`，审批节点来自 `node-dictionary.md` 或 `approval-existing-cases.md`；没有来源的节点不能输出。
 - 行数据绑定输出必须包含：`workflow` 字段、绑定 `flowId`、`sheetId/rowId/fieldId`、`sourceSnapshot`、`bizData.payload` 映射和摘要回写验证。
 - 如果只是生成草案而未写入项目，必须明确写“尚未创建/发布/挂载”，避免把自然语言方案说成已落地。
 
@@ -95,6 +99,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - “生成 AI 工作流”与“生成审批工作流”都属于本章节，但前者重点看 `references/ai-generation.md`，后者重点看 `references/approval-generation.md`。
 - “生成审批系统”属于系统级建设，先用 `dimens-system-orchestrator`。
 - AI 生成结果必须能落成工作流图草案，不能只输出自然语言流程说明。
+- AI 生成结果不能为了表达业务语义临时编造节点类型；未知节点要改写为 `action`、`condition`、`llm`、`end` 等已记录类型，或移到落地计划说明。
 - 审批真值以后端审批实例表为准，表格 `workflow` 字段只负责发起和展示摘要。
 - 表格行发起审批必须能定位到 `sheetId + rowId + fieldId`，否则后端无法把审批摘要稳定回写到对应单元格。
 
@@ -183,6 +188,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 
 - 如果缺少 `teamId/projectId`，只能生成草案和落地步骤，不要声称已经写入项目。
 - 如果需要保存为可视化画布，另看 `dimens-manager`；可视化画布不等于可执行审批工作流。
+- 节点 `type` 必须来自审批节点类型白名单或真实案例；业务动作名只能放在 `data.label/data.options` 或落地计划里。
 
 ### 场景 5：AI 自动生成工作流
 
@@ -196,6 +202,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 
 - 如果缺少 `teamId/projectId`，只能生成草案和落地步骤，不要声称已经写入项目。
 - 如果场景里出现人工审批、挂起、候选人、同意或拒绝，这不是 AI 工作流，应切到 `approval-generation.md`。
+- 节点 `type` 必须来自 AI 工作流节点类型白名单；未知 workflow node type 一律拒绝，先改写为已支持节点或转为落地计划说明。
 
 ## 常见错误与排查
 

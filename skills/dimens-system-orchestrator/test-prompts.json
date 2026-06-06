@@ -20,6 +20,11 @@
     "expected": "应在设计文档中拆表依赖层级：无依赖表可有限并发，被引用基础表先创建并写样例数据，单向绑定/relation 依赖表最后创建；案例数据按完整表清单逐表 JSON 文件、batch-create、row page 验收，未全表通过不能进入报表或完成。"
   },
   {
+    "id": "orchestrator-002c",
+    "prompt": "帮我生成一个项目管理系统，任务表里需要所属部门和负责人字段。",
+    "expected": "应说明负责人用 person；所属部门当前不能生成 department 字段类型，必须用 text 保存部门名称，并避免普通 select 部门下拉；执行命令示例应包含 --label 所属部门 --type text。"
+  },
+  {
     "id": "orchestrator-003",
     "prompt": "我的 Web 项目想调用维表智联接口读取报表数据。",
     "expected": "应识别为 SDK/Web 接入，不强行做系统拆解，路由到 dimens-sdk 的 integration-paths、frontend-auth-flow 和 report-examples。"

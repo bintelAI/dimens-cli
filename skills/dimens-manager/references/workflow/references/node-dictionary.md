@@ -2,6 +2,8 @@
 
 本文档定义工作流章节中会反复出现的节点语义，供 AI 工作流与审批工作流共同引用。
 
+工作流节点必须先命中节点词典、节点模板或真实案例。禁止生成未知 workflow node type；如果用户描述的是业务动作名，只能写进 `data.label`、`data.options` 或落地计划，不能直接作为 `nodes[].type`。
+
 ## 1. 通用节点
 
 | 节点语义 | 说明 | 常见位置 |
@@ -24,6 +26,20 @@
 | 质量检查节点 | 检查模型输出是否满足格式、事实或业务规则 | `rules`, `failAction`, `retryTarget` |
 | 结果汇总节点 | 合并多个中间结果，形成最终输出 | `summaryFields`, `outputFormat` |
 | 写回节点 | 将 AI 结果写回表格、文档或业务字段 | `target`, `mapping`, `writeMode` |
+
+### 2.0 AI 工作流节点类型白名单
+
+AI 工作流 JSON 草案只能使用 `ai-node-templates.md` 已出现并有模板支撑的节点类型。当前可生成的 `type` 为：
+
+| 节点类型 | 对应语义 | 文档依据 |
+| --- | --- | --- |
+| `start` | 开始、接收入参 | `ai-node-templates.md#21-开始节点` |
+| `action` | 输入整理、提示词组装、工具/API、解析、汇总、写回等普通动作 | `ai-node-templates.md#22-输入整理节点`、`#23-提示词组装节点`、`#25-结构化解析节点`、`#27-汇总节点` |
+| `llm` | 模型调用 | `ai-node-templates.md#24-模型调用节点` |
+| `condition` | 质量检查、分类分流、规则判断 | `ai-node-templates.md#26-质量检查节点`、`#4-分类类模板` |
+| `end` | 结束与结果收口 | `ai-node-templates.md#28-结束节点` |
+
+不在此表的类型，例如 `tool`、`retriever`、`parser`、`writer`、`ai_review`、`timeout`，不能直接作为 `type` 生成。需要表达这些语义时，用 `action` 或 `condition` 承载，并在 `data.label/data` 中补具体配置。
 
 ### 2.1 AI 节点生成细则
 
@@ -70,6 +86,7 @@
 - `action`：当前审批发布校验不支持该节点类型。
 - `sync_workflow_cell`：这是业务动作名，不是已存在节点类型。
 - `approval_ai_review`：已废弃；AI 自动审批必须放在 `approval` 节点的 `data.options.autoApproval` 中。
+- 任何没有出现在审批节点类型白名单或 `approval-existing-cases.md` 真实案例里的节点类型。
 
 ## 4. 终点节点
 

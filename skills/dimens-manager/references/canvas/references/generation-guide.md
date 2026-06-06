@@ -47,6 +47,28 @@ AI 生成画布时，目标不是生成说明文，而是生成能被 `CanvasBoa
 
 支持的节点类型包括：`RECTANGLE`、`CIRCLE`、`TRIANGLE`、`DIAMOND`、`PARALLELOGRAM`、`HEXAGON`、`CYLINDER`、`CLOUD`、`DOCUMENT`、`TEXT`、`STICKY_NOTE`、`GROUP`、`SECTION`、`MINDMAP`、`IMAGE`、`VIDEO`、`CUSTOM_AGENT`、`MARKDOWN`、`CLOCK`、`SVG`、`INFOGRAPHIC`、`EMBEDDED_SHEET`。不要发明前端无法识别的新类型。
 
+### 3.1 节点类型白名单与未知节点处理
+
+节点类型必须来自已记录的支持列表。没有文档或案例支撑的节点类型一律拒绝生成，不能因为用户说“AI 审核节点、超时节点、归档节点、回写节点、机器人节点”就把这些词直接写进 `type`。
+
+未知节点类型必须改写为已支持节点或转为说明文本：
+
+- 能表达为普通业务动作时，使用 `RECTANGLE`，把原始语义写入 `data.label` 和 `data.text`。
+- 能表达为条件分支时，使用 `DIAMOND`，并给出分支边 label。
+- 能表达为数据读写或沉淀时，使用 `CYLINDER`。
+- 能表达为文档、报告、SOP 或长说明时，使用 `DOCUMENT` 或 `MARKDOWN`。
+- 能表达为展示材料时，使用 `INFOGRAPHIC`、`TEXT`、`IMAGE`、`SVG` 或 `VIDEO`。
+- 需要真实自动化执行时，不在画布里编造节点，改为引用 `references/workflow/overview.md` 的工作流落地计划。
+
+## Canvas 节点案例索引
+
+| 场景 | 已有节点类型 | 案例或文档来源 | 生成要求 |
+| --- | --- | --- | --- |
+| 售后工单流程画布 | `PARALLELOGRAM`、`RECTANGLE`、`DIAMOND`、`CYLINDER`、`DOCUMENT` | `examples.md#2-售后工单工作流画布` | 可直接复用为流程画布案例；新增节点必须落在同一支持列表内 |
+| PPT 演示稿画布 | `SECTION`、`TEXT`、`INFOGRAPHIC` | `examples.md#3-ppt-演示稿画布` | 一页一个 `SECTION`，复杂展示优先 `INFOGRAPHIC` |
+| 节点职责与字段模板 | 支持列表中的全部节点 | `generation-guide.md#4-节点类型详解`、`generation-guide.md#5-节点字段写法` | 每个节点都要有业务职责、尺寸、坐标、样式和说明 |
+| 结构与保存校验 | 支持列表中的全部节点 | `validation-checklist.md#3-节点校验` | 未知 `type`、缺字段、深色背景或无业务职责都不能保存 |
+
 ## 4. 节点类型详解
 
 ### `RECTANGLE` 普通动作节点

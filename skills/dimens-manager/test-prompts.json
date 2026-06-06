@@ -17,7 +17,7 @@
   {
     "id": "manager-003",
     "prompt": "我想让某个角色只能看自己部门的数据，应该怎么配置权限？",
-    "expected": "应命中权限章节，先确认 teamId/projectId/角色/表格/部门字段，说明项目权限、表权限、行级策略或 ACL 的差异，并给出创建后回查和缓存刷新风险。"
+    "expected": "应命中权限章节，先确认 teamId/projectId/角色/表格/部门字段；说明部门字段当前应为 text 保存部门名称，不能生成 department；再说明项目权限、表权限、行级策略或 ACL 的差异，并给出创建后回查和缓存刷新风险。"
   },
   {
     "id": "manager-003a",
@@ -53,5 +53,15 @@
     "id": "manager-007",
     "prompt": "我要从表格 workflow 字段发起一个报销审批，开始节点要绑定当前项目的报销表，金额字段用于条件和 AI 自动审批，审批节点参数也要写详细。",
     "expected": "应读取 approval-node-parameters 的开始节点绑定表格规则和审批节点详细规则；必须输出 approvalInputConfig.sourceType=mul_table、projectId/sheetId/sheetName/fields、rowId/sheetId/inputParams、sourceSnapshot 与 bizData.payload 映射、participantRules、fieldConfig、autoApproval；说明 includeInPayload=false 字段不能被条件或 AI 自动审批引用，workflow 字段摘要由后端托管回写，不生成 sync_workflow_cell 或 approval_ai_review。"
+  },
+  {
+    "id": "manager-008",
+    "prompt": "帮我生成一个画布，里面要有 AI_REVIEW、TIMEOUT、ARCHIVE 这几个节点类型。",
+    "expected": "应命中 canvas/generation-guide 和 validation-checklist；说明节点类型必须来自支持列表并有案例或文档支撑；拒绝直接生成 AI_REVIEW/TIMEOUT/ARCHIVE，改写为 RECTANGLE/DIAMOND/CYLINDER/DOCUMENT/MARKDOWN 等已支持节点，并把原始语义写入 data.label/data.text/meta.nodeGuide。"
+  },
+  {
+    "id": "manager-009",
+    "prompt": "帮我生成一个 AI 工作流 JSON，节点类型直接用 retriever、parser、writer、ai_review。",
+    "expected": "应命中 workflow/node-dictionary、ai-generation 和 ai-node-templates；说明 AI 工作流节点类型白名单只有 start/action/llm/condition/end；拒绝未知 workflow node type，把 retriever/parser/writer 映射为 action，把 ai_review 映射为 condition 或 llm 后的质量检查，并说明模板来源。"
   }
 ]

@@ -109,6 +109,8 @@ describe('Skill Commands', () => {
     expect(output).toContain('系统级画布说明');
     expect(output).toContain('系统级节点职责与用法');
     expect(output).toContain('每个节点必须能说清业务职责');
+    expect(output).toContain('没有文档或案例支撑的节点类型一律拒绝生成');
+    expect(output).toContain('未知节点类型必须改写为已支持节点或转为说明文本');
     expect(output).toContain('CUSTOM_AGENT` 是画布内 AI 智能体，不要滥用');
     expect(output).toContain('"version": "1.0"');
     expect(output).toContain('"timestamp"');
@@ -181,6 +183,26 @@ describe('Skill Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should guide department fields to text until dedicated frontend support is safe', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'show'
+    );
+
+    await command?.handler(['dimens-manager', '--references']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('部门字段当前执行规则');
+    expect(output).toContain('当前禁止生成 `department` 字段类型');
+    expect(output).toContain('统一使用 `text` 字段保存部门名称');
+    expect(output).toContain('--label 所属部门 --type text');
+    logSpy.mockRestore();
+  });
+
   it('should show manager canvas node usage guidance in references', async () => {
     const { registerCommands } = await import('../../src/commands');
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
@@ -232,6 +254,46 @@ describe('Skill Commands', () => {
     expect(output).toContain('CYLINDER');
     expect(output).toContain('CUSTOM_AGENT');
     expect(output).toContain('不要把它当成普通“AI 分析步骤”滥用');
+    logSpy.mockRestore();
+  });
+
+  it('should require canvas nodes to be backed by documented types and cases', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'show'
+    );
+
+    await command?.handler(['dimens-manager', '--references']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('节点类型必须来自已记录的支持列表');
+    expect(output).toContain('没有文档或案例支撑的节点类型一律拒绝生成');
+    expect(output).toContain('未知节点类型必须改写为已支持节点或转为说明文本');
+    expect(output).toContain('Canvas 节点案例索引');
+    logSpy.mockRestore();
+  });
+
+  it('should require workflow nodes to match dictionaries templates or real cases', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'show'
+    );
+
+    await command?.handler(['dimens-manager', '--references']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('工作流节点必须先命中节点词典、节点模板或真实案例');
+    expect(output).toContain('AI 工作流节点类型白名单');
+    expect(output).toContain('审批节点类型白名单');
+    expect(output).toContain('禁止生成未知 workflow node type');
     logSpy.mockRestore();
   });
 

@@ -130,7 +130,7 @@ flowchart TD
 
   D --> E["创建字段<br/>column create"]
   E --> E0["逐表 column list<br/>记录真实 fieldId 映射"]
-  E0 --> F{"验证字段是否合规？<br/>字段类型 / options / person / department / relation"}
+  E0 --> F{"验证字段是否合规？<br/>字段类型 / options / person / 部门text / relation"}
 
   F -- "不合规" --> E1["修正字段设计<br/>回到字段创建或更新"]
   E1 --> E
@@ -166,7 +166,7 @@ flowchart TD
 6. 如果创建时无法确定目录，先记录待归位资源，最后统一执行菜单迁移；迁移后必须用 `sheet tree` 回查，确认每个业务目录至少包含设计中的子资源，不能留下空文件夹。
 7. 建表前必须拆表依赖层级：无绑定表、被引用基础表、存在单向绑定 / relation 依赖的表。无依赖表可以有限并发创建；被引用基础表要先创建并写入样例数据；有单向绑定的表必须最后创建，避免目标表、目标字段或目标行还不存在。
 8. 表创建后必须用 `sheet tree` 验证目录归位。
-9. 字段创建后必须验证字段类型和业务语义，尤其是 `select / multiSelect / person / department / relation`；稳定枚举优先用 `select` 或 `multiSelect`，人员和部门不要误建成普通下拉。
+9. 字段创建后必须验证字段类型和业务语义，尤其是 `select / multiSelect / person / relation`；稳定枚举优先用 `select` 或 `multiSelect`，人员不要误建成普通下拉，部门字段当前禁止生成 `department` 类型，统一用 `text` 保存部门名称。
 10. 字段 ID 是每张表独立生成的系统 ID；字段创建后必须按目标表逐张执行 `column list`，记录“表名 + 字段名 -> 真实 fieldId”映射。即使两张表字段同名，也不能复用其它表的 `fieldId`。
 11. 示例数据写入前必须只使用目标表自己的真实 `fieldId` 作为 JSON key；禁止使用 `fld_1`、`fld_xxx`、中文字段名或其它表字段 ID 当作可执行数据。
 12. 写入数据后必须立刻 `row page` 回查：每张设计为有样例数据的表都要满足 `rows.length > 0` 且每行 `data` 至少包含业务字段；出现 `data: {}`、业务字段全空、数值字段写成文本或 select 值不在 options 中，都必须回到字段映射或数据文件修正。

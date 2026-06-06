@@ -4,6 +4,8 @@
 
 如需直接拼装节点 JSON，先看 `ai-node-templates.md`。本文档负责选择模板、组织场景和说明落地边界。
 
+生成前必须先命中 `node-dictionary.md` 的 AI 工作流节点类型白名单，再复用 `ai-node-templates.md`。未知 workflow node type 禁止生成；如果用户描述了“检索节点、工具节点、解析节点、写回节点”等业务语义，先按模板映射到 `action`、`condition`、`llm`、`start` 或 `end`，不要临时创造新的 `type`。
+
 ## 1. 适用场景
 
 当用户提出下面需求时，优先使用本文档：
@@ -52,6 +54,12 @@ AI 工作流建议至少包含以下节点层次：
 只有当业务明确需要外部数据、工具调用、结构化字段或写回时，才补对应节点。
 
 直接生成节点时，优先复用 `ai-node-templates.md` 中的模板，不要每次临时发明字段名。
+
+直接生成节点前，先做节点类型检查：
+
+- `nodes[].type` 只能来自 AI 工作流节点类型白名单：`start`、`action`、`llm`、`condition`、`end`。
+- 节点语义必须能追溯到 `node-dictionary.md` 的 AI 工作流节点或 `ai-node-templates.md` 的模板。
+- 没有模板或词典支撑的节点不进入 JSON 草案，只能写成落地计划或待确认项。
 
 ## 4. 节点配置清单
 
@@ -301,6 +309,7 @@ AI 工作流建议至少包含以下节点层次：
 | 模型输出不可消费 | 后续节点直接消费长文本 | 增加 `parse_result` 或 `validate_ai_output` |
 | 写回目标不清 | 写了回写节点但没有字段映射 | 补 `target/mapping/writeMode` |
 | 默认模型假设过度 | 认为普通 LLM 节点一定继承团队默认模型 | 按 `model-routing.md` 提醒当前实现边界 |
+| 未知节点类型 | 把 `tool`、`retriever`、`parser`、`writer`、`ai_review` 等写成 `type` | 改为 `action` / `condition` / `llm` 并补 `data` 配置，或移到落地计划 |
 
 ## 10. 推荐 AI 提示语
 
@@ -321,6 +330,7 @@ AI 工作流建议至少包含以下节点层次：
 - 不要声称草案已经创建、发布或挂载
 - 普通 LLM 节点是否继承团队默认模型，需要按当前实现确认
 - 能用 CLI 辅助生成草案时，可给 dimens-cli ai chat-completions 命令
+- 节点 type 只能使用 start/action/llm/condition/end；禁止生成未知 workflow node type
 ```
 
 ## 11. 验证要点
@@ -332,3 +342,4 @@ AI 工作流建议至少包含以下节点层次：
 5. 是否明确说明这是草案还是已落地流程。
 6. 写回节点是否明确目标字段和写入模式。
 7. 模型节点是否说明当前模型来源和默认模型边界。
+8. 节点 `type` 是否都来自 AI 工作流节点类型白名单，并能在 `ai-node-templates.md` 中找到模板依据。

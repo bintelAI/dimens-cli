@@ -265,7 +265,7 @@ dimens-cli sheet move RESOURCE_ID \
 - 分类、等级、来源、阶段、优先级、风险级别等稳定有限集合：优先用 `select`；一个单元格允许多个标签或分类时优先用 `multiSelect`，不要退化成普通 `text`。
 - 选择类字段 `options`：必须是 JSON 对象数组，每项包含唯一 `id`、非空 `label`、合法 `color`，颜色遵守前端 12 色池或 `custom:` 协议。
 - 人员字段：负责人、审批人、处理人优先用 `person`。
-- 部门字段：所属部门、发起部门优先用 `department`。
+- 部门字段：所属部门、发起部门当前用 `text` 保存部门名称，禁止生成 `department`。
 - 时间字段：创建时间、截止时间、完成时间。
 - 数值字段：金额、数量、评分，必须用 `number`，不要存成文本。
 - 关联字段：必须明确目标表和展示字段。
@@ -440,7 +440,7 @@ report create -> report preview -> report widget-add -> report query-widget -> r
 | 数据源表没有行数据 | 先补示例数据，再重新 preview |
 | 维度 / 指标字段映射错误 | 修正 `dataMapping`，再跑 `query-widget` |
 | 筛选参数过窄或默认值不匹配 | 放宽参数或修正默认参数 |
-| relation / person / department 值结构不对 | 回查行数据格式，按真实字段结构写入 |
+| relation / person 值结构不对，或部门文本为空 | 回查行数据格式；部门字段按 `text` 写入部门名称 |
 | 组件类型和指标不匹配 | 调整图表类型或指标字段 |
 
 ### 3.13 角色权限
@@ -770,6 +770,6 @@ dimens-cli row set-cell \
 - 审批工作流画布不等于可执行审批工作流。
 - 角色创建不等于授权完成，必须绑定用户和权限记录。
 - 行级权限和协同广播不能只验证 HTTP 行查询。
-- 人员和部门字段不要退化成普通 select。
+- 人员和部门字段不要退化成普通 select；部门字段当前也不要生成 `department`，统一用 `text`。
 - 金额、数量、评分等报表指标必须用 number；修改数据前必须拿 `rowId / fieldId / version`。
 - SDK、HTTP、Web、BFF、Node.js、移动端接入直接进入 `dimens-sdk`，不要留在总控里写代码。

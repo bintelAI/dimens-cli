@@ -63,6 +63,8 @@
 
 总控生成画布草案时，先定义节点职责，再选择节点类型。不要把完整业务流程全部画成 `RECTANGLE`，否则后续 AI 保存出来的流程图会失去业务语义。
 
+节点类型必须来自 `dimens-manager/references/canvas/references/generation-guide.md` 已记录的支持列表，并且要能在节点详解、校验清单或案例里找到依据。没有文档或案例支撑的节点类型一律拒绝生成；未知节点类型必须改写为已支持节点或转为说明文本，不能把业务动作名直接写成画布 `type`。
+
 | 系统级元素 | 推荐节点类型 | 作用 | 用法 |
 | --- | --- | --- | --- |
 | 用户提交、外部导入、接口返回 | `PARALLELOGRAM` | 表示输入或输出 | 放在流程入口、接口边界或结果输出位置 |
@@ -85,6 +87,7 @@
 - `SECTION`、`TEXT`、`STICKY_NOTE` 是辅助表达，不要当成主流程动作。
 - `CUSTOM_AGENT` 是画布内 AI 智能体，不要滥用为普通“AI 分析”业务步骤。
 - 需要保存或生成完整 JSON 时，继续进入 `dimens-manager/references/canvas/references/generation-guide.md`。
+- 如果用户要求 `AI_REVIEW`、`TIMEOUT`、`ARCHIVE`、`WRITE_BACK` 等未知画布节点，系统总控只能把它们表达为 `RECTANGLE`、`DIAMOND`、`CYLINDER`、`DOCUMENT`、`MARKDOWN` 等已支持节点的业务标签或说明；真实执行语义进入工作流章节。
 
 输出画布 JSON 时，必须至少包含：
 

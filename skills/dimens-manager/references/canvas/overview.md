@@ -19,6 +19,8 @@ tags: [canvas, diagram, workflow, resource, dimens-cli]
 - ✅ 更新已有画布必须遵循“先读 -> 合并 -> 校验 -> 更新”：先拿当前 `nodes/edges/version`，只合并目标变更，再保存整份 JSON。
 - ✅ AI 一键生成画布时，最终结果必须落成 `nodes/edges` JSON，而不是只输出文字说明。
 - ✅ 画布落地不只是生成 `nodes/edges`，还要说明每个节点的业务职责、节点类型选择和使用方式；详细规则先看 `references/canvas/references/generation-guide.md`。
+- ✅ 节点类型必须来自已记录的支持列表；没有文档或案例支撑的节点类型一律拒绝生成。
+- ✅ 用户提出未知画布节点时，未知节点类型必须改写为已支持节点或转为说明文本，不能把业务名直接写成 `type`。
 - ✅ 画布生成完成后必须先执行或说明 `canvas validate` 校验，再执行 `canvas create/save`，保存后用 `canvas info/versions` 回查。
 - ✅ 在 Windows 终端写入含中文的 `canvas.json` 或说明文件时，必须用 UTF-8 写入并读回确认，避免中文变成 `??`。
 - ✅ 节点背景色默认使用淡色或 `transparent`，禁止直接使用黑色、深灰、深蓝等深色背景；文字颜色可以保持深色以保证可读性。
@@ -47,7 +49,7 @@ tags: [canvas, diagram, workflow, resource, dimens-cli]
 2. 如果要创建新画布，执行 `canvas create`，记录返回的 `sheetId/canvasId`。
 3. 如果要写入已有画布，执行 `canvas info <sheetId> --team-id <teamId> --project-id <projectId>` 获取 `version`。
 4. 生成或整理画布 JSON，确认包含 `nodes` 和 `edges`。
-5. 自检每个节点是否有明确业务职责，并使用合适类型：输入输出用 `PARALLELOGRAM`，判断用 `DIAMOND`，数据沉淀用 `CYLINDER`，文档产物用 `DOCUMENT` 或 `MARKDOWN`。
+5. 自检每个节点是否有明确业务职责，并使用合适类型：输入输出用 `PARALLELOGRAM`，判断用 `DIAMOND`，数据沉淀用 `CYLINDER`，文档产物用 `DOCUMENT` 或 `MARKDOWN`；如果用户描述了不在支持列表里的节点，先映射到已支持节点或写进说明文本，不生成未知 `type`。
 6. 执行 `canvas validate --file ./canvas.json`，确保结构满足可渲染保存要求。
 7. 执行 `canvas save <sheetId> --team-id <teamId> --project-id <projectId> --base-version <version>`。
 8. 保存后执行 `canvas info` 和 `canvas versions`，确认版本号和快照记录。
@@ -86,7 +88,8 @@ tags: [canvas, diagram, workflow, resource, dimens-cli]
 - 不要把 PPT 画布画成散落节点；PPT 画布最外层必须是一组 16:9 的 `SECTION`，一页 PPT 对应一个分区，所有页面内容都在分区内。
 - 不要把复杂展示内容拆成大量普通节点；能用 `INFOGRAPHIC` 表达的方案亮点、路径、对比、趋势、关系，应优先用信息图。
 - 不要把画布资源市场当成项目权限系统，资源可见性和项目页面权限仍要分开判断。
-- 不要生成无法被前端识别的节点类型；不确定时用 `RECTANGLE`、`DIAMOND`、`MARKDOWN` 等保守类型。
+- 不要生成无法被前端识别的节点类型；不确定时用 `RECTANGLE`、`DIAMOND`、`MARKDOWN` 等保守类型，并在 `data.text` 或 `meta.nodeGuide` 中说明原始业务语义。
+- 不要把“AI 审核节点、超时节点、归档节点、回写节点”等业务动作名直接当作画布 `type`；没有案例或文档支撑时只能表达为已支持节点的标签、说明或工作流落地计划。
 
 ## 参考文档
 

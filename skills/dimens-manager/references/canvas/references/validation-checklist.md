@@ -42,6 +42,7 @@ dimens-cli canvas validate --data '<json>'
 - 顶层 `nodes` 和 `edges` 是数组。
 - 节点有稳定 `id`，且不重复。
 - 节点 `type` 属于前端支持范围。
+- 节点 `type` 必须能在 `generation-guide.md` 支持列表、节点详解或 `examples.md` 案例中找到依据；未知节点类型必须拒绝保存。
 - 节点包含可渲染尺寸和坐标字段。
 - 边的 `source/target` 都能找到节点。
 - 边包含 handle、箭头和线条样式。
@@ -56,7 +57,7 @@ dimens-cli canvas validate --data '<json>'
 | 字段 | 要求 |
 | --- | --- |
 | `id` | 非空、唯一、稳定英文短名 |
-| `type` | 使用支持的节点类型，不发明新类型 |
+| `type` | 使用支持的节点类型，不发明新类型；没有文档或案例支撑的节点类型一律拒绝生成 |
 | `position.x/y` | 数值 |
 | `positionAbsolute.x/y` | 数值 |
 | `width/height` | 正数 |
@@ -132,6 +133,7 @@ dimens-cli canvas validate --data '<json>'
 结构校验通过不代表业务可读。生成后还要人工或 AI 自检：
 
 - 每个节点只表达一个业务动作。
+- 每个节点类型都能追溯到 `generation-guide.md` 支持列表或 `examples.md` 案例。
 - `data.label` 是“动词 + 对象”或明确判断条件，不是“步骤 1 / 节点 A”。
 - 主流程能看出起点、过程、终点。
 - 异常路径能看出拒绝、退回、撤回、超时、转交或人工兜底。
@@ -218,5 +220,6 @@ dimens-cli canvas version SHEET_ID \
 | 分支边没有 label | 用户不知道条件结果 | 写“是/否/通过/驳回” |
 | `INFOGRAPHIC` 没有 DSL | 信息图无法渲染 | 补 `data.infographicSyntax` |
 | PPT 内容没有 `parentNode` | 页面内容散落在无限画布 | 挂到对应 `SECTION` |
+| 生成了未知 `type`，如 `AI_REVIEW`、`TIMEOUT`、`ARCHIVE` | 前端无法识别，保存后可能不可渲染 | 未知节点类型必须改写为已支持节点或转为说明文本；需要执行语义时进入工作流章节 |
 | 引用虚构 `sheetId/viewId` | 嵌入表格不可用 | 先查询真实表格和视图 ID |
 | 保存后不回查版本 | 无法确认写入成功 | 补 `canvas info/versions` |

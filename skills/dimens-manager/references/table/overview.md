@@ -34,9 +34,10 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 用户上传 Excel 并要求创建选择器字段时，必须先从 Excel 表头和样本值提取候选项，用 `column create --options` 创建完整下拉；行数据写入必须映射到这些候选项，不能把不存在的下拉值直接写入
 - ✅ 选项颜色字符串要与前端真实实现对齐：内置颜色使用 `bg-xxx-100 text-xxx-700`，自定义颜色使用 `custom:{\"bg\":\"#xxxxxx\",\"text\":\"#xxxxxx\"}`
 - ✅ 当前 `dimens-cli` 对字段选项颜色的内置白名单已与前端真实字段配置对齐为 12 色；如果超出这 12 种内置色，优先改用 `custom:{...}`，不要直接写扩展类名
-- ✅ `select` / `multiSelect`、`person`、`department` 都属于特殊字段，不能只按普通文本字段理解
+- ✅ `select` / `multiSelect`、`person` 都属于特殊字段，不能只按普通文本字段理解
 - ✅ 如果项目已经有自己的部门、内置角色和用户体系，且需求本质是“人员下拉 / 负责人选择 / 成员选择”，优先配置 `person` 字段，不要误建成普通下拉字段
-- ✅ 如果需求本质是部门选择、部门归属、部门筛选，优先配置 `department` 字段，不要误建成普通下拉字段
+- ✅ 部门字段当前执行规则：当前禁止生成 `department` 字段类型，统一使用 `text` 字段保存部门名称；示例命令为 `dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 所属部门 --type text`
+- ✅ 如果需求本质是部门选择、部门归属、部门筛选，当前先按“部门名称文本”落地，不要误建成普通下拉字段，也不要生成 `department` 类型
 - ✅ 新表落地后必须确认至少存在一个公开默认视图；如果技能链路没有自动补齐，就要显式执行 `view create`
 - ✅ `row/page` 默认要按“基于字段的搜索、筛选、排序”来解释，不只是分页
 - ✅ 系统视图相关问题要区分团队级默认字段和项目级实际分配字段
@@ -57,7 +58,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 1. 只设计字段名，不设计字段类型
 2. 把本该用于统计的字段建成文本字段
-3. 把人员、部门字段误建成普通 `select`
+3. 把人员字段误建成普通 `select`，或把部门字段误建成 `select` / `department`
 4. 认为 `select` 只要有字段名就行，忘记补候选项
 5. 明明是稳定枚举，却建成 `text`，导致后续筛选、分组、报表维度不可控
 6. 给了候选项，但没给唯一 `id` 或合法 `color`，导致前端标签风格、更新和统计不稳定
@@ -152,7 +153,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
   2. 自定义颜色：使用 `custom:{\"bg\":\"#xxxxxx\",\"text\":\"#xxxxxx\"}` 字符串
 - 当前前端真实颜色来源在多维表格字段配置与字典管理页，技能输出时不要自造颜色协议
 - 如果字段语义是“选人”，且项目本身已有用户体系、部门体系、内置角色，则这不是普通 `select`，应优先落到 `person`
-- 如果字段语义是“选部门 / 归属部门 / 所属组织”，则这不是普通 `select`，应优先落到 `department`
+- 如果字段语义是“选部门 / 归属部门 / 所属组织”，当前执行层必须落到 `text`，保存部门名称；不要生成 `department` 类型，避免 Web 前端白屏
 - 关联字段默认要明确：目标表、展示字段、是否多选、是否双向、编辑视图字段
 - 涉及工作流、AI 分析、审批、自动化入口时，还要同时检查系统视图字段映射
 - `workflow` 字段不是普通业务字段，它负责从行数据发起审批和展示摘要；真实审批状态以审批实例表为准，字段绑定、`sourceSnapshot` 和摘要回写规则看 `dimens-manager/references/workflow/references/field-binding.md`
@@ -170,10 +171,10 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 | 报表用途 | 推荐字段类型 | 说明 |
 | --- | --- | --- |
-| 类目维度 | `text` / `select` / `date` / `department` / `person` | 用于横轴、分类、分组 |
+| 类目维度 | `text` / `select` / `date` / `person` | 用于横轴、分类、分组；部门维度当前用 `text` 保存部门名称 |
 | 数值指标 | `number` | 用于求和、排序、统计 |
 | 详情说明 | `text` | 不要默认当 `valueKey` |
-| 组织筛选 | `department` | 不要退化成普通 `select` |
+| 组织筛选 | `text` | 当前用部门名称文本筛选；不要生成 `department` 类型 |
 | 人员筛选 | `person` | 不要退化成普通 `select` |
 
 ### 4. 权限边界
@@ -413,7 +414,7 @@ dimens-cli row batch-create \
 | --- | --- | --- |
 | 表搭出来了，但字段不好用 | 字段只按名字设计，没有提前考虑筛选、排序、主展示和关联 | 回到字段模板，补齐字段能力设计 |
 | 人员下拉被建成普通下拉字段 | 没识别项目已有用户体系、内置角色、部门体系，误把“选人”当成静态枚举 | 优先改用 `person` 字段，先判断是不是用户选择场景 |
-| 部门字段被建成普通下拉字段 | 没识别“部门归属 / 部门筛选”属于组织结构字段 | 优先改用 `department` 字段，不要用静态 `select` 代替 |
+| 部门字段被建成普通下拉或 `department` 字段 | 当前 Web 前端对 `department` 字段类型支持不完整，且静态下拉会丢失部门语义 | 改用 `text` 保存部门名称，例如 `--label 所属部门 --type text`，后续前端专用字段稳定后再迁移 |
 | 后面做报表时发现字段出不了图 | 建表阶段没区分维度字段、指标字段和说明字段 | 回到字段设计模板，先把用于报表的字段类型设计正确 |
 | 行能查出来，但筛选条件不好表达 | 没按 `keyword / searchFieldIds / filters / filterMatchType / sortRule` 结构设计 | 按 `row/page` 真实请求结构重写查询案例 |
 | 表能查到，但字段写入失败 | 字段类型不匹配、列级只读或系统字段受控 | 先查字段结构，再查列权限与系统字段规则 |
