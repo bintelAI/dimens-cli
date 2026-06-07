@@ -13,6 +13,7 @@ export * from './src/types';
 export { logger, createLogger } from './src/core/logger';
 export { config } from './src/core/config';
 export { version, getVersion, getUserAgent } from './src/core/version';
+import { getVersion } from './src/core/version';
 
 // 导出工具
 export { registerAllTools, registerTool, getTool, getAllTools } from './src/tools';
@@ -73,7 +74,7 @@ export async function initialize() {
   
   return {
     name: '@bintel/dimens-cli',
-    version: '1.0.0',
+    version: getVersion(),
     registerTools: registerAllTools,
     registerCommands,
   };

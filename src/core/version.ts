@@ -3,9 +3,8 @@
  */
 
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 
 let _version: string | undefined;
 
@@ -14,9 +13,7 @@ export function getVersion(): string {
 
   try {
     const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const packageJsonPath = join(__dirname, '..', 'package.json');
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    const packageJson = readNearestPackageJson(dirname(__filename));
     _version = packageJson.version;
   } catch {
     _version = '1.0.0';
@@ -29,4 +26,23 @@ export const version = getVersion();
 
 export function getUserAgent(): string {
   return `DimensCLI/${version} (Node.js/${process.version})`;
+}
+
+function readNearestPackageJson(startDir: string): { version: string } {
+  let currentDir = startDir;
+
+  for (let depth = 0; depth < 6; depth += 1) {
+    const packageJsonPath = join(currentDir, 'package.json');
+    try {
+      return JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as { version: string };
+    } catch {
+      const parentDir = dirname(currentDir);
+      if (parentDir === currentDir) {
+        break;
+      }
+      currentDir = parentDir;
+    }
+  }
+
+  throw new Error('package.json not found');
 }

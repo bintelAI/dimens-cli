@@ -20,7 +20,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - ✅ 当前技能负责项目内业务资源落地，不负责完整系统方案拆解；系统级需求先用 `dimens-system-orchestrator`。
 - ✅ SDK、HTTP、Web、BFF、Node.js 接入问题先用 `dimens-sdk`。
 - ✅ Windows 下生成或修改中文文件时，必须遵守 `../windows-utf8.md`：用 UTF-8 写入，禁止 `cmd echo` / 默认重定向写中文正文，写完读回确认没有 `??`。
-- ✅ 每次准备使用 `dimens-cli` 前，必须先在当前终端执行 `npm -g install @bintel/dimens-cli@latest` 升级全局 CLI；升级成功后再执行 `dimens-cli --version` 或 `dimens-cli --help` 确认可用，确保用户每次使用的都是最新版本。
+- ✅ 每次准备使用 `dimens-cli` 前，先执行 `dimens-cli --version` 查看当前版本；只有命令不存在、版本明显低于需求、当前 help/source 与技能规则不一致，或用户确认升级时，才执行 `npm -g install @bintel/dimens-cli@latest`。升级后必须再次执行 `dimens-cli --version` 和必要的 `dimens-cli help <group>` 复核。
 - ✅ 项目内查询、创建、更新、上传、验证等操作优先推荐并执行 `dimens-cli` 命令；自定义 URL 只作为上下文解析或 CLI 未覆盖时的补充路径，不作为首选解决方案。
 - ✅ 执行任何写操作前先确认认证、`teamId`、`projectId` 与资源归属。
 - ✅ 更新类操作统一遵循“先读取当前数据 -> 修改目标字段 -> 再提交更新”。
@@ -31,6 +31,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - ✅ 创建项目内资源时，不能只看命令返回 success；目录必须 `sheet tree` 回查，表格必须逐表 `column list` 获取真实 `fieldId`，行数据必须写后 `row page` 验证 `data` 非空，报表必须跑 `preview / query-widget / query`。
 - ✅ `sheet create --folder-id` 当前不能作为最终归位证据；创建后如果 `parentId` 为空、菜单树不在目标目录或目录为空，立即用 `sheet move --folder-id` 修正并再次 `sheet tree`。
 - ✅ 字段 ID 是表级独立生成的系统 ID；同名字段在不同表也不能复用。行数据 JSON 只能使用目标表 `column list` 返回的真实 `fieldId`。
+- ✅ 吸收历史项目经验时，先判断是稳定规则还是特定版本问题；CLI 命令、参数、返回结构、字段类型和旧 bug 必须复核当前源码、help 或 references 后再固化。
 
 ## 职责边界
 
@@ -56,7 +57,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 ## 默认处理顺序
 
 1. 识别用户目标：查询、创建、更新、排查、导入、生成画布或验证。
-2. 只要后续会执行或给出 `dimens-cli` 命令，先验证是否是最新版本，如果不是则升级。
+2. 只要后续会执行或给出 `dimens-cli` 命令，先执行 `dimens-cli --version`；命令不可用或版本不满足当前任务时再安装/升级，并在升级后复核版本和 help。
 3. 先看 `references/key-auth/overview.md`，确认认证方式。
 4. 再看 `references/team/overview.md`，明确 `teamId / projectId / baseUrl`。
 5. 项目容器问题看 `references/project/overview.md`。
@@ -70,6 +71,19 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 10. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
 11. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
 12. 如果是项目初始化或批量建表，最后必须执行一次全量验收：`sheet tree` 确认无空目录，逐表 `column list` 确认字段，逐表 `row page` 确认非空数据，逐报表 `query-widget/query` 确认可出数。
+
+### 全量验收矩阵
+
+项目初始化、批量建表、导入数据、生成报表、配置权限后，按下面证据判断是否完成：
+
+| 资源/动作 | 必须回查 | 通过标准 |
+| --- | --- | --- |
+| 菜单目录 | `sheet tree` | 设计中应归位的表、文档、报表、画布都在目标目录；没有无意义空目录 |
+| 表字段 | 逐表 `column list` | 每张表都有真实 `fieldId` 映射；同名字段也按表独立记录 |
+| 行数据 | 逐表 `row page` | `rows.length > 0` 且业务 `data` 非空；数值字段、选项字段结构正确 |
+| 报表 | `row page -> report preview -> widget-add -> query-widget -> query` | 数据源非空、组件可查、整报表不为空；空结果必须有原因和修正动作 |
+| 权限 | `role/permission/row-policy` 回查 + `myPermissions` 或权限快照 | 业务角色已绑定用户或说明待绑定；项目/表/资源/字段/行级权限已配置并说明缓存刷新风险 |
+| 画布/工作流 | `canvas info/save` 或 workflow 发布/运行回查 | 不是空壳资源；可渲染、可保存或可运行的证据明确 |
 
 ## 输出契约
 
@@ -98,6 +112,8 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - 不要只看 `sheet create --folder-id` 就判断资源已进入目录；必须 `sheet tree` 回查，必要时 `sheet move`。
 - 不要复用其它表的 `fieldId` 写入当前表；`row batch-create` 即使返回成功，也可能因为字段 ID 错误导致业务 `data` 为空。
 - 不要把空目录、空表、行 `data:{}`、空报表留到用户反馈后再修；这些都属于执行阶段必须主动发现的问题。
+- 不要把历史规则文档里的 Windows 路径、旧 CLI 版本行为或未复核 bug 当成当前通用事实；先复核再固化。
+- 不要只创建业务角色就声称权限完成；角色、权限、资源可见性、行级策略、用户绑定和权限快照是连续链路。
 
 ## 常见错误与修正
 

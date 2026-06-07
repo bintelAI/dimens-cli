@@ -1,11 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { getVersion, getUserAgent } from '../src/core/version';
+import packageJson from '../package.json';
 
 describe('Version', () => {
   it('should return version string', () => {
     const version = getVersion();
     expect(typeof version).toBe('string');
     expect(version).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+
+  it('should read version from package.json', () => {
+    expect(getVersion()).toBe(packageJson.version);
   });
 
   it('should return user agent string', () => {

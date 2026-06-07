@@ -25,6 +25,26 @@
     "expected": "应说明负责人用 person；所属部门当前不能生成 department 字段类型，必须用 text 保存部门名称，并避免普通 select 部门下拉；执行命令示例应包含 --label 所属部门 --type text。"
   },
   {
+    "id": "orchestrator-002d",
+    "prompt": "我这里有一份旧的 project_rules.md，里面写了 Windows 路径、CLI v1.0.7 的坑、字段和报表经验，你帮我吸收到技能里。",
+    "expected": "应先把经验分类为稳定规则、版本相关规则、验收规则、错误案例和测试 prompt；Windows 路径和旧 CLI 行为只能标为 version_specific 并要求复核当前 CLI help/源码，不能直接写成通用主流程；稳定经验要路由到 orchestrator、manager/table、manager/report、manager/permission 对应位置。"
+  },
+  {
+    "id": "orchestrator-002e",
+    "prompt": "帮我直接创建一套项目，最后只要告诉我成功就行，细节不用说。",
+    "expected": "不能只返回成功；必须输出完成证据，包括项目 ID、资源 ID、sheet tree 目录归位、逐表 column list 字段映射、逐表 row page data 非空、报表 preview/query-widget/query、权限配置和回查风险。"
+  },
+  {
+    "id": "orchestrator-002f",
+    "prompt": "我觉得你创建项目流程不稳定，经常封面没生效、目录空、报表空，但命令都显示 success。帮我重新规划一套稳定创建流程。",
+    "expected": "应输出阶段闸门流程：G0 设计、G1 上下文、G2 项目容器、G3 菜单、G4 建模、G5 数据、G6 文档、G7 报表、G8 权限、G9 完成；必须说明当前 project create 不支持 --cover-image，封面要上传后 project update --cover-image 并 project info 验收；报表必须在字段和样例数据 row page 验收通过后再 preview/widget-add/query-widget/query；不能只看 success。"
+  },
+  {
+    "id": "orchestrator-002g",
+    "prompt": "我有两个历史创建脚本，餐饮新品运营和石油终端零售，帮我抽成通用模板，以后快速创建项目。",
+    "expected": "应说明抽成模板是合理的，但不能原样复制历史 .mjs 脚本；必须先输出或路由到 QuickProjectConfig，把 folders/sheets/fields/seedRows/docs/reports/canvases/results 抽成变量结构；执行链默认 CLI 优先，直接 HTTP 只能作为兜底；文档必须改成 TipTap richtext，报表维度和指标必须来自当前表 column list，画布必须补完整渲染字段和可读配色；最终仍按 G0-G9 阶段闸门和 execution-result/execution-error 产物验收。"
+  },
+  {
     "id": "orchestrator-003",
     "prompt": "我的 Web 项目想调用维表智联接口读取报表数据。",
     "expected": "应识别为 SDK/Web 接入，不强行做系统拆解，路由到 dimens-sdk 的 integration-paths、frontend-auth-flow 和 report-examples。"

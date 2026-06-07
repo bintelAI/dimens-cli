@@ -85,8 +85,9 @@ export async function runCLI(argv: string[]): Promise<number> {
     return 0;
   }
 
-  if (first === 'help' || first === 'version') {
-    await getCommand(first)?.handler([second, ...rest].filter(Boolean) as string[]);
+  const rootCommand = getCommand(first);
+  if (rootCommand) {
+    await rootCommand.handler([second, ...rest].filter(Boolean) as string[]);
     return 0;
   }
 

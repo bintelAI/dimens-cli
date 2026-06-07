@@ -24,13 +24,16 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - ✅ 缺少 `teamId/projectId/sheetId/documentId/reportId` 时，先用链接解析、列表、详情或用户确认补齐，不要猜 ID
 - ✅ 这个技能只负责“项目创建 / 项目初始化 / 项目落地入口”，不替代表结构、字段设计、权限设计
 - ✅ 当用户要求“创建项目”时，默认先按维表特性完成建模方案设计，再进入创建命令
-- ✅ 默认项目初始化主链是：`project create -> sheet/doc/report create -> view list/create -> column create -> role create -> permission create -> role assign-user`
+- ✅ 默认项目初始化必须按“阶段闸门”推进：`设计文档 -> 认证/上下文 -> 封面预处理 -> project create -> project info/update封面 -> 菜单目录 -> 建表/字段/视图 -> 逐表样例数据验收 -> 文档 -> 报表 -> 角色权限 -> 全量回查`。上一阶段没有证据时，不进入下一阶段。
 - ✅ 项目创建后不要只补资源本身，还要补项目菜单结构；菜单默认至少包含：目录、表格、报表、文档
 - ✅ 目录功能不能漏；如果项目有多个业务域、多个资源区块或需要更清晰的导航入口，优先先建目录，再把表格/文档/报表挂到对应目录下
+- ✅ 用户要“快速创建 / 一键创建 / 按行业模板创建 / 补齐项目资源”时，先使用 `references/quick-project-template.md` 生成 `QuickProjectConfig`，再按阶段闸门执行；不要把历史 `.mjs` 脚本原样当通用技能规则。
 - ✅ 如果用户只是查团队、成员、租户隔离，优先回到 `dimens-manager/references/team/overview.md`
 - ✅ 如果用户已经明确要建表和字段，项目创建完成后应继续路由到 `dimens-manager/references/table/overview.md`
 - ✅ 项目初始化时不要只想到多维表格和报表，文档也是项目内的核心资源；在线文档走 TipTap 富文本链路，文档主链默认是 `doc create -> doc info -> doc update -> doc delete`
+- ✅ 强制说明：维表智联在线文档编辑器是 TipTap；创建或修改文档时必须按 TipTap 富文本内容组织，默认使用 `--format richtext`，不要把文档退化成 Markdown 原文、纯文本备注或只有 `<p>` 的简单 HTML。
 - ✅ 在线文档默认不是纯文本备注，而是 TipTap 富文本内容；用户创建文档时，默认要具备标题层级、彩色状态标签、淡色提示块/摘要卡片、正文样式和附件区，避免只有黑白文字的单调文档
+- ✅ 文档创建或修改默认要生成“演示感”内容：首屏标题区、摘要卡片、章节标题、关键数字/状态标签、淡色背景块、步骤区、风险/提示区和必要图表；文字和背景都要服务于信息层级。
 - ✅ 富文本编辑器已支持 Mermaid 数据；业务流程图、审批流、状态流转、系统对接链路可以直接写入文档，不必截图上传
 - ✅ 当前服务端文档内容允许保留 `class`、`style`、`data-video`、`data-attachment`、`data-file-name`、`data-file-size` 等属性，适合承接富文本样式和附件节点
 - ✅ 文件/图片上传在产品侧已存在 `/app/base/comm/upload` 上传接口，`dimens-cli` 也已支持 `upload file / upload mode`；如果目标是把文件继续写入在线文档，优先走 `doc attach-file / doc append-image`
@@ -40,13 +43,13 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - ✅ SVG 封面/图标上传时必须保留 `.svg` 扩展名；当前 CLI 会按 `image/svg+xml` 上传，避免被后端当成普通二进制文件处理
 - ✅ 项目封面 SVG 默认规格是 `250x150px`，建议写入 `width="250" height="150" viewBox="0 0 250 150"`；背景使用淡色系，动画使用轻量 SVG 动态效果，不要做高饱和、强闪烁或过重动画
 - ✅ 所有更新类操作默认都按“先拿数据 -> 改数据 -> 更新数据”执行，不能把局部字段 patch 当成通用更新模型
-- ✅ 用户创建项目时，如果还没有现成封面，技能可以先调用 SVG 工具生成一个“符合项目主题、具备动态动画效果”的 SVG 封面，再走上传拿 URL，最后进入项目创建
+- ✅ 用户创建项目时，如果还没有现成封面，技能可以先调用 SVG 工具生成一个“符合项目主题、具备动态动画效果”的 SVG 封面，再走上传拿 URL；当前 `project create` 源码不支持 `--cover-image`，所以封面 URL 必须在项目创建后通过 `project info -> project update --cover-image -> project info` 写回并验收。
 - ✅ 目录创建成功不代表其他菜单会自动进入目录；表格/目录资源创建时必须带 `--folder-id`，已有资源归位必须再执行 `sheet move --folder-id`
 - ✅ `sheet create --folder-id` 不能作为最终归位证据；创建表格、报表、文档、画布后必须 `sheet tree` 回查，发现 `parentId=null`、资源散落根目录或目录为空时，立即执行 `sheet move --folder-id` 修正。
 - ✅ 项目资源默认按“三驾马车”理解：表格、文档、报表；不要只初始化其中一个就停下
 - ✅ 三驾马车的推荐初始化顺序是：先定项目，再补核心表格，再补在线文档，再补经营报表，最后回到视图、字段、权限和报表预检
-- ✅ 如果项目初始化包含报表，不要只执行 `report create`；默认还应继续进入 `report create -> report preview -> report widget-add -> report query-widget -> report query` 这条固定预检链
-- ✅ 用户创建项目需求的默认标准路径是：`创建项目 -> 创建多表格 -> 创建多字段 -> 设计 1 对多 / 多对一关联数据 -> 补案例数据 -> (看需求)补项目文档 -> (看需求)补项目报表 -> (看需求)补角色 -> (看需求)补权限`
+- ✅ 如果项目初始化包含报表，不要只执行 `report create`；报表阶段必须在“字段和样例数据逐表验收通过”之后，继续进入 `row page -> report create -> report preview -> report widget-add -> report query-widget -> report query` 这条固定预检链。
+- ✅ 用户创建项目需求的默认标准路径是：`设计文档确认 -> 创建/更新项目容器 -> 创建菜单目录 -> 创建多表格 -> 创建多字段 -> 默认视图 -> 设计 1 对多 / 多对一关联数据 -> 逐表补案例数据并验收 -> (看需求)补项目文档 -> (看需求)补项目报表 -> (看需求)补角色 -> (看需求)补权限 -> 全量回查`
 - ✅ 其中多表、多字段、关联、案例数据属于基础建模路径，默认不应跳过；文档、报表、角色、权限属于按需补齐的后置模块
 
 高风险跑偏点：
@@ -58,19 +61,22 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - 不要漏掉项目菜单和目录；只创建资源、不做目录归位，后续导航和展示会很乱
 - 不要只信 `sheet create --folder-id`；如果创建结果或菜单树没有证明资源进入目标目录，就必须用 `sheet move` 补归位
 - 不要把在线文档误解成只创建一次、不需要维护的资源
+- 不要把 TipTap 文档写成 Markdown 源码、纯文本或只有普通段落的 HTML；文档创建和修改都必须按富文本结构输出
 - 不要把 TipTap 文档写成没有层级、没有状态、没有颜色语义的一整块纯文本；默认至少补 2-3 处有意义的颜色表达
+- 不要使用大面积高饱和背景、深色整页背景或花哨装饰；演示感来自清晰标题、淡色背景块、卡片层级、标签和图表，而不是堆色彩
 - 不要把上传能力和文档写回能力混为一谈；当前应明确区分 `upload file / upload mode` 与 `doc attach-file / doc append-image`
 - 不要把任何 update 命令理解成只传改动字段就够了；默认先读取当前数据，再合并目标变更
-- 不要在创建项目时忽略封面表达；如果项目是对外展示型、模板型、知识库型、品牌型项目，优先补 SVG 动态封面再创建
+- 不要在创建项目时忽略封面表达；如果项目是对外展示型、模板型、知识库型、品牌型项目，优先生成并上传 SVG 动态封面，但当前 CLI 要在项目创建后用 `project update --cover-image` 写回，不要编造 `project create --cover-image`
 - 不要以为项目里有报表资源就代表看板已可用
 - 不要在项目初始化阶段只补 `report create` 就结束
 - 不要在没有表结构或字段映射的情况下直接创建组件
+- 不要把 `.trae/推进方案/*.mjs` 行业脚本里的硬编码目录、字段、接口路径、Markdown 文档格式、简化画布 JSON 直接复制给用户执行；先转成 `QuickProjectConfig`，并按 CLI 优先、TipTap 文档、画布完整字段、报表预检规则修正。
 
 ## 命令维护表
 
 | 命令 | 作用 | 必填参数 | 常用可选 | 细节说明 |
 | --- | --- | --- | --- | --- |
-| `dimens-cli project create` | 创建项目主资源，作为系统初始化入口 | `teamId`, `name` | `description`, `projectType`, `remark`, `app-url` | 只创建项目壳子，不代表初始化闭环，后面通常还要继续建目录、表格、文档、报表 |
+| `dimens-cli project create` | 创建项目主资源，作为系统初始化入口 | `teamId`, `name` | `description`, `projectType`, `remark`, `app-url` | 只创建项目壳子，不支持直接传 `cover-image`；封面要创建后 `project update --cover-image` 写回，后面还要继续建目录、表格、文档、报表 |
 | `dimens-cli project list` | 查询团队下项目列表 | `teamId` | `page`, `size`, `keyword`, `app-url` | 用于先确认项目上下文，再决定后续进入哪个项目做资源初始化或更新 |
 | `dimens-cli project info` | 获取项目详情 | `teamId`, `id` | `app-url` | 项目更新前默认先拿当前项目数据，避免把局部 patch 误当成完整更新数据 |
 | `dimens-cli auth use-project` | 切换本地默认项目上下文 | `projectId` | - | 只影响默认上下文，不会替代真实的项目详情读取和更新流程 |
@@ -78,9 +84,9 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 | `dimens-cli sheet create` | 创建项目目录节点或表格节点 | `projectId`, `name` | `type=folder`, `folder-id`, `teamId`, `app-url` | 项目创建后优先补菜单骨架；创建子资源时可显式传 `--folder-id`，但创建后仍必须 `sheet tree` 验证，不归位就执行 `sheet move` |
 | `dimens-cli sheet move` | 把已有菜单资源移动到目录 | `teamId`, `projectId`, `sheetId`, `folder-id` | `app-url` | 已创建资源不会因为目录创建自动归位，移动时优先执行 `sheet move --folder-id`，再用 `sheet tree` 回查 |
 | `dimens-cli sheet update` | 更新资源名称，兼容移动菜单归属 | `teamId`, `projectId`, `sheetId` | `name`, `folder-id`, `app-url` | `--folder-id` 会映射为后端真实字段 `parentId`；纯移动场景优先用 `sheet move` |
-| `dimens-cli doc create` | 创建在线文档资源 | `teamId`, `projectId`, `title` | `content`, `format`, `parent-id`, `app-url` | 文档是项目核心资源；可在 `content` 中写入 Mermaid 流程图 |
+| `dimens-cli doc create` | 创建在线文档资源 | `teamId`, `projectId`, `title` | `content`, `format`, `parent-id`, `app-url` | 文档是项目核心资源；默认 `--format richtext`，`content` 必须按 TipTap 富文本结构组织，可写入标题区、淡色背景块、状态标签和 Mermaid 流程图 |
 | `dimens-cli doc info` | 获取文档详情和当前内容 | `teamId`, `projectId`, `documentId` | `app-url` | 文档修改前默认先读当前内容和 `version`，后续再改内容并 update |
-| `dimens-cli doc update` | 更新 TipTap 在线文档内容 | `teamId`, `projectId`, `documentId`, `content`, `version` | `create-version`, `change-summary`, `app-url` | 必须遵循“先 `doc info` -> 改内容 -> `doc update`”；流程类内容优先补 Mermaid 图表块 |
+| `dimens-cli doc update` | 更新 TipTap 在线文档内容 | `teamId`, `projectId`, `documentId`, `content`, `version` | `create-version`, `change-summary`, `app-url` | 必须遵循“先 `doc info` -> 改内容 -> `doc update`”；更新时保留原有有效内容，补强标题、背景块、摘要卡片、状态标签和 Mermaid 图表 |
 | `dimens-cli doc attach-file` | 上传附件后把附件节点写入文档 | `teamId`, `projectId`, `documentId`, `file` | `scene`, `app-url` | 内部应先走上传拿 `url`，再把附件节点并入当前文档内容，最后做文档更新 |
 | `dimens-cli doc append-image` | 上传图片后把图片节点写入文档 | `teamId`, `projectId`, `documentId`, `file` | `scene`, `app-url` | 内部应先走上传拿 `url`，再把图片节点并入当前文档内容，最后做文档更新 |
 | `dimens-cli doc delete` | 删除文档资源 | `teamId`, `projectId`, `documentId` | `app-url` | 删除前建议先确认当前文档归属和用途，避免误删项目说明页 |
@@ -101,11 +107,29 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - 如果是项目封面、项目图标这类资源字段更新，默认先 `project info` 拿当前数据，再合并上传后的 `url`，最后 `project update`。
 - 报表或报表组件更新默认先读当前报表数据，不直接盲改；组件场景还要先确认 `reportId`、当前组件配置和数据映射。
 
+## 项目创建阶段闸门
+
+创建项目不稳定时，优先按这张表排查。每一阶段都必须产出证据；缺证据时不要继续往后跑，也不要只凭命令返回 `success` 判断完成。
+
+| 阶段 | 允许进入条件 | 必须执行/产出 | 通过标准 | 不通过时 |
+| --- | --- | --- | --- | --- |
+| G0 设计闸门 | 用户需求已归一化为维表设计文档 | 对照 `dimens-system-orchestrator/references/new-project-design-template.md` 检查系统定位、菜单树、表字段、报表、权限、验收 | 资源清单、菜单树、表清单、报表口径和权限矩阵一致 | 先补设计文档，不创建项目 |
+| G1 上下文闸门 | 已完成认证且有 `teamId` | `auth api-key-login`、必要时 `project list` | token 可用，团队上下文明确 | 先补认证或团队信息 |
+| G2 项目容器闸门 | 项目名称、类型、说明明确 | `project create`，随后 `project info`；如有封面，先上传 URL，再 `project update --cover-image`，最后再次 `project info` | 项目存在，封面字段已写回或明确无封面 | 修正项目字段或封面写回，不进入菜单 |
+| G3 菜单闸门 | 设计中目录和资源归属明确 | `sheet create --type folder`，资源创建后 `sheet move --folder-id`，再 `sheet tree` | 设计目录非空，资源不散落根目录 | 重新确认 `folderId` 并移动 |
+| G4 建模闸门 | 表依赖批次已拆清 | 按批次建表、建字段、`view list/create`、逐表 `column list` | 每张表有真实 `fieldId`、字段类型/选项/person/部门 text 合规 | 修字段，不写样例数据 |
+| G5 数据闸门 | 每张表已有字段映射文件 | 逐表生成 JSON，`row batch-create --file`，立刻 `row page` | `rows.length > 0` 且业务 `data` 非空，数值/选项值结构正确 | 重建 JSON 或修字段，不能进入报表 |
+| G6 文档闸门 | 文档资源在设计清单中 | `doc create --format richtext`，`doc info` 回读 | TipTap 内容有标题、摘要卡片、状态标签、淡色块和必要 Mermaid | 修正文档内容或版本 |
+| G7 报表闸门 | 报表数据源表已通过 G5 | `row page -> report create -> report preview -> widget-add -> query-widget -> query` | 数据源非空，组件可查，整报表不为空；映射字段来自当前表 | 修数据、字段映射或组件配置 |
+| G8 权限闸门 | 业务角色和权限矩阵已确认 | `role create`、权限/资源/字段/行级策略、用户绑定或待绑定说明、权限回查 | 不重复内置角色，业务角色有权限证据和缓存风险说明 | 补权限链，不把角色创建当完成 |
+| G9 完成闸门 | G2-G8 已按范围通过 | 汇总项目 ID、资源 ID、目录归位、字段映射、行数据、报表、权限证据 | 输出证据链和未执行项，不遗漏失败项 | 标记未完成，不说“全部完成” |
+
 ## 输出与验证契约
 
 - 项目初始化输出必须列出：创建的项目、目录、表格、文档、报表、视图、字段和后续权限入口；没有执行的项要明确标注未执行。
 - 更新类输出必须包含：读取命令、合并点、更新命令、回查命令。
 - 文档更新至少验证：`doc info` 可读、`doc update` 使用正确 `version`、必要时 `doc versions` 有记录。
+- 文档内容至少验证：回读内容包含清晰 `h1/h2` 标题层级、一个首屏摘要/标题区、至少 2 处有语义的颜色表达、一个淡色背景提示块或摘要卡片；流程类文档还应包含 Mermaid 图表。
 - 报表初始化至少验证：`report preview`、`widget-add`、`query-widget` 或 `query` 中的关键结果。
 - 如果当前只完成项目壳子创建，不能声称项目初始化闭环。
 
@@ -158,7 +182,9 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
   1. 用 SVG 工具生成封面
   2. 上传 SVG，拿到 URL
   3. 再进入项目创建主链
-- TipTap 文档内容建议至少按“标题 / 段落 / 彩色摘要卡片 / 状态标签 / 提示块 / 清单 / 附件”组织，不要退化成一整段 HTML 或黑白纯文本
+- TipTap 文档内容必须至少按“标题 / 段落 / 彩色摘要卡片 / 状态标签 / 提示块 / 清单 / 附件”组织，不要退化成一整段 HTML 或黑白纯文本
+- TipTap 文档默认应有首屏视觉结构：`h1` 主标题、1 段摘要说明、1 个淡色背景的概览卡片、2-4 个状态/分类标签；后续章节再用 `h2/h3` 分层。
+- 文档背景表达优先使用局部淡色块，例如摘要区、风险区、下一步区；不要试图控制整页 `body` 背景，也不要生成影响编辑器可读性的全屏深色背景。
 - 彩色表达必须服务于信息语义：蓝色用于说明或进行中，绿色用于完成或正常，橙色用于待确认或警告，红色用于风险或异常，紫色用于分类或强调
 - 如果文档内容涉及流程、审批、状态流转、系统对接或数据流，默认补一个 Mermaid 图表块，例如 `flowchart TD`、`sequenceDiagram` 或 `stateDiagram-v2`
 - 如果文档里包含图片、附件、视频，先区分两层：
@@ -273,6 +299,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 | `references/doc-richtext-guidelines.md` | TipTap 文档颜色、状态、附件与图片写法约束 | 处理在线文档时必须看 |
 | `references/examples.md` | 项目命令与初始化案例 | 直接执行时建议先看 |
 | `references/bootstrap-flow.md` | 从项目到建表/权限的端到端初始化顺序 | 用户要求一步到位时必须看 |
+| `references/quick-project-template.md` | 从行业脚本和项目复盘抽出的快速创建模板，包含 `QuickProjectConfig`、阶段闸门、执行产物和迁移规则 | 用户要求快速/一键/按模板创建或补齐项目资源时必须看 |
 
 ## 使用场景示例
 
@@ -331,7 +358,7 @@ dimens-cli doc create \
   --team-id TTFFEN \
   --project-id PROJECT_ID \
   --title 产品说明文档 \
-  --content '<p>欢迎使用在线文档</p>' \
+  --content '<h1>产品说明文档</h1><p style="color:#475569;">本文档用于说明项目定位、核心模块和后续维护方式。</p><div style="background:#eef2ff;color:#3730a3;border-left:4px solid #818cf8;padding:14px 16px;border-radius:10px;margin:14px 0;"><strong>文档定位：</strong>统一沉淀产品目标、使用范围、操作入口和注意事项。</div><p><span style="background:#dbeafe;color:#1d4ed8;padding:3px 10px;border-radius:999px;">TipTap 富文本</span><span style="background:#ecfdf5;color:#047857;padding:3px 10px;border-radius:999px;margin-left:8px;">可持续维护</span><span style="background:#fff7ed;color:#c2410c;padding:3px 10px;border-radius:999px;margin-left:8px;">需定期更新</span></p><h2>核心内容</h2><ul><li>项目定位与使用对象</li><li>核心表格、文档和报表入口</li><li>权限、流程和数据维护说明</li></ul><h2>下一步</h2><div style="background:#fff7ed;color:#c2410c;border-left:4px solid #fb923c;padding:12px 14px;border-radius:10px;margin:12px 0;"><strong>提示：</strong>上线前请确认文档版本、附件资料和角色权限。</div>' \
   --format richtext
 ```
 
@@ -347,7 +374,7 @@ dimens-cli doc update \
   --team-id TTFFEN \
   --project-id PROJECT_ID \
   --document-id DOC_ID \
-  --content '<p>更新后的在线文档</p>' \
+  --content '<h1>更新后的在线文档</h1><p style="color:#475569;">本次更新补充了项目说明、操作步骤和风险提示。</p><div style="background:#ecfdf5;color:#047857;border-left:4px solid #34d399;padding:12px 14px;border-radius:10px;margin:12px 0;"><strong>更新摘要：</strong>文档已补充富文本层级、状态标签和维护说明。</div><h2>更新内容</h2><ul><li>补充项目背景</li><li>补充操作步骤</li><li>补充风险提示</li></ul>' \
   --version 1 \
   --create-version true \
   --change-summary 补充项目说明
@@ -369,6 +396,8 @@ dimens-cli doc delete \
 | 项目建好了，但前端表无法筛选 | 只建了项目和表，没补默认公开视图 | 继续执行 `view list` / `view create` |
 | 项目里想创建在线文档却失败 | 只按表格链路初始化，没走文档主链 | 使用 `dimens-cli doc create` 创建 TipTap 在线文档 |
 | 文档创建完后不知道怎么继续维护 | 误以为在线文档只有创建命令 | 继续使用 `dimens-cli doc info / doc update / doc delete` 做回查、修订和清理 |
+| 文档内容看起来像纯文本备注 | 没按 TipTap 富文本结构生成，缺少标题、背景块、标签和章节 | 按 `doc-richtext-guidelines.md` 重写为 `h1/h2`、摘要卡片、状态标签、淡色提示块和 Mermaid 图表 |
+| 文档修改后覆盖了原有内容 | 没先 `doc info` 读取当前内容和版本 | 先读当前内容，保留有效内容后增强结构，再用当前 `version` 执行 `doc update` |
 | 项目里需要经营看板却没有报表入口 | 只初始化了表格或文档，没把报表作为核心资源补齐 | 使用 `dimens-cli report create` 先补报表主资源 |
 | 项目里已经有报表资源，但图表还是空的 | 只创建了报表，没有继续预览数据源和创建组件 | 按 `report create -> report preview -> report widget-add -> report query-widget -> report query` 的固定预检链继续补齐 |
 | 项目初始化做完了，但其实只有单一资源 | 没按“三驾马车”理解项目资源 | 回到表格、文档、报表三类资源，确认哪些还没补齐 |
@@ -378,3 +407,4 @@ dimens-cli doc delete \
 
 - `references/examples.md`
 - `references/bootstrap-flow.md`
+- `references/doc-richtext-guidelines.md`

@@ -23,7 +23,8 @@ tags: [canvas, diagram, workflow, resource, dimens-cli]
 - ✅ 用户提出未知画布节点时，未知节点类型必须改写为已支持节点或转为说明文本，不能把业务名直接写成 `type`。
 - ✅ 画布生成完成后必须先执行或说明 `canvas validate` 校验，再执行 `canvas create/save`，保存后用 `canvas info/versions` 回查。
 - ✅ 在 Windows 终端写入含中文的 `canvas.json` 或说明文件时，必须用 UTF-8 写入并读回确认，避免中文变成 `??`。
-- ✅ 节点背景色默认使用淡色或 `transparent`，禁止直接使用黑色、深灰、深蓝等深色背景；文字颜色可以保持深色以保证可读性。
+- ✅ 节点背景色、文字色、边框色必须成对设计，默认使用浅背景 + 深文字；禁止出现背景和文字同为黑色、同为深色、同为浅色或对比度明显不足的节点。
+- ✅ 画布节点颜色必须符合人工视觉设计：用淡色承载语义分组，用边框和小面积强调色表达状态，不用大面积深色块压住文字；任何节点保存前都要检查“远看能分组、近看能读字”。
 - ✅ 用户要“创建 PPT / 演示稿 / 幻灯片”时，画布 JSON 必须按 PPT 画布规则生成：16:9 比例，一页一个 `SECTION` 分区，页面内容全部放在对应分区内。
 - ✅ PPT 或复杂展示场景中，优先善用 `INFOGRAPHIC` 信息图节点；它比普通文本、矩形、Markdown 更适合承载复杂信息。
 - ✅ 业务工作流画布不等于可执行工作流；可执行工作流仍看 `references/workflow/overview.md`。
@@ -85,6 +86,8 @@ tags: [canvas, diagram, workflow, resource, dimens-cli]
 - 不要跳过 `canvas validate`；校验不通过的数据不要提交 `canvas create/save/resource-save`。
 - 不要保存后不回查；至少执行 `canvas info` 和 `canvas versions`，确认最新版本已生成。
 - 不要把 `data.backgroundColor` 设为 `#000000`、`#111827`、`#1f2937` 等深色；流程节点背景应使用 `#ffffff`、`#f8fafc`、`#eff6ff`、`#ecfdf5`、`#fff7ed` 这类淡色。
+- 不要让 `data.backgroundColor` 和 `data.textColor` 同为黑色、同为深色或同为浅色；黑底黑字、深底深字、白底白字、浅黄底白字都必须视为不可保存的视觉错误。
+- 不要用大面积高饱和颜色表达重点；重点节点优先用浅色背景、较深边框、图标/标签/标题层级表达，例如浅蓝底配蓝边框、深灰文字。
 - 不要把 PPT 画布画成散落节点；PPT 画布最外层必须是一组 16:9 的 `SECTION`，一页 PPT 对应一个分区，所有页面内容都在分区内。
 - 不要把复杂展示内容拆成大量普通节点；能用 `INFOGRAPHIC` 表达的方案亮点、路径、对比、趋势、关系，应优先用信息图。
 - 不要把画布资源市场当成项目权限系统，资源可见性和项目页面权限仍要分开判断。

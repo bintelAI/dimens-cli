@@ -25,6 +25,11 @@
     "expected": "应先 sheet tree 检查空目录并用 sheet move 归位；逐表 column list 获取真实 fieldId，指出同名字段不能跨表复用；row page 验证 rows>0 且 data 非空；报表先 row page 再 preview/query-widget/query，空报表不能算完成。"
   },
   {
+    "id": "manager-003a-1",
+    "prompt": "我创建项目时命令都 success，但封面没显示、目录还是空的、报表也没数据。你以后执行时怎么保证稳定？",
+    "expected": "应使用项目创建阶段闸门排查和执行：G2 用 project create 后 project info，当前 project create 不支持 --cover-image，封面必须 upload file 后 project update --cover-image 并再次 project info；G3 每个资源 sheet move --folder-id 后 sheet tree 回查；G5 逐表 column list、row batch-create --file、row page 验证 data 非空；G7 报表只能在数据源表通过 row page 后再 preview/widget-add/query-widget/query，不能只看 success。"
+  },
+  {
     "id": "manager-003b",
     "prompt": "我要给报表加一个统计卡片，显示参与人数，数据来自多维表格。",
     "expected": "应使用 report/recharts 指南，组件类型必须是 stat 而不是 statistic；参与人数字段必须是 number；dataSource 要包含 sheet.columns、fieldIds、recommendedMapping、previewMapping，dataMapping 要有 nameKey/valueKey，并先 row page 和 report preview 再 widget-add/query-widget。"
@@ -33,6 +38,41 @@
     "id": "manager-003c",
     "prompt": "我要一次创建多张表，其中部分表有单向绑定和 relation，帮我安排建表和案例数据导入顺序，别漏任何表的数据。",
     "expected": "应先拆依赖批次：无依赖表有限并发，被引用基础表先创建并写入样例数据，有单向绑定/relation 依赖的表最后创建；案例数据必须按完整表清单逐表生成 JSON 文件、row batch-create --file 导入、row page 验证，未全部通过不得进入报表。"
+  },
+  {
+    "id": "manager-003d",
+    "prompt": "我有一批字段和数据要导入，能不能直接用中文字段名或者 fld_1 写 JSON？金额、人数这些字段也先用 text 吧，后面再说。",
+    "expected": "应拒绝中文字段名、占位 fld_1 或其它表 fieldId 作为可执行 JSON key；必须逐表 column list 获取真实 fieldId，金额/人数/数量/时长等指标字段必须是 number，初始化数据使用 row batch-create --file 并 row page 验证 data 非空。"
+  },
+  {
+    "id": "manager-003e",
+    "prompt": "我要做一个月度销售柱状图和状态分布饼图，dataMapping 里 nameKey 和 valueKey 用同一个字段可以吗？",
+    "expected": "应说明普通图表禁止无理由 nameKey===valueKey；月度图必须使用月份字段或把日期转成 YYYY-MM，valueKey 的 sum/avg/min/max 必须是 number 字段；饼图维度优先用 select 状态字段，并先 row page、report preview 后再 widget-add/query-widget/query。"
+  },
+  {
+    "id": "manager-003i",
+    "prompt": "我要生成一个销售报表，X轴用客户区域，指标用成交金额；如果当前表里没有这些字段你就自己生成字段名吧。",
+    "expected": "应拒绝随机生成或跨表复用 X 轴/维度/指标字段；必须先锁定当前数据源 sheetId 并 column list 当前选中表，确认客户区域和成交金额都存在于该表真实字段中，且同步写入 dataSource.columns、fieldIds 和 dataMapping；如果字段不存在，必须先补字段、换表或让用户确认真实字段，再 row page、report preview、widget-add/widget-update、query-widget/query 验证。"
+  },
+  {
+    "id": "manager-003j",
+    "prompt": "帮我用餐饮新品运营脚本那种结构，快速创建一个门店运营项目模板，最好能一次性包含目录、表、示例数据、文档、报表和画布。",
+    "expected": "应读取 project/references/quick-project-template.md，先生成 QuickProjectConfig 而不是直接跑旧 .mjs；配置要包含 folders/sheets/fields/seedRows/docs/reports/canvases 和 outputDirName；执行必须按 G0-G9 阶段闸门，逐表 column list 转真实 fieldId，row batch-create --file 后 row page 验证 data 非空；select/multiSelect 选项必须有 id/label/color 且颜色合法；文档必须是 TipTap richtext；报表维度和指标来自当前表 column list 并 preview/query；画布必须 canvas validate 且 backgroundColor/textColor/borderColor 可读；最终输出 execution-result.json 和 execution-error.log。"
+  },
+  {
+    "id": "manager-003f",
+    "prompt": "我只需要创建一个财务审核角色，执行 role create 成功后就算权限完成吧？",
+    "expected": "应说明 role create 不等于权限完成；只创建业务角色不重复建内置角色，之后必须配置项目/表/资源/字段/行级权限，绑定用户或说明待绑定，并用 permission list、role users、myPermissions/权限快照回查，说明缓存和前端刷新风险。"
+  },
+  {
+    "id": "manager-003g",
+    "prompt": "帮我创建一份产品说明在线文档，要用我们现在的编辑器，内容要生动一点，有标题、背景和演示感，不要只是纯文字。",
+    "expected": "应命中文档/project 章节并强制说明在线文档使用 TipTap 编辑器；doc create 默认 --format richtext，content 不能只是 Markdown 或普通 p 段落，必须包含 h1/h2 标题层级、首屏摘要区、淡色背景概览卡片、2-4 个状态/分类标签、提示/风险块；涉及流程时补 Mermaid；创建后用 doc info 回读验证。"
+  },
+  {
+    "id": "manager-003h",
+    "prompt": "帮我修改已有在线文档，让它更像演示材料，背景和标题更清楚，但别覆盖已有内容。",
+    "expected": "应先 doc info 读取当前内容和 version，保留原有有效内容后增强 TipTap 富文本结构；补 h1/h2/h3、淡色背景摘要卡片、状态标签、步骤区、风险提示块和必要 Mermaid；用 doc update 携带当前 version 和 create-version/change-summary，更新后回读确认。"
   },
   {
     "id": "manager-004",
@@ -58,6 +98,11 @@
     "id": "manager-008",
     "prompt": "帮我生成一个画布，里面要有 AI_REVIEW、TIMEOUT、ARCHIVE 这几个节点类型。",
     "expected": "应命中 canvas/generation-guide 和 validation-checklist；说明节点类型必须来自支持列表并有案例或文档支撑；拒绝直接生成 AI_REVIEW/TIMEOUT/ARCHIVE，改写为 RECTANGLE/DIAMOND/CYLINDER/DOCUMENT/MARKDOWN 等已支持节点，并把原始语义写入 data.label/data.text/meta.nodeGuide。"
+  },
+  {
+    "id": "manager-008a",
+    "prompt": "帮我生成一个业务流程画布，节点颜色随便酷一点也行，背景和文字你自己配，别管太多。",
+    "expected": "应命中 canvas/generation-guide 和 validation-checklist；必须拒绝随机配色和黑底黑字，按人工视觉设计输出浅背景 + 深文字 + 中等边框；不同职责使用语义色矩阵，例如输入输出浅蓝、判断浅橙/浅黄、成功浅绿、风险浅红/浅橙、数据沉淀浅灰/浅靛；每个节点必须包含 backgroundColor/textColor/borderColor，并在保存前说明要检查对比度和 canvas validate，低对比节点不能保存。"
   },
   {
     "id": "manager-009",

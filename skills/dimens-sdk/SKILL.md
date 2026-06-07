@@ -23,7 +23,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ 如果是维表自定义页面、Wujie 嵌入页面或明确基于 `dimens-web` 脚手架开发，前端方案必须优先读取 `references/dimens-web-scaffold.md`，不要重新生成一套通用 auth/storage/sdk/retry 分层。
 - ✅ 如果是维表自定义页面开发，必须把 UI/UX 设计作为前置步骤：先确认是否已安装 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`），未安装时先安装；安装或可用后，先用该技能完成页面风格、配色、布局、组件、图表和交互状态设计，再进入 `dimens-web` 脚手架编码。
 - ✅ 如果用户提到微模块页面、按钮插件、视图插件、Wujie props、`sourceLocation`、`viewState`、`actionSnapshot`、按钮弹窗或抽屉，必须继续读取 `references/micro-module-wujie-context.md`，按“页面 / 视图 / 按钮”三类上下文协议输出。
-- ✅ 每次准备使用 `dimens-cli` 前，必须先在当前终端执行 `npm -g install @bintel/dimens-cli@latest` 升级全局 CLI；升级成功后再执行 `dimens-cli --version` 或 `dimens-cli --help` 确认可用，确保用户每次使用的都是最新版本。
+- ✅ 每次准备使用 `dimens-cli` 前，先执行 `dimens-cli --version` 查看当前版本；只有命令不存在、版本明显低于需求、当前 help/source 与技能规则不一致，或用户确认升级时，才执行 `npm -g install @bintel/dimens-cli@latest`。升级后必须再次执行 `dimens-cli --version` 和必要的 `dimens-cli help <group>` 复核。
 - ✅ 新增自定义页面但没有目标目录时，先询问或建议用 `dimens-cli create --dir <目录名>` 初始化脚手架；已有目录则先检查目录结构，不要重复创建。
 - ✅ 自定义页面新增业务页默认使用 `/xxx` 独立路由；不要改 `/` 根页面，不要覆盖 `/custom`、`/records`、`/settings`、`/embed`、`/debug/context` 等既有示例、配置或调试页面。
 - ✅ 自定义页面不等用户显式要求“好看”才做设计；所有新增或改造业务页面都先使用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）产出 UI/UX 方案，再基于 `dimens-web` 脚手架实现。
@@ -63,7 +63,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 ## 默认处理顺序
 
 1. 先判断接入位置：`dimens-web` 自定义页面、普通浏览器、移动端、BFF、Node.js 服务端。
-2. 只要后续会执行或给出 `dimens-cli` 命令，先执行 `npm -g install @bintel/dimens-cli@latest`，再用 `dimens-cli --version` 或 `dimens-cli --help` 验证。
+2. 只要后续会执行或给出 `dimens-cli` 命令，先执行 `dimens-cli --version`；命令不可用或版本不满足当前任务时再安装/升级，并在升级后复核版本和 help。
 3. 如果是 `dimens-web` 自定义页面，先确认/安装并调用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）完成页面设计口径，再读 `references/dimens-web-scaffold.md`，判断目标目录是否已存在；没有目录时使用 `dimens-cli create --dir <目录名>` 初始化，再基于脚手架已有 `useDimens / runtimeStore / appSdk / retry` 输出方案。
 4. 如果是页面、视图、按钮三类微模块或 Wujie 宿主传参问题，继续读 `references/micro-module-wujie-context.md`，先区分定义级 `usageScene/mountLocation` 和运行时 `sourceLocation`，再输出 demo props。
 5. 再判断认证方式：用户登录 token、API Key 换 token、服务端代管 token。

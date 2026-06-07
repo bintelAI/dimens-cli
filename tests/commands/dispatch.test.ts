@@ -88,6 +88,19 @@ describe('CLI Dispatch', () => {
     logSpy.mockRestore();
   });
 
+  it('should dispatch --version root alias', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const { runCLI } = await import('../../src/cli');
+
+    const exitCode = await runCLI(['--version']);
+
+    expect(exitCode).toBe(0);
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('Dimens CLI v');
+    expect(output).not.toContain('未找到命令组');
+    logSpy.mockRestore();
+  });
+
   it('should dispatch auth api-key-login command', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const { runCLI } = await import('../../src/cli');

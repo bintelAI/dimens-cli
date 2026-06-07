@@ -25,7 +25,9 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 字段、视图、行数据都属于工作表上下文，不能脱离 `sheetId` 单独判断
 - ✅ 默认要优先帮助用户把“项目 -> 表 -> 字段 -> 关联 -> 示例数据 -> 查询案例”搭起来
 - ✅ 字段设计必须细到可落地，不能只写“有客户名称、状态、时间”这种抽象描述
+- ✅ 创建字段时规范参数使用 `--label`；`--title` 只作为兼容参数说明，不作为技能生成命令的推荐写法。
 - ✅ 创建字段前必须先判断是否存在稳定枚举语义；如果字段天然是状态、阶段、等级、分类、来源、标签、优先级、风险级别等有限集合，优先使用 `select` 或 `multiSelect`，不要退化成普通 `text`
+- ✅ 金额、数量、人数、库存、时长、评分、完成率等后续要统计或聚合的指标字段必须设计为 `number`；不能为了省事全建成 `text`。
 - ✅ relation 字段创建必须补齐目标表，推荐显式传 `--target-sheet-id`，并尽量补 `--display-column-id`
 - ✅ 创建多张表前必须先拆依赖层级：无依赖表可有限并发创建；被 relation / 单向绑定引用的基础表先创建并写入样例数据；存在单向绑定、relation 依赖目标表 / 字段 / 行的表最后创建。
 - ✅ `select` / `multiSelect` 字段在技能创建时必须同时给出完整候选项，不能只定义字段名和类型
@@ -46,6 +48,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 表格接口能读取不代表一定可写，行级、列级、协同权限可能继续收敛
 - ✅ 如果后续要做报表，这一步就要提前考虑字段能否直接进入 `report preview / query-widget / dataMapping`，不要等到报表阶段再返工
 - ✅ 字段 ID 是每张表独立生成的系统 ID；`column create` 后必须对目标表执行 `column list`，用真实 `fieldId` 写入行数据。即使字段名相同，也不能跨表复用 `fieldId`。
+- ✅ 行数据 JSON 的 key 只能使用当前目标表真实 `fieldId`；禁止使用中文字段名、占位 `fld_xxx`、`fld_1` 或其它表字段 ID 当成可执行数据。
 - ✅ 行数据写入后必须立即执行 `row page` 验证：每张应有样例数据的表都要有行，且业务 `data` 不能是 `{}`；发现空表、空行、数值字段写成文本或 select 值不匹配时，先修数据再进入下一步。
 - ✅ `row batch-create` 返回成功只代表行创建请求完成，不代表业务字段一定写入成功；验收以 `row page` 读出的 `data` 为准。
 - ✅ 初始化、迁移、补录、示例数据写入统一使用 `row batch-create --file <JSON文件路径>`。不要用 `row create --data` 或 `row create --values` 直接传 JSON 字符串写样例数据；命令行 JSON 字符串存在解析/转义风险，可能导致数据没有正确写入。
@@ -67,6 +70,8 @@ tags: [table, sheet, row, column, view, dimens-cli]
 9. 只关心表能录数据，不关心字段是否可用于 `preview` 和报表映射
 10. 复用其它表的字段 ID 导入当前表，导致行存在但业务 `data` 为空
 11. 批量导入后不立即回查，等报表阶段才发现数据字段类型或值结构错误
+12. 把金额、数量、人数等统计指标建成 `text`，导致报表 `sum/avg/min/max` 无法稳定聚合
+13. 技能输出仍把 `--title` 当字段创建规范写法，而不是统一使用 `--label`
 
 对应提醒：
 
@@ -74,6 +79,20 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - 报表数值字段必须是数字或可稳定转数字
 - 如果字段后续要进入报表，尽量在建表阶段就明确“谁做维度、谁做指标”
 - 不要等到 `dimens-manager/references/report/overview.md` 阶段才发现字段类型不适合出图
+
+## 字段与导入强制校验表
+
+| 检查项 | 强制规则 | 不通过时 |
+| --- | --- | --- |
+| 字段创建参数 | 技能生成命令统一用 `column create --label`；`--title` 只保留为兼容说明 | 改写命令，不把兼容参数作为推荐主写法 |
+| 真实字段 ID | 每张表字段创建后都要 `column list`，记录“表名 + 字段名 + type + fieldId” | 重新取当前表字段映射；不同表同名字段不能复用 |
+| 行数据 JSON key | 只能使用当前表真实 `fieldId` | 用 `column list` 结果重建 JSON 后再导入 |
+| 示例数据导入 | 初始化、迁移、示例数据统一 `row batch-create --file` | 不用 `row create --data/--values` 写多行或初始化数据 |
+| 写后回查 | 每张需要数据的表都立刻 `row page --size 5` | `rows=0`、`data:{}` 或字段值结构错时先修数据，不能进入报表 |
+| 选项字段 | `select/multiSelect` 必须有唯一 `id`、非空 `label`、合法 `color` | 先补/修 options，再导入行数据 |
+| 人员字段 | 负责人、审批人、成员等优先 `person` | 不退化成普通静态下拉 |
+| 部门字段 | 所属部门、负责部门、归属组织当前用 `text` 保存部门名称 | 不生成 `department`，也不误建普通 `select` |
+| 数值指标 | 金额、数量、人数、库存、时长、评分、完成率等用 `number` | 先修字段类型和数据，再做报表 |
 
 ## 命令维护表
 

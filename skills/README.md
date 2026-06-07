@@ -26,10 +26,17 @@
 
 这些 Skill 默认建立在 `dimens-cli` 已可用的前提下。
 
-如果本地还没有 `dimens-cli` 命令，需要先安装：
+每次准备使用 CLI 前，先查看当前版本：
 
 ```bash
-npm install -g @bintel/dimens-cli
+dimens-cli --version
+```
+
+如果本地还没有 `dimens-cli` 命令，或当前版本不满足任务要求，再安装或升级：
+
+```bash
+npm install -g @bintel/dimens-cli@latest
+dimens-cli --version
 ```
 
 或：

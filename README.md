@@ -69,6 +69,19 @@ pnpm add @bintel/dimens-cli
 
 如果你本地执行 `dimens-cli` 提示“command not found”，说明当前环境还没有这个命令。先安装 `@bintel/dimens-cli`，安装完成后再继续看 `skills/` 文档、CLI 案例和 Skill 路由说明。
 
+如果本地已经有全局命令，先查看当前版本，不要每次无条件重装：
+
+```bash
+dimens-cli --version
+```
+
+只有命令不存在、版本不满足当前任务、`help` 与文档不一致，或你确认需要升级时，再执行：
+
+```bash
+npm install -g @bintel/dimens-cli@latest
+dimens-cli --version
+```
+
 如果你是在当前仓库里开发 `dimens-cli`，再看下面的“本地开发使用”。
 
 ## 本地开发使用
@@ -94,6 +107,7 @@ pnpm build
 本地直接执行 CLI：
 
 ```bash
+node ./bin/dimens-cli.js --version
 node ./bin/dimens-cli.js help
 ```
 
@@ -109,6 +123,7 @@ dimens-cli help
 查看帮助：
 
 ```bash
+node ./bin/dimens-cli.js --version
 node ./bin/dimens-cli.js help
 node ./bin/dimens-cli.js help auth
 node ./bin/dimens-cli.js help doc
