@@ -258,7 +258,8 @@ dimens-cli report widget-add \
   --report-id REPORT_1 \
   --type bar \
   --title "销售额" \
-  --data-source '{"kind":"sheet","sheetId":"S1"}' \
+  --data-source '{"mode":"sheet","sheet":{"sheetId":"S1","sheetName":"订单表","columns":[{"fieldId":"fld_region","label":"客户区域","type":"select"},{"fieldId":"fld_amount","label":"成交金额","type":"number"}],"fieldIds":["fld_region","fld_amount"],"recommendedMapping":{"nameKey":"name","valueKey":"value"},"previewMapping":{"nameKey":"name","valueKey":"value","aggregation":"sum","limit":10},"limit":10}}' \
+  --data-mapping '{"nameKey":"客户区域","valueKey":"成交金额","aggregation":"sum","limit":10}' \
   --layout '{"x":0,"y":0,"w":6,"h":4}'
 
 dimens-cli report widget-update --project-id PROJ1 --widget-id widget_1 --title "销售额-更新"
@@ -373,7 +374,7 @@ dimens-cli report query \
 ```bash
 dimens-cli report preview \
   --project-id PROJ1 \
-  --data-source '{"mode":"sheet"}' \
+  --data-source '{"mode":"sheet","sheet":{"sheetId":"S1","sheetName":"订单表","columns":[{"fieldId":"fld_name","label":"名称","type":"text"},{"fieldId":"fld_amount","label":"销售额","type":"number"}],"fieldIds":["fld_name","fld_amount"],"recommendedMapping":{"nameKey":"name","valueKey":"value"},"previewMapping":{"nameKey":"name","valueKey":"value","aggregation":"sum","limit":10},"limit":10}}' \
   --data-mapping '{"nameKey":"名称","valueKey":"销售额"}'
 
 dimens-cli report query-widget \

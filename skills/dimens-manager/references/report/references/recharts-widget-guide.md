@@ -162,6 +162,15 @@ Skill 不要输出前端未支持的图表类型名，也不要自造 `chartType
 
 在生成这段配置前，必须先用 `row page` 确认数据源表有行且业务 `data` 非空。如果行存在但 `data:{}`，通常是导入数据时用错了 `fieldId`，应先回到表格章节修复，不能继续生成空图表。
 
+强制注意：
+
+- `dataSource` 必须使用 `mode: "sheet"` 和嵌套 `sheet` 对象。
+- 禁止旧格式 `{ "kind": "sheet", "sheetId": "S1" }`。
+- 禁止只写 `{ "mode": "sheet" }`。
+- 禁止把 `sheetId`、`columns`、`fieldIds` 平铺到 `dataSource` 顶层。
+- 禁止把 `dataMapping` 放进 `dataSource.sheet` 后省略顶层 `dataMapping`。
+- 如果历史脚本或用户输入是旧格式，先转换成标准结构，再执行 `preview/widget-add/widget-update/query-widget`。
+
 ### 4.1 字段选择规则
 
 | 场景 | 维度字段 | 数值字段 |
@@ -339,6 +348,8 @@ Skill 不要输出前端未支持的图表类型名，也不要自造 `chartType
 | 错误写法 | 为什么错 | 正确做法 |
 | --- | --- | --- |
 | 只写 `type: line` 和 `sheetId` | 前端不知道拿哪列做横轴和纵轴 | 同时补 `sheet.columns`、`fieldIds`、`dataMapping` |
+| 使用 `{ "kind": "sheet", "sheetId": "S1" }` | 这是旧数据来源格式，缺少 `dataSource.sheet.columns/fieldIds/previewMapping` | 改成 `{ "mode": "sheet", "sheet": { ... } }` |
+| 只写 `{ "mode": "sheet" }` | 没有 `sheet` 配置，CLI 会拒绝，后端也无法知道查询哪些字段 | 补 `sheetId`、`columns`、`fieldIds`、`recommendedMapping`、`previewMapping` |
 | 把 `recommendedMapping` 直接当最终映射 | 推荐映射是规范层，不是渲染层 | `dataMapping` 仍然要写实际列名 |
 | 把 `fld_xxx` 写进 `dataMapping` | 查询层字段 ID 被当成前端字段名，设置页维度/指标会显示 ID | `fieldIds` 用 `fld_xxx`，`dataMapping` 用字段标签 |
 | 给饼图使用文本数值字段 | Recharts 无法累计 | 数值字段必须是 `number` 或可转数值 |

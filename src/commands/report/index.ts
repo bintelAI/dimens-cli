@@ -49,6 +49,12 @@ function validateSheetDataSource(
   dataSource: Record<string, unknown>,
   dataMapping?: Record<string, unknown>
 ): void {
+  if (dataSource.kind === 'sheet') {
+    throw new Error(
+      'sheet 数据源格式错误：请使用 {"mode":"sheet","sheet":{...}}，不要使用旧格式 kind/sheetId'
+    );
+  }
+
   if (dataSource.mode !== 'sheet') {
     return;
   }
@@ -269,6 +275,9 @@ export function registerReportCommands(): void {
               'data-mapping 必须是合法 JSON 对象'
             );
           }
+          if (payload.dataSource) {
+            validateSheetDataSource(payload.dataSource, payload.dataMapping);
+          }
           const sdk = new ReportSDK(createClient(context));
           const result = await sdk.queryWidget(projectId, payload);
           printSuccess(context, '报表组件查询成功', result.data);
@@ -312,6 +321,7 @@ export function registerReportCommands(): void {
               'data-mapping 必须是合法 JSON 对象'
             );
           }
+          validateSheetDataSource(payload.dataSource, payload.dataMapping);
           if (flags.params) {
             payload.parameterValues = parseJsonFlag(flags.params, 'params 必须是合法 JSON 对象');
           }

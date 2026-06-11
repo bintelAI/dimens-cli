@@ -1230,7 +1230,7 @@ describe('Sheet Column Row Commands', () => {
       '--params',
       '{"month":"2026-04"}',
       '--data-source',
-      '{"mode":"sheet"}',
+      '{"mode":"sheet","sheet":{"sheetId":"S1","columns":[{"fieldId":"fld_1","label":"名称","type":"text"},{"fieldId":"fld_2","label":"销售额","type":"number"}],"fieldIds":["fld_1","fld_2"],"recommendedMapping":{"nameKey":"name","valueKey":"value"},"previewMapping":{"nameKey":"name","valueKey":"value","limit":10}}}',
       '--data-mapping',
       '{"nameKey":"名称","valueKey":"销售额"}',
     ]);
@@ -1239,7 +1239,19 @@ describe('Sheet Column Row Commands', () => {
       reportId: 'REPORT_1',
       widgetId: 'widget_1',
       parameterValues: { month: '2026-04' },
-      dataSource: { mode: 'sheet' },
+      dataSource: {
+        mode: 'sheet',
+        sheet: {
+          sheetId: 'S1',
+          columns: [
+            { fieldId: 'fld_1', label: '名称', type: 'text' },
+            { fieldId: 'fld_2', label: '销售额', type: 'number' },
+          ],
+          fieldIds: ['fld_1', 'fld_2'],
+          recommendedMapping: { nameKey: 'name', valueKey: 'value' },
+          previewMapping: { nameKey: 'name', valueKey: 'value', limit: 10 },
+        },
+      },
       dataMapping: { nameKey: '名称', valueKey: '销售额' },
     });
     expect(logSpy).toHaveBeenCalled();
@@ -1259,7 +1271,7 @@ describe('Sheet Column Row Commands', () => {
       '--project-id',
       'PROJ1',
       '--data-source',
-      '{"mode":"sheet"}',
+      '{"mode":"sheet","sheet":{"sheetId":"S1","columns":[{"fieldId":"fld_1","label":"名称","type":"text"},{"fieldId":"fld_2","label":"销售额","type":"number"}],"fieldIds":["fld_1","fld_2"],"recommendedMapping":{"nameKey":"name","valueKey":"value"},"previewMapping":{"nameKey":"name","valueKey":"value","limit":10}}}',
       '--data-mapping',
       '{"nameKey":"名称","valueKey":"销售额"}',
       '--params',
@@ -1267,11 +1279,46 @@ describe('Sheet Column Row Commands', () => {
     ]);
 
     expect(reportSdkSpies.preview).toHaveBeenCalledWith('PROJ1', {
-      dataSource: { mode: 'sheet' },
+      dataSource: {
+        mode: 'sheet',
+        sheet: {
+          sheetId: 'S1',
+          columns: [
+            { fieldId: 'fld_1', label: '名称', type: 'text' },
+            { fieldId: 'fld_2', label: '销售额', type: 'number' },
+          ],
+          fieldIds: ['fld_1', 'fld_2'],
+          recommendedMapping: { nameKey: 'name', valueKey: 'value' },
+          previewMapping: { nameKey: 'name', valueKey: 'value', limit: 10 },
+        },
+      },
       dataMapping: { nameKey: '名称', valueKey: '销售额' },
       parameterValues: { month: '2026-04' },
     });
     expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  it('should reject incomplete sheet data source in report preview command', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const previewReport = getCommandGroup('report')?.commands.find(
+      command => command.name === 'preview'
+    );
+    await previewReport?.handler([
+      '--project-id',
+      'PROJ1',
+      '--data-source',
+      '{"mode":"sheet"}',
+      '--data-mapping',
+      '{"nameKey":"名称","valueKey":"销售额"}',
+    ]);
+
+    expect(reportSdkSpies.preview).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('sheet 配置'));
     logSpy.mockRestore();
   });
 
@@ -1319,7 +1366,7 @@ describe('Sheet Column Row Commands', () => {
     logSpy.mockRestore();
   });
 
-  it('should execute report widget-add command', async () => {
+  it('should reject legacy sheet data source shape in report widget-add command', async () => {
     const { registerCommands } = await import('../../src/commands');
     const { getCommandGroup } = await import('../../src/commands/registry');
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
@@ -1343,14 +1390,8 @@ describe('Sheet Column Row Commands', () => {
       '{"x":0,"y":0,"w":6,"h":4}',
     ]);
 
-    expect(reportSdkSpies.addWidget).toHaveBeenCalledWith('PROJ1', {
-      reportId: 'REPORT_1',
-      type: 'bar',
-      title: '销售额',
-      dataSource: { kind: 'sheet', sheetId: 'S1' },
-      layout: { x: 0, y: 0, w: 6, h: 4 },
-    });
-    expect(logSpy).toHaveBeenCalled();
+    expect(reportSdkSpies.addWidget).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('mode'));
     logSpy.mockRestore();
   });
 

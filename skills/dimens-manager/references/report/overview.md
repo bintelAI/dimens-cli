@@ -27,6 +27,7 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - ✅ 当前报表前端图表主渲染基于 `recharts@3.6.0`，生成组件时必须按前端真实支持的 `type` 和字段映射输出
 - ✅ 统计卡片组件类型使用 `stat`，不要使用 `statistic`；生成组件前必须对照 `references/recharts-widget-guide.md` 的组件白名单。
 - ✅ 当报表组件来自多维表格时，不能只给 `sheetId`，必须同时补 `sheet.columns`、`fieldIds`、`recommendedMapping`、`previewMapping`、`dataMapping`
+- ✅ 多维表格数据来源格式必须使用标准对象：`dataSource.mode = "sheet"` 且 `dataSource.sheet = { sheetId, sheetName?, columns, fieldIds, recommendedMapping, previewMapping, limit? }`；禁止使用旧格式 `{"kind":"sheet","sheetId":"..."}`，也禁止只写 `{"mode":"sheet"}` 或把 `sheetId` 平铺在 `dataSource` 顶层。
 - ✅ 多维表格报表必须区分三层映射：查询层字段 ID、规范消费键、前端渲染字段标签。`sheet.columns[].fieldId/fieldIds` 用真实 `fieldId`，`recommendedMapping/previewMapping` 默认用 `name/value`，`dataMapping.nameKey/valueKey` 默认用当前表真实字段标签。
 - ✅ 禁止把 `fld_` 开头的字段 ID 直接写进 `dataMapping.nameKey/valueKey`，除非前端组件明确声明按 `fieldId` 消费；否则报表设置里的维度/指标会显示字段 ID，甚至导致渲染或配置回显异常。
 - ✅ 报表生成或修改时，维度 / X 轴 `nameKey` 和指标 `valueKey` 必须从当前选中数据源表的真实字段中选择；先 `column list` 锁定字段，不能随机编造字段名，也不能跨表复用其它表字段
@@ -57,7 +58,8 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 13. 不要把 `sum/avg/min/max` 指向文本字段；先回到表格章节把指标字段修成 `number`
 14. 不要随机生成 X 轴、维度或指标字段；必须先查当前选中表的 `column list`，再用真实字段构造 `dataSource.columns/fieldIds/dataMapping`
 15. 不要把查询层字段 ID 和前端映射层字段名混用；`dataMapping` 里出现 `fld_xxx` 默认就是错误配置
-16. 不要把空报表、空组件、空 `query` 结果当成完成；必须说明原因并修正数据、映射或参数
+16. 不要使用旧数据来源格式 `kind:"sheet"`、顶层 `sheetId`、只有 `mode:"sheet"` 的空壳数据源或字符串型数据源；当前 CLI 和 Skill 都按标准 `dataSource.sheet` 对象验收
+17. 不要把空报表、空组件、空 `query` 结果当成完成；必须说明原因并修正数据、映射或参数
 
 对应解释：
 
@@ -70,6 +72,57 @@ tags: [report, dashboard, data-source, analytics, dimens-cli]
 - 对多维表格数据源，通常至少要有：`sheetId + columns + fieldIds + recommendedMapping + previewMapping + dataMapping`
 - `sheet.columns[].fieldId` 和 `fieldIds` 是查询层字段 ID；`dataMapping.nameKey/valueKey` 是前端渲染层字段名，默认必须写字段标签，例如 `油品类型`、`当前库存(升)`，不能写 `fld_xxx`
 - 数值轴字段必须是数字或可稳定转数字，文本字段不要硬塞成 `valueKey`
+
+## dataSource 数据来源格式强制契约
+
+当数据来源来自多维表格时，`dataSource` 必须是下面这种结构。这里的 `mode`、`sheet`、`columns`、`fieldIds`、`recommendedMapping`、`previewMapping` 都不能省略：
+
+```json
+{
+  "mode": "sheet",
+  "sheet": {
+    "sheetId": "sh_xxx",
+    "sheetName": "订单表",
+    "columns": [
+      { "fieldId": "fld_region", "label": "客户区域", "type": "select" },
+      { "fieldId": "fld_amount", "label": "成交金额", "type": "number" }
+    ],
+    "fieldIds": ["fld_region", "fld_amount"],
+    "recommendedMapping": { "nameKey": "name", "valueKey": "value" },
+    "previewMapping": {
+      "nameKey": "name",
+      "valueKey": "value",
+      "aggregation": "sum",
+      "limit": 10
+    },
+    "limit": 10
+  }
+}
+```
+
+强制来源：
+
+1. `sheet.sheetId` 来自当前选中的数据源表，不从其它表借用。
+2. `sheet.columns` 来自当前表 `column list` 的真实字段元数据，至少包含被选中的维度字段和指标字段。
+3. `sheet.fieldIds` 与 `columns[].fieldId` 保持一致，只放当前图表实际需要查询的字段。
+4. `recommendedMapping` 和 `previewMapping` 使用规范键 `name/value`，聚合、排序、limit 放在 `previewMapping`。
+5. 最终图表渲染继续用独立 `dataMapping`，不能把 `dataMapping` 塞进 `dataSource.sheet` 后省略顶层 `--data-mapping`。
+
+禁止格式：
+
+```json
+{ "kind": "sheet", "sheetId": "S1" }
+```
+
+```json
+{ "mode": "sheet" }
+```
+
+```json
+{ "mode": "sheet", "sheetId": "S1" }
+```
+
+如果用户或历史脚本给了这些旧格式，必须先转换成标准 `dataSource.sheet` 对象，再执行 `report preview / widget-add / widget-update / query-widget`。不能为了让命令跑起来而放宽数据来源格式。
 
 ## dataMapping 强制规则
 

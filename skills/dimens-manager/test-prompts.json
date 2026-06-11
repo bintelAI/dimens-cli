@@ -55,6 +55,11 @@
     "expected": "应拒绝随机生成或跨表复用 X 轴/维度/指标字段；必须先锁定当前数据源 sheetId 并 column list 当前选中表，确认客户区域和成交金额都存在于该表真实字段中，且同步写入 dataSource.columns、fieldIds 和 dataMapping；如果字段不存在，必须先补字段、换表或让用户确认真实字段，再 row page、report preview、widget-add/widget-update、query-widget/query 验证。"
   },
   {
+    "id": "manager-003i-1",
+    "prompt": "我报表组件的数据来源格式好像有问题，之前写的是 {\"kind\":\"sheet\",\"sheetId\":\"S1\"}，或者只写了 {\"mode\":\"sheet\"}，你帮我修成正确格式。",
+    "expected": "应命中 report 章节并明确旧格式 kind/sheetId 和只有 mode:sheet 都禁止；必须先锁定当前 sheetId 并 column list 当前表，用真实字段生成标准 dataSource：mode=sheet、sheet.sheetId、sheetName、columns、fieldIds、recommendedMapping、previewMapping、limit；顶层仍要单独提供 dataMapping，nameKey/valueKey 使用字段标签而不是 fld_；修正后按 row page、report preview、widget-add/widget-update、query-widget、report info 验证。"
+  },
+  {
     "id": "manager-003j",
     "prompt": "帮我用餐饮新品运营脚本那种结构，快速创建一个门店运营项目模板，最好能一次性包含目录、表、示例数据、文档、报表和画布。",
     "expected": "应读取 project/references/quick-project-template.md，先生成 QuickProjectConfig 而不是直接跑旧 .mjs；配置要包含 folders/sheets/fields/seedRows/docs/reports/canvases 和 outputDirName；执行必须按 G0-G9 阶段闸门，逐表 column list 转真实 fieldId，row batch-create --file 后 row page 验证 data 非空；select/multiSelect 选项必须有 id/label/color 且颜色合法；文档必须是 TipTap richtext；报表维度和指标来自当前表 column list 并 preview/query；画布必须 canvas validate 且 backgroundColor/textColor/borderColor 可读；最终输出 execution-result.json 和 execution-error.log。"
