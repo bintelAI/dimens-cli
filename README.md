@@ -2,10 +2,10 @@
 
 `dimens-cli` 是多维项目的本地命令行与 Node.js SDK 封装，当前已经落地可直接执行的本地 CLI 主链。
 
-当前实现重点收口为两条主能力：
+当前实现重点收口为两条主链：
 
 - 认证侧：`API Key + API Secret` 换取系统 `token`
-- AI 侧：`POST /app/flow/:teamId/v1/chat/completions`
+- AI 侧：通过维表后端代理调用 new-api 多能力接口，覆盖聊天、Responses、Messages、模型列表、图片生成/编辑/变体、视频任务、音频、Embedding、Rerank
 
 默认 `baseUrl` 固定为：
 
@@ -491,13 +491,48 @@ node ./bin/dimens-cli.js row-acl revoke-role \
 - `row-acl` 负责对单行做额外精细授权
 - 如果文档结论与服务端实现出现差异，应优先对照 `.trae/已开发文档/权限机制架构设计图.md` 与 `.trae/已开发文档/权限流程图.md` 再确认
 
-调用 AI chat completions：
+调用 AI 聊天：
 
 ```bash
 node ./bin/dimens-cli.js ai chat-completions \
   --team-id TEAM1 \
   --message "你好" \
   --model default
+```
+
+调用 AI 图片生成：
+
+```bash
+node ./bin/dimens-cli.js ai image-generate \
+  --team-id TEAM1 \
+  --prompt "企业数据驾驶舱海报" \
+  --model default \
+  --size 1024x1024 \
+  --project-id PROJ1 \
+  --resource-id poster_1
+```
+
+创建并查询 AI 视频任务：
+
+```bash
+node ./bin/dimens-cli.js ai video-create \
+  --team-id TEAM1 \
+  --prompt "数据看板动画展示" \
+  --model default \
+  --seconds 8
+
+node ./bin/dimens-cli.js ai video-status \
+  --team-id TEAM1 \
+  --task-id video_task_1
+```
+
+音频、向量和重排：
+
+```bash
+node ./bin/dimens-cli.js ai audio-speech --team-id TEAM1 --input "欢迎使用维表智联" --voice alloy
+node ./bin/dimens-cli.js ai audio-transcribe --team-id TEAM1 --file ./meeting.mp3
+node ./bin/dimens-cli.js ai embeddings --team-id TEAM1 --input "hello"
+node ./bin/dimens-cli.js ai rerank --team-id TEAM1 --query "项目风险" --documents '["风险台账","会议纪要"]'
 ```
 
 执行前显示相关 Skill 提示：
@@ -574,8 +609,28 @@ const chat = await businessSdk.ai.completions('TEAM1', {
   ],
 });
 
+const image = await businessSdk.ai.generateImage('TEAM1', {
+  model: 'default',
+  prompt: '企业数据驾驶舱海报',
+  size: '1024x1024',
+  projectId: 'PROJ1',
+  resourceId: 'poster_1',
+});
+
+const videoTask = await businessSdk.ai.createVideo('TEAM1', {
+  model: 'default',
+  prompt: '数据看板动画展示',
+  seconds: '8',
+  projectId: 'PROJ1',
+  resourceId: 'video_1',
+});
+
+const videoStatus = await businessSdk.ai.getVideo('TEAM1', videoTask.data.id);
+
 console.log(projects.data);
 console.log(chat.data);
+console.log(image.data);
+console.log(videoStatus.data);
 ```
 
 ## 仓库内一键 Smoke Test
@@ -662,7 +717,9 @@ dimens-cli/
 ## 说明
 
 - 当前 `api key` 只保留“换 token”这一条主链，不扩展 API Key 管理命令
-- 当前 `ai` 只保留 `chat-completions` 一条使用接口
+- 当前 `ai` 只封装维表后端已经开放的 new-api 代理接口，不直连 new-api，不保存或展示 `sk-` token
+- 图片、视频、音频、Embedding、Rerank 等接口的 `model` 建议默认传 `default`，由维表后端按团队和 capability 注入默认模型
+- `projectId`、`resourceId`、`modelScope`、`tokenScope` 是维表内部归因和模式控制字段，不会透传给 new-api 上游
 - 当前 `skill` 命令组用于本地查看、推荐和展示 Skills，不调用后端接口
 - 旧版 `callTool/getTools/getSkills` 文档口径已废弃，不再适用于当前实现
 # dimens-cli

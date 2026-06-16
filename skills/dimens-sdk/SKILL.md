@@ -30,6 +30,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ Windows 下生成中文示例代码、Markdown、JSON 或脚本文件时，必须遵守 `../windows-utf8.md`：统一 UTF-8 写入，写完读回检查，避免中文变成 `??`。
 - ✅ 浏览器端和移动端不要明文保存 `apiSecret`；涉及 API Secret 默认放服务端或 BFF 换 token。
 - ✅ 调试、验证、资源管理优先给 `dimens-cli` 命令行路径；只有在用户明确要做端侧集成、CLI 未覆盖能力或需要说明代码调用时，再补充 SDK / HTTP / 自定义 URL 方案。
+- ✅ 涉及 AI 生图、生视频、音频、Embedding、Rerank、Responses、Messages 或模型列表时，必须优先读取 `references/ai-examples.md` 和 `references/capability-status.md`；默认走维表后端 new-api 代理与 `sdk.ai`，不直连 new-api，不暴露 `sk-` token。
 - ✅ API Key 登录返回的是现有用户 token，不是独立开放平台权限体系。
 - ✅ `teamId` 是团队隔离边界，`projectId` 是项目内资源上下文，不能漏传或混传。
 - ✅ 所有更新类接口统一按“先拿数据 -> 改数据 -> 更新数据”设计调用链。
@@ -57,6 +58,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 | 移动端 / 小程序 | `references/mobile/overview.md` | App 不直持密钥，端上只拿短期 token 或调自家服务端 |
 | 资源域调用 | `references/resources/overview.md` | 表格、文档、报表、权限、画布、AI 等代码调用 |
 | 文件与媒体 | `references/media/overview.md` | 上传图片、附件、封面后写入业务资源 |
+| AI 多能力模型代理 | `references/ai-examples.md` | 聊天、模型列表、图片生成/编辑/变体、视频任务、音频、Embedding、Rerank |
 | 接入路径选择 | `references/integration-paths.md` | SDK、HTTP、BFF 的选型边界 |
 | 当前 SDK 能力 | `references/capability-status.md` | 判断能否直接用 SDK |
 

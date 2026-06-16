@@ -376,6 +376,27 @@ AI 需求也不能只写“接 AI 能力”，必须先判断：
 - AI 的人工兜底机制、审核方式与失败降级方案
 - AI 效果评估指标，例如命中率、采纳率、节省时长、准确率
 
+AI 能力落地时必须进一步区分能力类型和调用方式：
+
+| 能力类型 | 典型业务用途 | CLI / SDK 调用口径 |
+| --- | --- | --- |
+| 聊天 / 总结 / 问答 | 记录总结、风险分析、客户画像、知识问答 | `dimens-cli ai chat-completions`；SDK：`sdk.ai.completions()` |
+| Responses / Messages | 复杂模型响应、Claude Messages 兼容调用 | `dimens-cli ai responses/messages`；SDK：`sdk.ai.responses()`、`sdk.ai.messages()` |
+| 生图 | 海报、封面、素材图、流程图视觉稿 | `dimens-cli ai image-generate`；SDK：`sdk.ai.generateImage()` |
+| 图片编辑 / 变体 | 基于原图改图、扩图、生成多版本素材 | `dimens-cli ai image-edit/image-variation`；SDK：`sdk.ai.editImage()`、`sdk.ai.createImageVariation()` |
+| 生视频 | 宣传短片、流程演示、产品展示动画 | `dimens-cli ai video-create/video-status/video-content`；SDK：`sdk.ai.createVideo()`、`sdk.ai.getVideo()`、`sdk.ai.getVideoContent()` |
+| 音频 | 文本转语音、会议录音转写、音频翻译 | `dimens-cli ai audio-speech/audio-transcribe/audio-translate`；SDK：`sdk.ai.createSpeech()`、`sdk.ai.transcribeAudio()`、`sdk.ai.translateAudio()` |
+| Embedding / Rerank | 知识库检索、语义搜索、候选结果重排 | `dimens-cli ai embeddings/rerank`；SDK：`sdk.ai.embeddings()`、`sdk.ai.rerank()` |
+
+写方案时必须说明：
+
+- AI 调用统一走维表后端 new-api 代理，不直连 new-api，不保存或展示 new-api `sk-` token。
+- `teamId` 是团队隔离边界；涉及项目归因时补充 `projectId`，涉及具体资源归因时补充 `resourceId`。
+- `model` 默认建议写 `default` 或 `team-default`，由维表后端按团队和 capability 注入默认模型。
+- `projectId/resourceId/modelScope/tokenScope` 是维表内部归因和模式控制字段，不会透传给 new-api 上游。
+- 需求文档里要区分“当前可直接 CLI/SDK 调用的 AI 能力”和“需要 Web 端、工作流或业务页面继续配置的能力”。
+- 如果 AI 输出要写回表格、文档、画布或报表，必须写清楚人工确认、版本控制、失败重试和权限校验边界。
+
 如果需求里提到了智能分析、自动总结、智能问答、内容生成、智能审批建议、风险识别、推荐、预测等能力，这一节不能省略。
 
 ### 14. 外部接入设计

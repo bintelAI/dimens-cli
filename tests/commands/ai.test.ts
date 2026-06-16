@@ -45,9 +45,81 @@ vi.mock('../../src/sdk/flow-chat', () => {
           },
         };
       }
+      async generateImage(...args: unknown[]) {
+        aiSdkSpies.generateImage(...args);
+        return {
+          code: 1000,
+          message: 'success',
+          data: {
+            created: 1710000000,
+            data: [{ url: 'https://cdn.example.com/poster.png' }],
+          },
+        };
+      }
+      async createVideo(...args: unknown[]) {
+        aiSdkSpies.createVideo(...args);
+        return {
+          code: 1000,
+          message: 'success',
+          data: {
+            id: 'video_task_1',
+            status: 'queued',
+          },
+        };
+      }
+      async getVideo(...args: unknown[]) {
+        aiSdkSpies.getVideo(...args);
+        return {
+          code: 1000,
+          message: 'success',
+          data: {
+            id: 'video_task_1',
+            status: 'completed',
+          },
+        };
+      }
+      async responses(...args: unknown[]) {
+        aiSdkSpies.responses(...args);
+        return {
+          code: 1000,
+          message: 'success',
+          data: {
+            id: 'resp_1',
+          },
+        };
+      }
+      async messages(...args: unknown[]) {
+        aiSdkSpies.messages(...args);
+        return {
+          code: 1000,
+          message: 'success',
+          data: {
+            id: 'msg_1',
+          },
+        };
+      }
+      async proxy(...args: unknown[]) {
+        aiSdkSpies.proxy(...args);
+        return {
+          code: 1000,
+          message: 'success',
+          data: {
+            ok: true,
+          },
+        };
+      }
     },
   };
 });
+
+const aiSdkSpies = {
+  generateImage: vi.fn(),
+  createVideo: vi.fn(),
+  getVideo: vi.fn(),
+  responses: vi.fn(),
+  messages: vi.fn(),
+  proxy: vi.fn(),
+};
 
 describe('AI Commands', () => {
   beforeEach(() => {
@@ -72,6 +144,118 @@ describe('AI Commands', () => {
     ]);
 
     expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  it('should execute image generation command', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('ai')?.commands.find(
+      item => item.name === 'image-generate'
+    );
+
+    await command?.handler([
+      '--prompt',
+      '企业数据驾驶舱海报',
+      '--model',
+      'default',
+      '--size',
+      '1024x1024',
+      '--project-id',
+      'PROJ1',
+      '--resource-id',
+      'poster_1',
+    ]);
+
+    expect(aiSdkSpies.generateImage).toHaveBeenCalledWith('TEAM1', {
+      model: 'default',
+      prompt: '企业数据驾驶舱海报',
+      size: '1024x1024',
+      projectId: 'PROJ1',
+      resourceId: 'poster_1',
+    });
+    expect(logSpy).toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
+  it('should execute video create and status commands', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createCommand = getCommandGroup('ai')?.commands.find(
+      item => item.name === 'video-create'
+    );
+    const statusCommand = getCommandGroup('ai')?.commands.find(
+      item => item.name === 'video-status'
+    );
+
+    await createCommand?.handler([
+      '--prompt',
+      '数据看板动画展示',
+      '--seconds',
+      '8',
+      '--model',
+      'default',
+    ]);
+    await statusCommand?.handler(['--task-id', 'video_task_1']);
+
+    expect(aiSdkSpies.createVideo).toHaveBeenCalledWith('TEAM1', {
+      model: 'default',
+      prompt: '数据看板动画展示',
+      seconds: '8',
+    });
+    expect(aiSdkSpies.getVideo).toHaveBeenCalledWith('TEAM1', 'video_task_1');
+    logSpy.mockRestore();
+  });
+
+  it('should execute responses, messages and proxy commands', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const responsesCommand = getCommandGroup('ai')?.commands.find(
+      item => item.name === 'responses'
+    );
+    const messagesCommand = getCommandGroup('ai')?.commands.find(
+      item => item.name === 'messages'
+    );
+    const proxyCommand = getCommandGroup('ai')?.commands.find(
+      item => item.name === 'proxy'
+    );
+
+    await responsesCommand?.handler([
+      '--payload',
+      '{"model":"default","input":"总结项目风险"}',
+    ]);
+    await messagesCommand?.handler([
+      '--payload',
+      '{"model":"default","messages":[{"role":"user","content":"总结项目风险"}]}',
+    ]);
+    await proxyCommand?.handler([
+      '--method',
+      'GET',
+      '--path',
+      '/v1beta/models',
+      '--query',
+      '{"capability":"image"}',
+    ]);
+
+    expect(aiSdkSpies.responses).toHaveBeenCalledWith('TEAM1', {
+      model: 'default',
+      input: '总结项目风险',
+    });
+    expect(aiSdkSpies.messages).toHaveBeenCalledWith('TEAM1', {
+      model: 'default',
+      messages: [{ role: 'user', content: '总结项目风险' }],
+    });
+    expect(aiSdkSpies.proxy).toHaveBeenCalledWith('TEAM1', {
+      method: 'GET',
+      path: '/v1beta/models',
+      query: { capability: 'image' },
+    });
     logSpy.mockRestore();
   });
 });

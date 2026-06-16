@@ -30,7 +30,7 @@
 - 报表创建、查询、组件管理
 - 画布创建、保存、版本、资源市场调用
 - 角色、权限、行级策略、行级 ACL 调用
-- AI 聊天兼容调用
+- AI 多能力模型代理调用，包括聊天、模型列表、图片、视频、音频、Embedding、Rerank
 - 文件上传
 
 ## 聚合导出
@@ -107,12 +107,15 @@
 - 画布保存要关注 `baseVersion`
 - 写接口示例时必须说明 401、403、404 分别如何排查
 - 更新类能力默认按“先读当前数据 -> 合并目标字段 -> 提交更新”设计
+- AI 侧不直连 new-api，不在浏览器、App、小程序或日志中暴露 new-api `sk-` token
+- AI 媒体生成默认传 `model: "default"`，由维表后端按团队和 capability 注入默认模型；`projectId/resourceId/modelScope/tokenScope` 只用于维表归因和模式控制
 
 ## 不要默认假设
 
 - 不要默认假设 SDK 等于完整开放平台
 - 不要默认假设所有服务端接口都已经封装成稳定 SDK
 - 不要默认假设聊天兼容接口等于完整工作流管理接口
+- 不要默认假设 new-api 官方所有接口都已开放维表代理；未开放接口必须先补后端代理、权限、默认模型能力映射和 usage 归因
 
 ## 最小验证链路
 
@@ -127,6 +130,9 @@ dimens-cli project info PROJECT_ID --team-id TEAM_ID
 dimens-cli sheet info SHEET_ID --team-id TEAM_ID --project-id PROJECT_ID
 dimens-cli report info REPORT_ID --project-id PROJECT_ID
 dimens-cli upload mode
+dimens-cli ai models --team-id TEAM_ID --capability image
+dimens-cli ai chat-completions --team-id TEAM_ID --message "测试"
+dimens-cli ai image-generate --team-id TEAM_ID --prompt "企业数据驾驶舱海报" --model default --size 1024x1024
 ```
 
 如果 CLI 都无法读取目标资源，优先排查 token、团队成员、项目权限和资源 ID，不要先改 SDK 代码。
