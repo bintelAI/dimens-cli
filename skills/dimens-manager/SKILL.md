@@ -20,11 +20,12 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - ✅ 当前技能负责项目内业务资源落地，不负责完整系统方案拆解；系统级需求先用 `dimens-system-orchestrator`。
 - ✅ SDK、HTTP、Web、BFF、Node.js 接入问题先用 `dimens-sdk`。
 - ✅ Windows 下生成或修改中文文件时，必须遵守 `../windows-utf8.md`：用 UTF-8 写入，禁止 `cmd echo` / 默认重定向写中文正文，写完读回确认没有 `??`。
+- ✅ **<u>执行任何 `dimens-cli` 命令前，必须先查阅 `references/dimens-cli-quickref.md`（命令速查手册）确认命令名称、参数格式和前置条件</u>**；不查阅直接执行可能因拼写错误、参数遗漏或缺失前置条件导致操作失败。
 - ✅ 每次准备使用 `dimens-cli` 前，先执行 `dimens-cli --version` 查看当前版本；只有命令不存在、版本明显低于需求、当前 help/source 与技能规则不一致，或用户确认升级时，才执行 `npm -g install @bintel/dimens-cli@latest`。升级后必须再次执行 `dimens-cli --version` 和必要的 `dimens-cli help <group>` 复核。
 - ✅ 项目内查询、创建、更新、上传、验证等操作优先推荐并执行 `dimens-cli` 命令；自定义 URL 只作为上下文解析或 CLI 未覆盖时的补充路径，不作为首选解决方案。
 - ✅ 执行任何写操作前先确认认证、`teamId`、`projectId` 与资源归属。
-- ✅ 更新类操作统一遵循“先读取当前数据 -> 修改目标字段 -> 再提交更新”。
-- ✅ 项目资源默认按“三驾马车”理解：表格、文档、报表。
+- ✅ 更新类操作统一遵循"先读取当前数据 -> 修改目标字段 -> 再提交更新"。
+- ✅ 项目资源默认按"三驾马车"理解：表格、文档、报表。
 - ✅ 报表创建当前走项目菜单 `sheet/create type=report`；返回的 `reportId` 等于 `sheetId`。
 - ✅ 用户只给自然语言目标时，先把目标归类到业务域，再给 CLI 步骤；不要直接编造不存在的命令或字段。
 - ✅ 如果上下文、权限或资源 ID 缺失，先列出缺口和最小补齐命令，再继续执行或给方案。
@@ -58,19 +59,20 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 
 1. 识别用户目标：查询、创建、更新、排查、导入、生成画布或验证。
 2. 只要后续会执行或给出 `dimens-cli` 命令，先执行 `dimens-cli --version`；命令不可用或版本不满足当前任务时再安装/升级，并在升级后复核版本和 help。
-3. 先看 `references/key-auth/overview.md`，确认认证方式。
-4. 再看 `references/team/overview.md`，明确 `teamId / projectId / baseUrl`。
-5. 项目容器问题看 `references/project/overview.md`。
-6. 数据模型问题看 `references/table/overview.md`。
-7. 访问控制问题看 `references/permission/overview.md`。
-8. 自动化和 AI 流程问题看 `references/workflow/overview.md`。
+3. **构造命令前，先查阅 `references/dimens-cli-quickref.md` 确认当前目标对应的命令名、参数格式和全局参数用法，而不是凭记忆或猜测直接写命令。**
+4. 先看 `references/key-auth/overview.md`，确认认证方式。
+5. 再看 `references/team/overview.md`，明确 `teamId / projectId / baseUrl`。
+6. 项目容器问题看 `references/project/overview.md`。
+7. 数据模型问题看 `references/table/overview.md`。
+8. 访问控制问题看 `references/permission/overview.md`。
+9. 自动化和 AI 流程问题看 `references/workflow/overview.md`。
    - 审批工作流 AI 自动生成必须继续看 `references/workflow/references/approval-generation.md`。
    - 审批工作流节点类型必须继续对照 `references/workflow/references/approval-existing-cases.md`，不能生成不存在的节点。
    - 审批工作流节点参数必须继续看 `references/workflow/references/approval-node-parameters.md`，不能只输出空节点。
-9. 统计分析和看板问题看 `references/report/overview.md`。
-10. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
-11. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
-12. 如果是项目初始化或批量建表，最后必须执行一次全量验收：`sheet tree` 确认无空目录，逐表 `column list` 确认字段，逐表 `row page` 确认非空数据，逐报表 `query-widget/query` 确认可出数。
+10. 统计分析和看板问题看 `references/report/overview.md`。
+11. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
+12. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
+13. 如果是项目初始化或批量建表，最后必须执行一次全量验收：`sheet tree` 确认无空目录，逐表 `column list` 确认字段，逐表 `row page` 确认非空数据，逐报表 `query-widget/query` 确认可出数。
 
 ### 全量验收矩阵
 
@@ -142,6 +144,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 
 - `../windows-utf8.md`
 - `README.md`
+- `references/dimens-cli-quickref.md`（命令速查手册，执行任意 `dimens-cli` 命令前必须优先查阅）
 - `references/key-auth/overview.md`
 - `references/team/overview.md`
 - `references/project/overview.md`

@@ -89,7 +89,7 @@ windows-utf8.md
 | `dimens-system-orchestrator` | 系统级编排命令、Skill 路由 | 负责系统搭建、模块拆解、执行顺序规划 | 适合“帮我搭一个系统/平台”这类总控任务，不直接替代具体资源命令 |
 | `dimens-manager/references/key-auth/overview.md` | `dimens-cli auth api-key-login`、`api_key_*` | 负责 Key 登录、token 复用、第三方接入边界 | 这是认证入口，不是资源更新入口；登录成功不代表自动有资源权限 |
 | `dimens-manager/references/team/overview.md` | `auth me`、`user me`、`team info/users`、`project list/info`、上下文切换 | 负责当前用户、团队、成员、项目、租户、默认上下文判断 | 很多问题先确认 `userId/teamId/projectId`，上下文不对，后面所有结论都不稳 |
-| `dimens-manager/references/project/overview.md` | `project *`、`upload file`、`doc *`、`report *` 起始链路 | 负责项目创建、项目初始化、三驾马车入口 | 资源类更新默认先上传拿 `url`，项目和文档更新默认先读当前数据再提交 |
+| `dimens-manager/references/project/overview.md` | `project *`、`upload file`、`doc *`、`report *` 起始链路 | 负责项目创建、项目初始化、三驾马车入口 | 资源类更新默认先上传拿 `url`，项目和文档更新默认先读当前数据再提交；素材库上传带 `--source material --team-id` 时优先 CDN |
 | `dimens-manager/references/table/overview.md` | `sheet *`、`column *`、`view *`、`row *` | 负责工作表、字段、视图、行数据建模与更新 | `sheet/column/row` 的更新都走“先读再改再更”，字段设计还要考虑后续报表映射 |
 | `dimens-manager/references/permission/overview.md` | `role *`、`permission *`、`row-policy *`、`row-acl *` | 负责角色、项目权限、行级策略、单行 ACL | 权限类更新也走“先拿当前记录再更新”，CLI 成功不等于权限快照已全部收敛 |
 | `dimens-manager/references/workflow/overview.md` | `flow_*`、`dimens-cli ai *` | 负责工作流定义、项目挂载、运行调用、模型边界 | 先分清团队定义、项目挂载、运行调用三层，不要混用结论 |
@@ -100,7 +100,7 @@ windows-utf8.md
 ### 3.3 强调细节
 
 - 所有 `update`、`widget-update`、`row update`、`column update`、`sheet update`、`permission update`、`role update`、`row-policy update` 一律不要直接盲传局部 patch。
-- 项目封面、图标、文档图片、文档附件、其他文件资源，一律先 `dimens-cli upload file` 拿到 `url`，再把 `url` 写回当前业务数据。
+- 项目封面、图标、文档图片、文档附件、其他文件资源，一律先 `dimens-cli upload file` 拿到 `url`，再把 `url` 写回当前业务数据；如果要同步进入素材库，必须显式传 `--source material --team-id <TEAM_ID>`，该链路优先直传 CDN，CDN 未启用或配置不完整时回退本地上传。
 - 文档更新默认先 `doc info` 拿当前内容和 `version`，再改内容后 `doc update`。
 - 报表更新默认先 `report info`；报表组件更新默认先拿当前报表和当前组件，再合并变更。
 - 表格链路里 `sheet update`、`column update`、`row update` 也统一按“先读当前数据，再改字段，再更新”处理。
@@ -237,7 +237,7 @@ windows-utf8.md
 - 不要把报表理解成只有一个空主资源
 - 不要跳过固定预检链直接创建图表组件
 - 不要把任何更新命令理解成“直接发局部 patch 就行”；统一按“先拿当前数据 -> 修改目标字段 -> 再提交 update”执行
-- 不要把文件、图片、封面直接塞进更新请求；统一先 `upload file` 拿 `url`，再把 `url` 写回当前业务数据后更新
+- 不要把文件、图片、封面直接塞进更新请求；统一先 `upload file` 拿 `url`，再把 `url` 写回当前业务数据后更新；素材库场景用 `--source material --team-id`，默认优先 CDN
 
 ## 6. 默认路由顺序
 

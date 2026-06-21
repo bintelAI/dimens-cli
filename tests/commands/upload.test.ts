@@ -43,6 +43,17 @@ const uploadSdkSpies = {
       ext: '.txt',
     },
   })),
+  uploadMaterialWithCdnFallback: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      id: 1,
+      provider: 'qiniu',
+      key: 'materials/TEAM9/20260421/logo.svg',
+      url: 'https://cdn.example.com/materials/TEAM9/20260421/logo.svg-bintelai.webp',
+      name: 'logo.svg',
+    },
+  })),
   getMode: vi.fn(async () => ({
     code: 1000,
     message: 'success',
@@ -59,6 +70,9 @@ vi.mock('../../src/sdk/upload', () => {
       async uploadFile(...args: unknown[]) {
         return uploadSdkSpies.uploadFile(...args);
       }
+      async uploadMaterialWithCdnFallback(...args: unknown[]) {
+        return uploadSdkSpies.uploadMaterialWithCdnFallback(...args);
+      }
       async getMode(...args: unknown[]) {
         return uploadSdkSpies.getMode(...args);
       }
@@ -70,6 +84,7 @@ describe('Upload Commands', () => {
   beforeEach(() => {
     clearCommands();
     uploadSdkSpies.uploadFile.mockClear();
+    uploadSdkSpies.uploadMaterialWithCdnFallback.mockClear();
     uploadSdkSpies.getMode.mockClear();
   });
 
@@ -172,11 +187,35 @@ describe('Upload Commands', () => {
       '12',
     ]);
 
-    expect(uploadSdkSpies.uploadFile).toHaveBeenCalledWith('/tmp/logo.svg', {
+    expect(uploadSdkSpies.uploadMaterialWithCdnFallback).toHaveBeenCalledWith('/tmp/logo.svg', {
       classifyId: '12',
       source: 'material',
       teamId: 'TEAM9',
     });
+    expect(uploadSdkSpies.uploadFile).not.toHaveBeenCalled();
+
+    logSpy.mockRestore();
+  });
+
+  it('should reject material-library upload without team id before calling sdk', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    registerCommands();
+
+    const command = getCommandGroup('upload')?.commands.find(item => item.name === 'file');
+    expect(command).toBeTruthy();
+
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    await command?.handler([
+      '--file',
+      '/tmp/logo.svg',
+      '--source',
+      'material',
+    ]);
+
+    expect(uploadSdkSpies.uploadMaterialWithCdnFallback).not.toHaveBeenCalled();
+    expect(uploadSdkSpies.uploadFile).not.toHaveBeenCalled();
+    expect(logSpy.mock.calls.flat().join('\n')).toContain('素材库上传必须携带 --team-id');
 
     logSpy.mockRestore();
   });

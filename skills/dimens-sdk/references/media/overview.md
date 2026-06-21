@@ -7,6 +7,7 @@
 | 场景 | 推荐路径 | 必读文档 |
 | --- | --- | --- |
 | Node.js / BFF 上传文件 | `sdk.upload.uploadFile` 或 `dimens-cli upload file` | `../upload-examples.md` |
+| 上传并进入素材库 | `sdk.upload.uploadMaterialWithCdnFallback` 或 `dimens-cli upload file --source material --team-id <teamId>` | `../upload-examples.md` |
 | 文档追加图片 | 先上传，再写入文档富文本 | `../document-examples.md` |
 | 表格附件字段 | 先上传拿 `url/fileId`，再写入行字段 | `../table-examples.md` |
 | 移动端图片上传 | 端侧不要直持密钥，优先经业务服务端 | `../mobile-examples.md` |
@@ -19,8 +20,11 @@
 4. 再写入目标资源，更新类仍按“先读 -> 合并 -> 更新”。
 5. 最后回查目标文档、行、报表或画布资源。
 
+素材库上传优先使用 CDN 链路：先读上传模式，启用七牛 CDN 时申请短期 token 并直传 CDN，再调用素材库完成接口入库；CDN 未启用或配置不完整时回退本地上传。端侧和 BFF 都不要保存七牛 AK/SK。
+
 ## 不要做
 
 - 不要把上传成功当成业务资源已经引用成功。
 - 不要把大文件、私密附件直接从端侧传到不受控地址。
 - 不要在日志里打印带签名的私密访问 URL。
+- 不要为了进入素材库只调用普通 `uploadFile`；素材库场景优先用 `uploadMaterialWithCdnFallback` 或 CLI 的 `--source material --team-id`。

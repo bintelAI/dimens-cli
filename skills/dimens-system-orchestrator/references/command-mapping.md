@@ -65,7 +65,7 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 确认团队与项目上下文 | `dimens-cli project list --team-id TEAM_ID` | 系统建设前先确认项目归属 |
 | 创建项目 | `dimens-cli project create --team-id TEAM_ID --name 项目名 [--description 描述] [--project-type spreadsheet]` | 从 `dimens-manager/references/project/overview.md` 主链进入，所有表都挂在项目下 |
 | 查看项目详情 | `dimens-cli project info --team-id TEAM_ID --project-id PROJECT_ID` | 校验上下文是否正确 |
-| 上传 SVG 封面/图标 | `dimens-cli upload file --path ./project-cover.svg --team-id TEAM_ID --scene project-cover` | SVG 默认 `250x150px`、淡色背景、轻量动态效果；文件名必须保留 `.svg`，CLI 会按 `image/svg+xml` 上传，上传后再把 URL 写回项目或文档；如果希望同时进入素材管理，再补 `--source material` |
+| 上传 SVG 封面/图标 | `dimens-cli upload file --path ./project-cover.svg --team-id TEAM_ID --scene project-cover` | SVG 默认 `250x150px`、淡色背景、轻量动态效果；文件名必须保留 `.svg`，CLI 会按 `image/svg+xml` 上传，上传后再把 URL 写回项目或文档；如果希望同时进入素材管理，再补 `--source material`，该素材库链路优先 CDN 直传并入库 |
 | 创建目录 | `dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 目录名 --type folder` | 只创建目录节点，不会自动移动其他菜单 |
 | 创建工作表 | `dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 表名 [--folder-id FOLDER_SHEET_ID]` | 新系统一般先建核心表；要进入目录必须显式带 `--folder-id` |
 | 查看字段列表 | `dimens-cli column list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 建表后立刻检查字段，尤其是自动生成的默认“名称”字段 |
@@ -140,6 +140,8 @@ dimens-cli project create \
 
 dimens-cli project info --team-id TEAM_ID --project-id PROJECT_ID
 ```
+
+带 `--source material --team-id` 的素材库上传会优先走 CDN：先申请短期上传 token，直传七牛，再完成素材库入库；CDN 未启用或配置不完整时回退本地上传。
 
 `project-cover.svg` 生成要求：`width="250" height="150" viewBox="0 0 250 150"`，淡色背景，使用轻量 `animate` / `animateTransform` 做动态效果，视觉元素与项目主题一致。
 

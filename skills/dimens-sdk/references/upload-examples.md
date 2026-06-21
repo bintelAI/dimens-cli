@@ -23,7 +23,10 @@ const fileUrl = uploaded.data.url;
 ```bash
 dimens-cli upload mode
 dimens-cli upload file ./customer-cover.png --team-id TEAM1 --project-id PROJ1
+dimens-cli upload file ./customer-cover.png --team-id TEAM1 --source material
 ```
+
+如果目标是“上传后进入素材库”，优先使用第三条命令：`--source material --team-id` 会先尝试 CDN 直传并完成素材入库，CDN 未启用或配置不完整时回退本地上传。普通封面或附件只需要拿 URL 时，不要额外带 `--source material`。
 
 如果 CLI 上传失败，先排查：
 
@@ -31,6 +34,7 @@ dimens-cli upload file ./customer-cover.png --team-id TEAM1 --project-id PROJ1
 - 用户是否属于目标团队
 - 项目 ID 是否属于该团队
 - 文件路径和大小是否符合后端限制
+- 素材库上传时 `upload mode` 是否启用 CDN，以及 token 接口是否返回“未启用/配置不完整”的可回退错误
 
 ## 3. 上传后写入文档图片
 

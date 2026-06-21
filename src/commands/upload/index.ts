@@ -23,7 +23,13 @@ export function registerUploadCommands(): void {
 
           const sdk = new UploadSDK(createClient(context));
           const uploadArgs = toUploadArgs(buildUploadOptions(flags));
-          const result = await sdk.uploadFile(filePath, uploadArgs);
+          if (typeof uploadArgs !== 'string' && uploadArgs?.source === 'material' && !uploadArgs.teamId) {
+            throw new Error('素材库上传必须携带 --team-id');
+          }
+          const result =
+            typeof uploadArgs !== 'string' && uploadArgs?.source === 'material'
+              ? await sdk.uploadMaterialWithCdnFallback(filePath, uploadArgs)
+              : await sdk.uploadFile(filePath, uploadArgs);
           printSuccess(context, '文件上传成功', result.data);
         } catch (error) {
           printError(context, error);
@@ -35,7 +41,7 @@ export function registerUploadCommands(): void {
         examples: [
           'dimens-cli upload file --file ./demo.txt',
           'dimens-cli upload file --file ./demo.txt --key docs/demo.txt',
-          'dimens-cli upload file --file ./logo.svg --team-id TEAM1 --source material',
+          'dimens-cli upload file --file ./logo.svg --team-id TEAM1 --source material  # 素材库上传优先走 CDN，未启用时回退本地上传',
         ],
       }
     )

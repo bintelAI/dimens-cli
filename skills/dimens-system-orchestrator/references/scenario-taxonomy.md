@@ -213,7 +213,7 @@ dimens-cli upload file \
   --source material
 ```
 
-上传后必须拿到 `url`，再写回项目封面或图标。只上传不写回不算完成。
+上传后必须拿到 `url`，再写回项目封面或图标。只上传不写回不算完成。带 `--source material --team-id` 时优先走 CDN 直传并完成素材库入库；CDN 未启用或配置不完整时回退本地上传。
 
 ### 3.6 创建菜单目录结构
 
