@@ -86,6 +86,7 @@ export default function AppBootstrapGate() {
       <StateView
         icon={<TriangleAlert size={24} />}
         title="运行上下文不完整"
+        // 生产态保持 fail-closed：缺少宿主上下文时只提示，不开放本地 settings 兜底。
         description={`缺少关键配置：${missing.join(', ')}。请确认宿主已注入 teamId / projectId / token 等运行参数。`}
         tone="error"
       />

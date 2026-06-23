@@ -36,6 +36,7 @@ import { registerRowAclCommands } from './row-acl/index';
 import { registerRowPolicyCommands } from './row-policy/index';
 import { registerSheetCommands } from './sheet/index';
 import { registerSkillCommands } from './skill/index';
+import { registerSystemCommands } from './system';
 import { registerTeamCommands } from './team/index';
 import { registerUploadCommands } from './upload/index';
 import { registerUserCommands } from './user/index';
@@ -52,6 +53,7 @@ export function registerCommands(): void {
   registerUserCommands();
   registerTeamCommands();
   registerSkillCommands();
+  registerSystemCommands();
   registerUploadCommands();
   registerProjectCommands();
   registerDocCommands();

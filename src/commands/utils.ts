@@ -1,5 +1,5 @@
 import { config } from '../core/config';
-import { resolveContext } from '../core/context';
+import { resolveContextDetails } from '../core/context';
 import { formatError, formatSuccess } from '../core/output';
 import type { CLIContext, CLIProfile } from '../types';
 import { DimensClient } from '../sdk/client';
@@ -50,9 +50,17 @@ export function mergeProfile(patch: Partial<CLIProfile>): CLIProfile {
 }
 
 export function getContext(flags: Record<string, string> = {}): CLIContext {
+  return getContextDetails(flags).context;
+}
+
+export function getContextDetails(flags: Record<string, string> = {}): {
+  context: CLIContext;
+  diagnostics: ReturnType<typeof resolveContextDetails>['diagnostics'];
+} {
   const contextArgs: {
     baseUrl?: string;
     token?: string;
+    refreshToken?: string;
     teamId?: string;
     projectId?: string;
     appUrl?: string;
@@ -64,6 +72,9 @@ export function getContext(flags: Record<string, string> = {}): CLIContext {
   }
   if (flags.token) {
     contextArgs.token = flags.token;
+  }
+  if (flags['refresh-token']) {
+    contextArgs.refreshToken = flags['refresh-token'];
   }
   if (flags['team-id']) {
     contextArgs.teamId = flags['team-id'];
@@ -78,10 +89,7 @@ export function getContext(flags: Record<string, string> = {}): CLIContext {
     contextArgs.output = flags.output;
   }
 
-  return resolveContext(
-    contextArgs,
-    getProfile()
-  );
+  return resolveContextDetails(contextArgs, getProfile());
 }
 
 export function createClient(context: CLIContext): DimensClient {

@@ -24,6 +24,7 @@ describe('createDimensAppSdkFromRuntime', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it('refreshes local-dev token once after a 401 and retries the request', async () => {
@@ -68,4 +69,29 @@ describe('createDimensAppSdkFromRuntime', () => {
       })
     );
   });
+
+  it('refreshes bff token after a 401 even when no refreshToken is available', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        data: { token: 'bff-token-1' },
+      })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: 401, message: 'expired', data: null }), { status: 401 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        data: { token: 'bff-token-2' },
+      })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: 200, data: { list: [] } })));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubEnv('VITE_DIMENS_TOKEN_ENDPOINT', '/bff/token');
+
+    const sdk = await createDimensAppSdkFromRuntime(makeContext());
+    const result = await sdk.row.page('S1', { page: 1, size: 50 });
+
+    expect(result.data).toEqual({ list: [] });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock.mock.calls[0][0]).toContain('/bff/token');
+    expect(fetchMock.mock.calls[1][1].headers.get('Authorization')).toBe('Bearer bff-token-1');
+    expect(fetchMock.mock.calls[2][0]).toContain('/bff/token');
+    expect(fetchMock.mock.calls[3][1].headers.get('Authorization')).toBe('Bearer bff-token-2');
+  });
+
 });

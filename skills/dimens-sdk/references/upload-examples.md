@@ -109,3 +109,65 @@ await sdk.canvas.saveMineResource('TEAM1', {
 - 上传只是素材准备
 - 文档、表格、画布等目标资源仍要单独更新并回查
 - 移动端上传建议走自家服务端，不要把维表高权限凭据下发到端上
+
+## 6. 真实场景：上传到素材库，优先 CDN，失败时允许回退
+
+适用场景：
+
+- 用户说“这张图要进素材库，不只是拿一个 URL”
+- 希望优先走 CDN，再入素材库记录
+
+```ts
+const material = await sdk.upload.uploadMaterialWithCdnFallback('/tmp/poster.png', {
+  teamId: 'TEAM1',
+  source: 'material',
+  uploadSource: 'material',
+  fileName: 'poster.png',
+});
+
+const materialUrl = material.data.url;
+```
+
+说明：
+
+- 这条链路和普通 `uploadFile()` 不同，它会先看上传模式，再尝试 CDN token / 直传 / 完成入库
+- `source=material` 时必须显式带 `teamId`
+- 如果返回的是“CDN 未启用 / 配置不完整”这类可回退错误，SDK 会退回普通上传
+
+CLI 对应验证：
+
+```bash
+dimens-cli upload mode
+dimens-cli upload file ./poster.png --team-id TEAM1 --source material
+```
+
+## 7. 真实场景：上传图片后写回文档正文
+
+适用场景：
+
+- 用户说“先上传图片，再插进在线文档”
+- 不是只返回 URL，而是要完整走“上传 -> 读文档 -> 更新文档”
+
+```ts
+const uploaded = await sdk.upload.uploadFile('/tmp/cover.png', {
+  teamId: 'TEAM1',
+  projectId: 'PROJ1',
+  bizType: 'document-image',
+});
+
+const current = await sdk.document.info('TEAM1', 'PROJ1', 'DOC1');
+
+await sdk.document.update('TEAM1', 'PROJ1', {
+  documentId: 'DOC1',
+  content: `${current.data.content ?? ''}<p><img src="${uploaded.data.url}" alt="封面图" /></p>`,
+  version: Number(current.data.version),
+  createVersion: true,
+  changeSummary: '插入上传图片',
+});
+```
+
+不要省略的步骤：
+
+- 不要上传后就假设业务数据已更新
+- 不要手填旧 `version`
+- 不要把上传接口和文档更新接口混成同一步

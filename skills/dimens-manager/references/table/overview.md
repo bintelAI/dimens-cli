@@ -46,6 +46,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 如果字段类型是 `workflow`，必须同时看工作流字段绑定与行数据链路：`dimens-manager/references/workflow/references/field-binding.md`
 - ✅ 处理字段和行写入问题时，不能只看字段结构，还要同步看权限与系统字段边界
 - ✅ 表格接口能读取不代表一定可写，行级、列级、协同权限可能继续收敛
+- ✅ API Key 登录后如果 `row create / row batch-create / row delete` 返回“缺少权限校验上下文”，不要继续重试同一命令；先确认团队、项目、用户角色和写入权限，必要时切到带完整上下文的 HTTP/API 调试路径，并继续用 `row page` 验证结果。
 - ✅ 如果后续要做报表，这一步就要提前考虑字段能否直接进入 `report preview / query-widget / dataMapping`，不要等到报表阶段再返工
 - ✅ 字段 ID 是每张表独立生成的系统 ID；`column create` 后必须对目标表执行 `column list`，用真实 `fieldId` 写入行数据。即使字段名相同，也不能跨表复用 `fieldId`。
 - ✅ 行数据 JSON 的 key 只能使用当前目标表真实 `fieldId`；禁止使用中文字段名、占位 `fld_xxx`、`fld_1` 或其它表字段 ID 当成可执行数据。
@@ -359,6 +360,28 @@ dimens-cli row batch-create \
   --file ./data/customers.json
 ```
 
+CLI 和 HTTP API 的格式差异：
+
+| 入口 | 传入格式 | 说明 |
+| --- | --- | --- |
+| `dimens-cli row batch-create --file` | JSON 顶层数组，例如 `[{ "fld_xxx": "值" }]` 或 `[{ "data": { "fld_xxx": "值" } }]` | CLI 会把每一行归一化为 `{ "data": ... }` 后再请求后端 |
+| HTTP API `POST /app/mul/sheet/{sheetId}/row/batch-create` | `{ "rows": [{ "data": { "fld_xxx": "值" } }] }` | 直调接口时必须显式使用 `data`，不要写成 `values` |
+
+HTTP API 直调示例：
+
+```json
+{
+  "rows": [
+    {
+      "data": {
+        "fld_customerName": "华东智造",
+        "fld_customerLevel": "A"
+      }
+    }
+  ]
+}
+```
+
 第三步，写后立刻验：
 
 ```bash
@@ -397,6 +420,13 @@ dimens-cli row batch-create \
 - 如果 `row page` 显示行存在但 `data` 为空，根因通常是 fieldId 错误；回到 `column list` 重建 JSON，不要继续做报表。
 - `select` / `multiSelect` 字段写入前必须先回查字段 `options`，把 Excel 单元格值映射到已有候选项；字段没有下拉时先补 `--options`，不能先导入行数据。
 - 写入会继续受表级、列级、行级权限影响，只读字段会被后端过滤或拒绝。
+
+导入失败后的清理策略：
+
+- `row batch-create` 返回成功但 `row page` 看到 `data: {}`，通常说明字段 ID 映射错误或直调接口用了错误请求体。
+- 先停止继续导入，重新执行 `column list`，用当前目标表真实 `fieldId` 重建 JSON。
+- 已产生的空行不会自动清理；确认 `rowId` 后用 `dimens-cli row delete --sheet-id SHEET1 --row-id ROW_ID` 逐行删除，再重新导入。
+- 清理后必须再次 `row page --size 5`，确认空行已移除且新写入行的业务 `data` 非空。
 
 ### 场景 2.1：设计带颜色的单选/多选字段
 

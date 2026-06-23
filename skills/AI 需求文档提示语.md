@@ -321,6 +321,31 @@ AI 需求也不能只写“接 AI 能力”，必须先判断：
 - 常见排序场景
 - 常见关联查询场景
 
+如果用户携带或引用了维表页面 URL，必须在查询案例中先解析当前页面上下文，再给查询方式。
+
+页面 URL 解析规则：
+
+```text
+http://localhost:3000/#/{teamId}/{projectId}/{sheetId}
+```
+
+示例：
+
+```text
+URL: http://localhost:3000/#/TTFFEN/PM394YD/sh_lTyerp8gwW8QSVD1
+团队 ID: TTFFEN
+项目 ID: PM394YD
+表 ID: sh_lTyerp8gwW8QSVD1
+```
+
+当用户说“当前页面”“当前表”“这个表”“本页数据”“当前项目”等相对表达时，如果上下文中已有上述 URL，必须使用解析得到的 `teamId/projectId/sheetId` 作为维表连接参数，不要再次要求用户重复提供。
+
+示例查询命令：
+
+```bash
+dimens-cli row page --team-id TTFFEN --project-id PM394YD --sheet-id sh_lTyerp8gwW8QSVD1 --page 1 --size 50
+```
+
 ### 9. 文档资源设计
 
 至少说明：
@@ -413,6 +438,7 @@ AI 能力落地时必须进一步区分能力类型和调用方式：
 
 - `teamId`
 - `projectId`
+- 如果用户提供页面 URL 或提到“当前页面/当前表”，必须从 URL 解析并确认 `teamId/projectId/sheetId`
 - 团队与项目隔离
 - 权限影响
 - 协同影响

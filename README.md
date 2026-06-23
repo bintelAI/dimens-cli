@@ -171,6 +171,14 @@ node ./bin/dimens-cli.js skill recommend '帮我做一个项目管理平台'
 node ./bin/dimens-cli.js skill recommend '生成一个审批系统' --output json
 ```
 
+系统命令：
+
+```bash
+node ./bin/dimens-cli.js help system
+node ./bin/dimens-cli.js system print
+node ./bin/dimens-cli.js system print --base-url https://dimens.bintelai.com/api --team-id TEAM1 --project-id PROJ1
+```
+
 说明：
 
 - `skill recommend` 支持关键词输入，也支持自然语言整句输入

@@ -62,6 +62,23 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 | 接入路径选择 | `references/integration-paths.md` | SDK、HTTP、BFF 的选型边界 |
 | 当前 SDK 能力 | `references/capability-status.md` | 判断能否直接用 SDK |
 
+## 高频问题速查
+
+用户提问里如果已经出现下面这些意图，不要只停留在 `overview.md`，应直接继续读取右侧案例文件：
+
+| 用户常见说法 | 优先读取 | 预期输出 |
+| --- | --- | --- |
+| “前端能不能直接放 apiSecret” | `references/bff/overview.md`、`references/bff-examples.md` | 明确拒绝端侧存密钥，给 BFF 换 token 方案和最小验证命令 |
+| “React 页面怎么读项目/表格/行数据” | `references/frontend/overview.md`、`references/web-examples.md` | 给前端读取代码、上下文来源、401/403/404 判断 |
+| “维表自定义页面 / dimens-web 怎么开始” | `references/dimens-web-scaffold.md` | 先做 UI/UX，再说明目录、路由、`useDimens()`、`runtimeStore` 落点 |
+| “Wujie props / 按钮弹窗 / 视图插件怎么传” | `references/micro-module-wujie-context.md` | 区分页/视图/按钮三类 props demo，不混成一个模板 |
+| “上传图片后写回表格/文档/画布” | `references/media/overview.md`、`references/upload-examples.md` | 先 upload，再 info/read，再 update/save，带回写示例 |
+| “Node.js/BFF 怎么读表格、文档、报表” | `references/node/overview.md`、`references/bff-examples.md` | 给 SDK 最小调用链和 CLI 回查命令 |
+| “移动端/小程序怎么接，密钥放哪” | `references/mobile/overview.md`、`references/mobile-examples.md` | 强调服务端代理、短期 token、业务接口编排 |
+| “报表只读、报表创建、组件查询怎么写” | `references/report-examples.md` | 说明 `reportId=sheetId` 兼容口径和 queryWidget/query 链路 |
+| “AI 生图/生视频/Embedding/Rerank 怎么接” | `references/ai-examples.md`、`references/capability-status.md` | 默认走 `sdk.ai` 和维表后端代理，不直连 new-api |
+| “上传素材库为什么要 teamId” | `references/upload-examples.md`、`references/media/overview.md` | 说明 `--source material --team-id`、CDN-first 和 fallback |
+
 ## 默认处理顺序
 
 1. 先判断接入位置：`dimens-web` 自定义页面、普通浏览器、移动端、BFF、Node.js 服务端。

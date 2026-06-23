@@ -10,10 +10,11 @@
 export * from './src/types';
 
 // 导出核心功能
+import { version, getVersion, getUserAgent } from './src/core/version';
+
 export { logger, createLogger } from './src/core/logger';
 export { config } from './src/core/config';
-export { version, getVersion, getUserAgent } from './src/core/version';
-import { getVersion } from './src/core/version';
+export { version, getVersion, getUserAgent };
 
 // 导出工具
 export { registerAllTools, registerTool, getTool, getAllTools } from './src/tools';
