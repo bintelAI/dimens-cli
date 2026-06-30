@@ -51,6 +51,20 @@ describe('Help Command', () => {
     logSpy.mockRestore();
   });
 
+  it('should print richtext-field command group help', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    await getCommand('help')?.handler(['richtext-field']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('命令组: richtext-field');
+    expect(output).toContain('content');
+    expect(output).toContain('save');
+    expect(output).toContain('dimens-manager');
+    logSpy.mockRestore();
+  });
+
   it('should print related skills for command help', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 

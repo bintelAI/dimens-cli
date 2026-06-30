@@ -98,7 +98,8 @@ dimens-cli help <group> <command>  # 查看具体命令的用法和示例
 | 命令 | 说明 |
 |------|------|
 | `row page --sheet-id <id> --page 1 --size 20 [--keyword <kw>] [--filters <json>] [--sort-rule <json>]` | 分页查询行 |
-| `row info --sheet-id <id> --row-id <rid>` | 行详情 |
+| `row info --sheet-id <id> --row-id <rid> [--include relations,richtext]` | 行详情；显式 include 时附加单向关联目标行和富文本原始 content |
+| `row open-info --team-id <teamId> --project-id <projectId> --sheet-id <id> --row-id <rid> [--include relations,richtext]` | 公开行详情；仍受公开角色、表级、行级、列级权限控制 |
 | `row create --sheet-id <id> [--values <json>]` | 创建行 |
 | `row batch-create --sheet-id <id> --file <path>` | **批量创建行**（JSON 文件，默认 200 行一批） |
 | `row update --sheet-id <id> --row-id <rid> --version <v> [--values <json>]` | 更新行 |

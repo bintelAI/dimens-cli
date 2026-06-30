@@ -9,6 +9,7 @@
 | Node.js / BFF 上传文件 | `sdk.upload.uploadFile` 或 `dimens-cli upload file` | `../upload-examples.md` |
 | 上传并进入素材库 | `sdk.upload.uploadMaterialWithCdnFallback` 或 `dimens-cli upload file --source material --team-id <teamId>` | `../upload-examples.md` |
 | 文档追加图片 | 先上传，再写入文档富文本 | `../document-examples.md` |
+| 富文本字段写回 | AI 先产出 HTML，再写回字段 | `../richtext-field-examples.md` |
 | 表格附件字段 | 先上传拿 `url/fileId`，再写入行字段 | `../table-examples.md` |
 | 移动端图片上传 | 端侧不要直持密钥，优先经业务服务端 | `../mobile-examples.md` |
 

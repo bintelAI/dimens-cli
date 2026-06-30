@@ -206,6 +206,14 @@ const rowSdkSpies = {
       fld_status: '待跟进',
     },
   })),
+  openInfo: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: {
+      id: 'R1',
+      included: { relations: {}, richText: {} },
+    },
+  })),
   create: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'R1' } })),
   batchCreate: vi.fn(async (_sheetId: string, payload: { rows: unknown[] }) => ({
     code: 1000,
@@ -436,6 +444,9 @@ vi.mock('../../src/sdk/row', () => {
       async info(...args: unknown[]) {
         return rowSdkSpies.info(...args);
       }
+      async openInfo(...args: unknown[]) {
+        return rowSdkSpies.openInfo(...args);
+      }
       async create(...args: unknown[]) {
         return rowSdkSpies.create(...args);
       }
@@ -579,6 +590,7 @@ describe('Sheet Column Row Commands', () => {
     rowSdkSpies.create.mockClear();
     rowSdkSpies.page.mockClear();
     rowSdkSpies.info.mockClear();
+    rowSdkSpies.openInfo.mockClear();
     rowSdkSpies.update.mockClear();
     rowSdkSpies.updateCell.mockClear();
     documentSdkSpies.createWithSheet.mockClear();
@@ -2477,6 +2489,62 @@ describe('Sheet Column Row Commands', () => {
       filters: [{ fieldId: 'fld_status', operator: 'eq', value: '成交' }],
       filterMatchType: 'and',
       sortRule: { fieldId: 'fld_amount', order: 'desc' },
+    });
+    logSpy.mockRestore();
+  });
+
+  it('should execute row info command with include option', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const infoRow = getCommandGroup('row')?.commands.find(command => command.name === 'info');
+    await infoRow?.handler([
+      '--team-id',
+      'TEAM1',
+      '--project-id',
+      'PROJ1',
+      '--sheet-id',
+      'S1',
+      '--row-id',
+      'R1',
+      '--include',
+      'relations,richtext',
+    ]);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(rowSdkSpies.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', 'R1', {
+      include: 'relations,richtext',
+    });
+    logSpy.mockRestore();
+  });
+
+  it('should execute row open-info command with include option', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const openInfoRow = getCommandGroup('row')?.commands.find(
+      command => command.name === 'open-info'
+    );
+    await openInfoRow?.handler([
+      '--team-id',
+      'TEAM1',
+      '--project-id',
+      'PROJ1',
+      '--sheet-id',
+      'S1',
+      '--row-id',
+      'R1',
+      '--include',
+      'relations,richtext',
+    ]);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(rowSdkSpies.openInfo).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', 'R1', {
+      include: 'relations,richtext',
     });
     logSpy.mockRestore();
   });

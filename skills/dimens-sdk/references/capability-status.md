@@ -26,6 +26,7 @@
 - 团队详情与团队成员列表读取
 - 项目创建与查询
 - 表格、字段、行数据基础调用
+- 单行详情增强读取：`sdk.row.info(..., { include })` 与公开读取 `sdk.row.openInfo(..., { include })`
 - 文档读写与版本恢复
 - 报表创建、查询、组件管理
 - 画布创建、保存、版本、资源市场调用
@@ -59,6 +60,23 @@
 - `UserSDK`
 
 ## 用户与团队上下文能力
+
+## 行数据能力
+
+| 入口 | 方法 / 命令 | 接口 |
+| --- | --- | --- |
+| SDK | `sdk.row.page(teamId, projectId, sheetId, payload)` | `POST /app/mul/:teamId/:projectId/sheet/:sheetId/row/page` |
+| SDK | `sdk.row.info(teamId, projectId, sheetId, rowId, { include? })` | `GET /app/mul/:teamId/:projectId/sheet/:sheetId/row/:rowId/info` |
+| SDK | `sdk.row.openInfo(teamId, projectId, sheetId, rowId, { include? })` | `GET /open/mul/:teamId/:projectId/sheet/:sheetId/row/:rowId/info` |
+| CLI | `dimens-cli row info --sheet-id SHEET1 --row-id ROW1 [--include relations,richtext]` | 登录态行详情 |
+| CLI | `dimens-cli row open-info --sheet-id SHEET1 --row-id ROW1 [--include relations,richtext]` | 公开行详情 |
+
+注意：
+
+- `include` 支持 `relations`、`richtext` 或 `relations,richtext`。
+- 不传 `include` 时保持基础行详情，不额外查询关联目标行或富文本原始 content。
+- 增强数据附加在 `data.included`，原始 `data[fieldId]` 不会被改写。
+- 公开行详情走公开角色权限，不能用登录态详情结果替代公开访问验证。
 
 当前用户信息：
 

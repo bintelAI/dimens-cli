@@ -110,6 +110,8 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `dimens-cli view list` | 查询视图列表 | `teamId`, `projectId`, `sheetId` | - | 建表后先确认默认公开视图是否已经落地 |
 | `dimens-cli view create` | 创建公开默认视图或业务视图 | `teamId`, `projectId`, `sheetId`, `name`, `type` | `isPublic`, `config` | 技能建表链路默认要求至少补一个公开 grid 视图 |
 | `dimens-cli row page` | 分页查询行数据，也是后续数据分析的核心取数入口 | `teamId`, `projectId`, `sheetId` | `viewId`, `page`, `size`, `keyword`, `search-field-ids`, `filters`, `filter-match-type`, `sort-rule` | 使用前必须先 `column list` 获取真实字段 ID，再按字段设计搜索、筛选、排序；行读取链路会同时受字段筛选、视图配置和权限影响 |
+| `dimens-cli row info` | 获取登录态单行详情 | `teamId`, `projectId`, `sheetId`, `rowId` | `include` | 默认只返回原行结构；`--include relations,richtext` 会在顶层 `included` 附加可见单向关联目标行和富文本原始 content，仍受权限与列级脱敏控制 |
+| `dimens-cli row open-info` | 获取公开单行详情 | `teamId`, `projectId`, `sheetId`, `rowId` | `include` | 走公开读取链路；`--include relations,richtext` 同样只附加 `included`，公开角色无权查看的行或字段不会泄露 |
 | `dimens-cli row create` | 新增单行数据 | `sheetId`, `values` | - | 仅用于少量交互式单行补录；不用于初始化、迁移、示例数据或 JSON 字符串批量写入 |
 | `dimens-cli row batch-create` | 批量新增行数据 | `sheetId`, `file` | `batch-size` | 初始化、迁移、补数据、示例数据写入的标准命令；数据先写 JSON 文件，再用 `--file` 导入；CLI 默认按 200 行稳定分片 |
 | `dimens-cli row update` | 更新整行数据 | `teamId`, `projectId`, `sheetId`, `rowId` | `data`, `version`, `app-url` | 默认先读当前行数据，再修改目标字段，再 update；不要只凭局部字段直接覆盖 |
@@ -123,6 +125,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - 初始化、迁移、补数据、示例数据写入统一用 `row batch-create --file`，不要让技能循环调用 `row create` 逐条写入，也不要用 `row create --data/--values` 直接传 JSON 字符串；CLI 默认按 200 行稳定分片，后端只保证每个分片事务原子。
 - 批量写入数据前先生成“目标表字段映射表”：`sheetId + 字段名 + type + fieldId`。每张表单独生成，不能用另一张表的映射文件替代。
 - 批量写入后立刻 `row page --size 5` 抽查，验收标准是有行、业务 `data` 非空、每个样例字段的值类型符合字段类型。`data:{}` 或只有系统字段时，必须重新获取该表 `fieldId` 并重建导入文件。
+- 单行详情默认用 `row info` 回查；只有用户明确需要单向关联目标行或富文本原始 content 时才加 `--include relations,richtext`。公开页面、外部链接或匿名公开读取场景使用 `row open-info`，不能用登录态结果替代公开角色权限验证。
 - 多表初始化时先生成“表清单验收表”：`表名 + 是否单向绑定 + 依赖目标 + 创建批次 + JSON文件 + 预计行数 + row page结果`。只有清单中所有需要样例数据的表都验收通过，才能进入报表或画布。
 - 如果字段后续要进入报表，建模阶段就要把字段类型、选项、数值字段和维度字段设计清楚，不要拖到报表阶段返工。
 - 新建表后默认检查公开默认视图，不要只建表不补视图。

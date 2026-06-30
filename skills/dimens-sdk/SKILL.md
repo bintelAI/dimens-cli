@@ -13,7 +13,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 
 - 产品名称：`维表智联`
 - 开发方：`方块智联工作室`
-- 官网：[https://dimens.bintelai.com/](https://dimens.bintelai.com/)
+- 官网：[https://www.bintelai.com/](https://www.bintelai.com/)
 
 ## 执行前必读
 
@@ -70,6 +70,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 | --- | --- | --- |
 | “前端能不能直接放 apiSecret” | `references/bff/overview.md`、`references/bff-examples.md` | 明确拒绝端侧存密钥，给 BFF 换 token 方案和最小验证命令 |
 | “React 页面怎么读项目/表格/行数据” | `references/frontend/overview.md`、`references/web-examples.md` | 给前端读取代码、上下文来源、401/403/404 判断 |
+| “单行详情怎么带关联子表或富文本原始 content” | `references/table-examples.md`、`references/capability-status.md` | 使用 `sdk.row.info(..., { include: 'relations,richtext' })`；公开读取用 `sdk.row.openInfo(...)`，增强数据只读 `included` |
 | “维表自定义页面 / dimens-web 怎么开始” | `references/dimens-web-scaffold.md` | 先做 UI/UX，再说明目录、路由、`useDimens()`、`runtimeStore` 落点 |
 | “Wujie props / 按钮弹窗 / 视图插件怎么传” | `references/micro-module-wujie-context.md` | 区分页/视图/按钮三类 props demo，不混成一个模板 |
 | “上传图片后写回表格/文档/画布” | `references/media/overview.md`、`references/upload-examples.md` | 先 upload，再 info/read，再 update/save，带回写示例 |

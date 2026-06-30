@@ -125,8 +125,43 @@ export function registerRowCommands(): void {
           throw new Error('缺少行 ID，请传入 --row-id');
         }
         const sdk = new RowSDK(createClient(context));
-        const result = await sdk.info(teamId, projectId, sheetId, rowId);
+        const result = await sdk.info(
+          teamId,
+          projectId,
+          sheetId,
+          rowId,
+          flags.include ? { include: flags.include } : undefined
+        );
         printSuccess(context, '行详情获取成功', result.data);
+      } catch (error) {
+        printError(context, error);
+      }
+    })
+  );
+
+  registerGroupCommand(
+    'row',
+    createCommand('open-info', '获取公开行详情', async args => {
+      const flags = parseFlags(args);
+      const context = getContext(flags);
+
+      try {
+        const teamId = requireTeamId(context, flags);
+        const projectId = requireProjectId(context, flags);
+        const sheetId = requireSheetId(flags, args);
+        const rowId = flags['row-id'] || args[0];
+        if (!rowId) {
+          throw new Error('缺少行 ID，请传入 --row-id');
+        }
+        const sdk = new RowSDK(createClient(context));
+        const result = await sdk.openInfo(
+          teamId,
+          projectId,
+          sheetId,
+          rowId,
+          flags.include ? { include: flags.include } : undefined
+        );
+        printSuccess(context, '公开行详情获取成功', result.data);
       } catch (error) {
         printError(context, error);
       }

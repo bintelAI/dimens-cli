@@ -120,7 +120,34 @@ await sdk.row.updateCell('SHEET1', {
 });
 ```
 
-## 10. 表单提交时更新整行
+## 10. 查询单行详情并展开关联与富文本原始 content
+
+```ts
+const rowInfo = await sdk.row.info('TEAM1', 'PROJ1', 'SHEET1', 'ROW1', {
+  include: 'relations,richtext',
+});
+
+console.log(rowInfo.data.included?.relations);
+console.log(rowInfo.data.included?.richText);
+```
+
+公开读取场景使用公开接口，仍然按公开角色权限返回可见字段和可见目标行：
+
+```ts
+const publicRowInfo = await sdk.row.openInfo('TEAM1', 'PROJ1', 'SHEET1', 'ROW1', {
+  include: 'relations,richtext',
+});
+
+console.log(publicRowInfo.data);
+```
+
+说明：
+
+- 不传 `include` 时不展开关联行或富文本原始 content，响应结构保持基础行详情。
+- 增强数据只附加在顶层 `included`，不要改写 `data[fieldId]`。
+- 关联目标行和富文本字段都受权限与列级脱敏控制；公开读取不能用登录态结果替代。
+
+## 11. 表单提交时更新整行
 
 ```ts
 await sdk.row.update(
@@ -134,7 +161,7 @@ await sdk.row.update(
 );
 ```
 
-## 11. Web 前端读取表格行数据
+## 12. Web 前端读取表格行数据
 
 适用前提：
 
@@ -156,7 +183,7 @@ await fetch(`https://dimens.bintelai.com/api/app/mul/${teamId}/${projectId}/shee
 });
 ```
 
-## 12. 表格接入高风险误区
+## 13. 表格接入高风险误区
 
 - 不要把字段中文名直接当 `data` key
 - 不要忽略 `version`
@@ -164,7 +191,7 @@ await fetch(`https://dimens.bintelai.com/api/app/mul/${teamId}/${projectId}/shee
 - 不要把人员字段、部门字段退化成普通下拉
 - 不要把 403/404 都当成 token 过期；先检查权限和资源上下文
 
-## 13. 最小验证命令
+## 14. 最小验证命令
 
 ```bash
 dimens-cli sheet info SHEET1 --team-id TEAM1 --project-id PROJ1

@@ -42,6 +42,7 @@
 - “文档富文本编辑”是当前 CLI 已经覆盖的能力
 - “文件/图片上传”是当前 CLI 和产品接口都已覆盖的能力
 - “上传后直接并入文档”也已有 CLI 主链：`doc attach-file`、`doc append-image`
+- “富文本字段写回”是另一条链路：`richtext-field content`、`richtext-field save`
 - “Mermaid 业务流程图”是当前富文本文档能力的一部分，可通过 `doc create --content` 或 `doc update --content` 写入
 
 ## 3. TipTap 文档的默认结构
@@ -196,7 +197,8 @@ flowchart TD
 1. 如果只需要上传素材，先执行 `dimens-cli upload file`
 2. 如果要把附件直接并入文档，执行 `dimens-cli doc attach-file`
 3. 如果要把图片直接并入文档，执行 `dimens-cli doc append-image`
-4. 如果要完全自定义 TipTap 结构，再执行 `doc update --content ...`
+4. 如果要写回富文本字段，执行 `dimens-cli richtext-field save`
+5. 如果要完全自定义 TipTap 结构，再执行 `doc update --content ...`
 
 不要这样说：
 
@@ -331,5 +333,6 @@ flowchart TD
 - 不要使用整页深色背景、脚本动画或不可编辑的复杂布局；TipTap 文档应保持可编辑、可读、可维护
 - 不要为了“好看”乱用颜色；颜色必须对应状态、风险、提示、模块或结论
 - 不要忽略 `upload file / upload mode / doc attach-file / doc append-image` 这条现成主链
+- 不要把富文本字段和在线文档混为一谈；字段写回使用 `richtext-field save`，在线文档使用 `doc update`
 - 不要只放图片 URL，不说明图片/附件在文档中的用途
 - 不要把 Mermaid 图当截图上传；能用 Mermaid 数据表达的业务流程图，优先写入文档内容，便于后续编辑和版本管理

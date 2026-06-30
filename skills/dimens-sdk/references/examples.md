@@ -18,6 +18,7 @@
 | “上传图片后怎么写回表格 / 文档 / 画布” | `media/overview.md`、`upload-examples.md` | 适合 upload -> update/save 的两段式链路 |
 | “怎么读写表格、字段、视图、行数据” | `resources/overview.md`、`table-examples.md` | 适合项目、表、字段、行的常规接入 |
 | “怎么创建或更新在线文档” | `resources/overview.md`、`document-examples.md` | 适合文档详情、更新、版本、Mermaid 流程图 |
+| “怎么把 AI 生成的 HTML 写回富文本字段” | `richtext-field-examples.md` | 适合字段写回、预览文本、字段级富文本内容 |
 | “怎么创建报表、查组件结果” | `resources/overview.md`、`report-examples.md` | 适合 `reportId/sheetId`、preview、addWidget、queryWidget、query |
 | “怎么接 AI 聊天、生图、生视频、Embedding” | `capability-status.md`、`ai-examples.md` | 适合 `sdk.ai` 和维表后端代理 new-api 的能力调用 |
 | “不知道该 SDK / HTTP / BFF 哪个更合适” | `integration-paths.md` | 先选路径，再回来读案例 |
@@ -90,11 +91,16 @@
 
 - 在线文档案例：`references/document-examples.md`
 
+### 富文本字段
+
+- 富文本字段案例：`references/richtext-field-examples.md`
+
 适合的问题：
 
 - “怎么更新富文本内容”
 - “怎么追加图片”
 - “怎么写 Mermaid 流程图并保留版本”
+- “怎么把 AI 生成的 HTML 写回富文本字段”
 
 ### 报表
 

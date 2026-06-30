@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { RowPagePayload } from '../../sdk/row';
+import { requireMcpSheetId } from '../context';
 import {
   asArray,
   asObject,
@@ -12,7 +13,6 @@ import {
   stringArg,
   writeAnnotations,
 } from './common';
-import { requireMcpSheetId } from '../context';
 import type { McpToolDefinition, McpToolFactoryContext } from './types';
 
 function rowIdArg(args: Record<string, unknown>): string {
@@ -67,12 +67,44 @@ export function createRowTools(toolContext: McpToolFactoryContext): McpToolDefin
         ...contextSchema,
         sheetId: z.string(),
         rowId: z.string(),
+        include: z.string().optional(),
       },
       annotations: readOnlyAnnotations,
       async run(args) {
         const { context, teamId, projectId, sheetId } = getTeamProjectSheet(toolContext, args);
-        const result = await toolContext.createSDK(context).row.info(teamId, projectId, sheetId, rowIdArg(args));
+        const include = stringArg(args.include);
+        const result = await toolContext.createSDK(context).row.info(
+          teamId,
+          projectId,
+          sheetId,
+          rowIdArg(args),
+          include ? { include } : undefined
+        );
         return { message: '行详情获取成功', data: result.data };
+      },
+    }),
+    createSimpleTool({
+      name: 'dimens_open_row_info',
+      title: '获取公开行详情',
+      description: '通过公开读取接口获取指定行详情，可按需展开单向关联行和富文本纯文本。',
+      inputSchema: {
+        ...contextSchema,
+        sheetId: z.string(),
+        rowId: z.string(),
+        include: z.string().optional(),
+      },
+      annotations: readOnlyAnnotations,
+      async run(args) {
+        const { context, teamId, projectId, sheetId } = getTeamProjectSheet(toolContext, args);
+        const include = stringArg(args.include);
+        const result = await toolContext.createSDK(context).row.openInfo(
+          teamId,
+          projectId,
+          sheetId,
+          rowIdArg(args),
+          include ? { include } : undefined
+        );
+        return { message: '公开行详情获取成功', data: result.data };
       },
     }),
     createSimpleTool({

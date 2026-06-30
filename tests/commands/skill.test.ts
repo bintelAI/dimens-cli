@@ -157,6 +157,8 @@ describe('Skill Commands', () => {
     expect(output).toContain('doc versions');
     expect(output).toContain('doc version');
     expect(output).toContain('doc restore');
+    expect(output).toContain('richtext-field');
+    expect(output).toContain('richtext-field save');
     expect(output).toContain('upload file');
     expect(output).toContain('ProjectSDK');
     expect(output).toContain('UploadSDK');
@@ -180,6 +182,24 @@ describe('Skill Commands', () => {
     expect(output).toContain('维表智联业务管理技能');
     expect(output).toContain('dimens-manager/references/workflow/references/model-routing.md');
     expect(output).toContain('dimens-manager/references/canvas/references/command-mapping.md');
+    logSpy.mockRestore();
+  });
+
+  it('should show sdk richtext field reference in references', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'show'
+    );
+
+    await command?.handler(['dimens-sdk', '--references']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('richtext-field-examples.md');
+    expect(output).toContain('dimens-sdk/references/richtext-field-examples.md');
     logSpy.mockRestore();
   });
 

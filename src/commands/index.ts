@@ -30,6 +30,7 @@ import { registerDocCommands } from './doc/index';
 import { registerProjectCommands } from './project/index';
 import { registerPermissionCommands } from './permission/index';
 import { registerReportCommands } from './report/index';
+import { registerRichTextFieldCommands } from './richtext-field/index';
 import { registerRoleCommands } from './role/index';
 import { registerRowCommands } from './row/index';
 import { registerRowAclCommands } from './row-acl/index';
@@ -55,6 +56,7 @@ export function registerCommands(): void {
   registerSkillCommands();
   registerSystemCommands();
   registerUploadCommands();
+  registerRichTextFieldCommands();
   registerProjectCommands();
   registerDocCommands();
   registerCanvasCommands();

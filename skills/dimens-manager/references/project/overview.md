@@ -37,6 +37,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - ✅ 富文本编辑器已支持 Mermaid 数据；业务流程图、审批流、状态流转、系统对接链路可以直接写入文档，不必截图上传
 - ✅ 当前服务端文档内容允许保留 `class`、`style`、`data-video`、`data-attachment`、`data-file-name`、`data-file-size` 等属性，适合承接富文本样式和附件节点
 - ✅ 文件/图片上传在产品侧已存在 `/app/base/comm/upload` 上传接口，`dimens-cli` 也已支持 `upload file / upload mode`；如果目标是把文件继续写入在线文档，优先走 `doc attach-file / doc append-image`
+- ✅ 如果目标是把 AI 生成的 HTML 写回“富文本字段”，不要走 `doc update`，而要走 `richtext-field save`；这条链路只服务字段写回，不是在线文档编辑
 - ✅ 如果目标是“上传完成后还能在素材管理里看到”，必须显式传 `--source material --team-id <TEAM_ID>`；素材链路会先读 `upload mode`，线上启用七牛 CDN 时优先直传 CDN 并完成素材入库，CDN 未启用或配置不完整时回退本地上传
 - ✅ 项目封面、图标、文档图片、文档附件等资源类更新，统一先 `upload file` 拿 `url`，再把 `url` 写回当前业务数据后更新
 - ✅ Windows 下生成或修改含中文的项目文档、SVG、JSON、CSV、Markdown 时，必须使用 UTF-8 写入并读回确认
@@ -65,6 +66,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 - 不要把 TipTap 文档写成没有层级、没有状态、没有颜色语义的一整块纯文本；默认至少补 2-3 处有意义的颜色表达
 - 不要使用大面积高饱和背景、深色整页背景或花哨装饰；演示感来自清晰标题、淡色背景块、卡片层级、标签和图表，而不是堆色彩
 - 不要把上传能力和文档写回能力混为一谈；当前应明确区分 `upload file / upload mode` 与 `doc attach-file / doc append-image`
+- 不要把在线文档富文本和富文本字段混为一谈；前者是 `doc create / doc update`，后者是 `richtext-field content / richtext-field save`
 - 不要把任何 update 命令理解成只传改动字段就够了；默认先读取当前数据，再合并目标变更
 - 不要在创建项目时忽略封面表达；如果项目是对外展示型、模板型、知识库型、品牌型项目，优先生成并上传 SVG 动态封面，但当前 CLI 要在项目创建后用 `project update --cover-image` 写回，不要编造 `project create --cover-image`
 - 不要以为项目里有报表资源就代表看板已可用
@@ -89,6 +91,8 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 | `dimens-cli doc update` | 更新 TipTap 在线文档内容 | `teamId`, `projectId`, `documentId`, `content`, `version` | `create-version`, `change-summary`, `app-url` | 必须遵循“先 `doc info` -> 改内容 -> `doc update`”；更新时保留原有有效内容，补强标题、背景块、摘要卡片、状态标签和 Mermaid 图表 |
 | `dimens-cli doc attach-file` | 上传附件后把附件节点写入文档 | `teamId`, `projectId`, `documentId`, `file` | `scene`, `app-url` | 内部应先走上传拿 `url`，再把附件节点并入当前文档内容，最后做文档更新 |
 | `dimens-cli doc append-image` | 上传图片后把图片节点写入文档 | `teamId`, `projectId`, `documentId`, `file` | `scene`, `app-url` | 内部应先走上传拿 `url`，再把图片节点并入当前文档内容，最后做文档更新 |
+| `dimens-cli richtext-field content` | 获取富文本字段对应的文档内容 | `teamId`, `projectId`, `documentId` | `app-url` | 用于回读字段富文本内容或校验字段写回结果 |
+| `dimens-cli richtext-field save` | 保存富文本字段 HTML 内容 | `teamId`, `projectId`, `sheetId`, `rowId`, `fieldId` | `documentId`, `rowVersion`, `title`, `app-url` | AI 驱动链路的字段写回入口，只收 HTML，不是在线文档更新 |
 | `dimens-cli doc delete` | 删除文档资源 | `teamId`, `projectId`, `documentId` | `app-url` | 删除前建议先确认当前文档归属和用途，避免误删项目说明页 |
 | `dimens-cli doc versions` | 查询文档历史版本列表 | `teamId`, `projectId`, `documentId` | `page`, `size`, `app-url` | 适合版本回查、误改排查和恢复前确认 |
 | `dimens-cli doc version` | 读取指定文档历史版本 | `teamId`, `projectId`, `documentId`, `version` | `app-url` | 用于确认历史内容，再决定是否恢复 |
@@ -192,6 +196,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
   2. 文档写回层：`doc attach-file / doc append-image / doc update`
 - 如果只是拿上传结果，走 `upload file`
 - 如果目标是把素材直接并入 TipTap 文档，优先走 `doc attach-file` 或 `doc append-image`
+- 如果目标是把 AI 生成的 HTML 写回富文本字段，优先走 `richtext-field save`，不要用 `doc update` 代替
 
 ### 2.1 用户创建项目时的标准引导路径
 

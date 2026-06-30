@@ -6,6 +6,10 @@ export interface RowInfo {
   [key: string]: unknown;
 }
 
+export interface RowInfoOptions {
+  include?: string;
+}
+
 export interface RowPagePayload {
   page?: number;
   size?: number;
@@ -57,10 +61,25 @@ export class RowSDK {
     teamId: string,
     projectId: string,
     sheetId: string,
-    rowId: string
+    rowId: string,
+    options: RowInfoOptions = {}
   ): Promise<APIResponse<RowInfo>> {
     return this.client.get<RowInfo>(
-      `/app/mul/${teamId}/${projectId}/sheet/${sheetId}/row/${rowId}/info`
+      `/app/mul/${teamId}/${projectId}/sheet/${sheetId}/row/${rowId}/info`,
+      { include: options.include }
+    );
+  }
+
+  openInfo(
+    teamId: string,
+    projectId: string,
+    sheetId: string,
+    rowId: string,
+    options: RowInfoOptions = {}
+  ): Promise<APIResponse<RowInfo>> {
+    return this.client.get<RowInfo>(
+      `/open/mul/${teamId}/${projectId}/sheet/${sheetId}/row/${rowId}/info`,
+      { include: options.include }
     );
   }
 

@@ -7,6 +7,7 @@ import { FlowChatSDK } from './flow-chat';
 import { PermissionSDK } from './permission';
 import { ProjectSDK } from './project';
 import { ReportSDK } from './report';
+import { RichTextFieldSDK } from './richtext-field';
 import { RowSDK } from './row';
 import { RowAclSDK } from './row-acl';
 import { RowPolicySDK } from './row-policy';
@@ -40,6 +41,7 @@ export class DimensSDK {
   readonly rowAcl: RowAclSDK;
   readonly ai: FlowChatSDK;
   readonly upload: UploadSDK;
+  readonly richtextField: RichTextFieldSDK;
 
   constructor(config: SDKConfig) {
     this.client = new DimensClient(config);
@@ -60,6 +62,7 @@ export class DimensSDK {
     this.rowAcl = new RowAclSDK(this.client);
     this.ai = new FlowChatSDK(this.client);
     this.upload = new UploadSDK(this.client);
+    this.richtextField = new RichTextFieldSDK(this.client);
   }
 }
 
@@ -72,6 +75,7 @@ export { AuthSDK } from './auth';
 export { CanvasSDK } from './canvas';
 export { ProjectSDK } from './project';
 export { ReportSDK } from './report';
+export { RichTextFieldSDK } from './richtext-field';
 export { RoleSDK } from './role';
 export { PermissionSDK } from './permission';
 export { SheetSDK } from './sheet';

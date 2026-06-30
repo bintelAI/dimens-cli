@@ -361,10 +361,33 @@ node ./bin/dimens-cli.js row page \
 
 说明：
 
-- `row page` 是当前唯一保留的行读取命令
+- 行读取保留 `row page`、`row info` 和公开读 `row open-info`
 - 不再使用 `row list`
 - 如果用户要基于行数据做分析，先执行 `column list` 获取真实字段 ID，再用 `row page` 组合 `keyword`、`search-field-ids`、`filters`、`filter-match-type`、`sort-rule` 查询数据
+- 单行详情需要展开单向关联目标行或富文本原始 content 时，使用 `row info --include relations,richtext`；公开读取场景使用 `row open-info --include relations,richtext`
 - `search-field-ids` 支持逗号分隔或 JSON 字符串数组；`filters` 和 `sort-rule` 必须传合法 JSON
+
+读取单行详情：
+
+```bash
+node ./bin/dimens-cli.js row info \
+  --team-id TEAM1 \
+  --project-id PROJ1 \
+  --sheet-id SHEET1 \
+  --row-id ROW1 \
+  --include relations,richtext
+```
+
+公开读取单行详情：
+
+```bash
+node ./bin/dimens-cli.js row open-info \
+  --team-id TEAM1 \
+  --project-id PROJ1 \
+  --sheet-id SHEET1 \
+  --row-id ROW1 \
+  --include relations,richtext
+```
 
 批量写入行数据：
 
@@ -686,6 +709,7 @@ pnpm build
 pnpm test
 pnpm typecheck
 pnpm publish:check
+npm publish --access public
 ```
 
 `pnpm publish:check` 会顺序执行：

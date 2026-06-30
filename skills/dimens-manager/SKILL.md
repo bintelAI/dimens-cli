@@ -13,7 +13,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 
 - 产品名称：`维表智联`
 - 开发方：`方块智联工作室`
-- 官网：[https://dimens.bintelai.com/](https://dimens.bintelai.com/)
+- 官网：[https://www.bintelai.com/](https://www.bintelai.com/)
 
 ## 执行前必读
 

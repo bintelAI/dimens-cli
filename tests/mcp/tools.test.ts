@@ -85,6 +85,7 @@ function createToolContext(): McpToolFactoryContext {
     row: {
       page: vi.fn().mockResolvedValue({ data: { list: [{ id: 'R1' }], total: 1 } }),
       info: vi.fn().mockResolvedValue({ data: { id: 'R1', version: 1 } }),
+      openInfo: vi.fn().mockResolvedValue({ data: { id: 'R1', included: {} } }),
       create: vi.fn().mockResolvedValue({ data: { id: 'R2' } }),
       batchCreate: vi.fn().mockResolvedValue({ data: [{ id: 'R3' }] }),
       update: vi.fn().mockResolvedValue({ data: { id: 'R1', version: 2 } }),
@@ -294,6 +295,39 @@ describe('MCP tools', () => {
       name: '默认视图',
       type: 'grid',
     });
+  });
+
+  it('should call row info with include option', async () => {
+    const context = createToolContext();
+    const tools = createRowTools(context);
+    const tool = tools.find(item => item.name === 'dimens_row_info');
+
+    await tool?.handler({
+      sheetId: 'S1',
+      rowId: 'R1',
+      include: 'relations,richtext',
+    });
+
+    expect(context.createSDK().row.info).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', 'R1', {
+      include: 'relations,richtext',
+    });
+  });
+
+  it('should call open row info through public endpoint tool', async () => {
+    const context = createToolContext();
+    const tools = createRowTools(context);
+    const tool = tools.find(item => item.name === 'dimens_open_row_info');
+
+    const result = await tool?.handler({
+      sheetId: 'S1',
+      rowId: 'R1',
+      include: 'relations,richtext',
+    });
+
+    expect(context.createSDK().row.openInfo).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', 'R1', {
+      include: 'relations,richtext',
+    });
+    expect(parseToolResult(result).message).toContain('公开行详情');
   });
 
   it('should call row create and batch create with normalized payloads', async () => {

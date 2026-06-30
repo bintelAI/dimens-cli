@@ -68,6 +68,62 @@ describe('RowSDK', () => {
     );
   });
 
+  it('should request row info with include query', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 1000,
+        message: 'success',
+        data: { id: 'R1', included: { relations: {}, richText: {} } },
+      }),
+    });
+
+    const sdk = new RowSDK(
+      new DimensClient({
+        baseUrl: 'https://api.example.com',
+      })
+    );
+
+    await sdk.info('TEAM1', 'PROJ1', 'S1', 'R1', {
+      include: 'relations,richtext',
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/app/mul/TEAM1/PROJ1/sheet/S1/row/R1/info?include=relations%2Crichtext',
+      expect.objectContaining({
+        method: 'GET',
+      })
+    );
+  });
+
+  it('should request public open row info with include query', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 1000,
+        message: 'success',
+        data: { id: 'R1', included: { relations: {}, richText: {} } },
+      }),
+    });
+
+    const sdk = new RowSDK(
+      new DimensClient({
+        baseUrl: 'https://api.example.com',
+      })
+    );
+
+    await sdk.openInfo('TEAM1', 'PROJ1', 'S1', 'R1', {
+      include: 'relations,richtext',
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/open/mul/TEAM1/PROJ1/sheet/S1/row/R1/info?include=relations%2Crichtext',
+      expect.objectContaining({
+        method: 'GET',
+      })
+    );
+  });
+
   it('should request row create with data payload', async () => {
     fetchMock.mockResolvedValue({
       ok: true,

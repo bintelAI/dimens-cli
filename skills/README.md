@@ -1,5 +1,8 @@
 # 维表智联 Skill 体系
 
+启动
+cd /Users/lixiang/data/代码库管理/binterAi/多维项目开发/Clawith/backend && source venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
 ## 1. 技能体系定位
 
 这里是 `dimens-cli/skills/` 的独立 Skill 体系总入口。
