@@ -50,7 +50,7 @@ const uploadSdkSpies = {
       id: 1,
       provider: 'qiniu',
       key: 'materials/TEAM9/20260421/logo.svg',
-      url: 'https://cdn.example.com/materials/TEAM9/20260421/logo.svg-bintelai.webp',
+      url: 'https://cdn.example.com/materials/TEAM9/20260421/logo.svg',
       name: 'logo.svg',
     },
   })),

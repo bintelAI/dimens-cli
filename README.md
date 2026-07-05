@@ -287,6 +287,7 @@ node ./bin/dimens-cli.js upload mode
 - 如果希望上传后直接进入素材管理，必须显式传 `--source material --team-id <TEAM_ID>`；CLI 会自动补 `name`、`size`、`mimeType`
 - 素材库上传会优先读取 `upload mode`：线上启用七牛 CDN 时先直传 CDN，再调用素材库完成接口入库；CDN 未启用或配置不完整时自动回退本地上传
 - 素材库 CDN 上传仅限 `source=material`；项目封面、文档附件、头像等非素材库场景仍走原有本地上传接口
+- 素材库完成接口会按服务端规则返回最终 URL：PNG/JPG 等位图可能返回 WebP 派生地址，SVG 和非图片文件保持原始文件地址
 
 项目初始化与菜单骨架示例：
 

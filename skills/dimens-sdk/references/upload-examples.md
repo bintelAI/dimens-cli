@@ -132,6 +132,7 @@ const materialUrl = material.data.url;
 
 - 这条链路和普通 `uploadFile()` 不同，它会先看上传模式，再尝试 CDN token / 直传 / 完成入库
 - `source=material` 时必须显式带 `teamId`
+- 最终 URL 以服务端完成接口返回值为准：PNG/JPG 等位图可能返回 WebP 派生地址，SVG 和非图片文件保持原始文件地址
 - 如果返回的是“CDN 未启用 / 配置不完整”这类可回退错误，SDK 会退回普通上传
 
 CLI 对应验证：

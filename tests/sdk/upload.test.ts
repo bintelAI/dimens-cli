@@ -198,7 +198,7 @@ describe('UploadSDK via DimensClient', () => {
             id: 1,
             provider: 'qiniu',
             key: 'materials/TEAM1/20260617/icon.svg',
-            url: 'https://cdn.example.com/materials/TEAM1/20260617/icon.svg-bintelai.webp',
+            url: 'https://cdn.example.com/materials/TEAM1/20260617/icon.svg',
           },
         }),
       });
@@ -270,6 +270,96 @@ describe('UploadSDK via DimensClient', () => {
       classifyId: 8,
     });
     expect(result.data.id).toBe(1);
+    expect(result.data.url).toBe('https://cdn.example.com/materials/TEAM1/20260617/icon.svg');
+    expect(result.data.url).not.toContain('-bintelai.webp');
+  });
+
+  it('should keep bitmap cdn webp url returned by material complete', async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          code: 1000,
+          message: 'success',
+          data: {
+            cdn: {
+              enabled: true,
+              provider: 'qiniu',
+            },
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          code: 1000,
+          message: 'success',
+          data: {
+            provider: 'qiniu',
+            bucket: 'bucket',
+            domain: 'https://cdn.example.com',
+            uploadToken: 'upload-token',
+            key: 'materials/TEAM1/20260617/poster.png',
+            fileId: 'poster',
+            url: 'https://cdn.example.com/materials/TEAM1/20260617/poster.png',
+            uploadConfig: {
+              region: 'z1',
+            },
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          key: 'materials/TEAM1/20260617/poster.png',
+          hash: 'hash_png',
+          fsize: 8,
+          bucket: 'bucket',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          code: 1000,
+          message: 'success',
+          data: {
+            id: 2,
+            provider: 'qiniu',
+            key: 'materials/TEAM1/20260617/poster.png',
+            url: 'https://cdn.example.com/materials/TEAM1/20260617/poster.png-bintelai.webp',
+          },
+        }),
+      });
+
+    const client = new DimensClient({
+      baseUrl: 'https://api.example.com',
+      token: 'token-1',
+    });
+    const sdk = new UploadSDK(client);
+
+    const tempDir = await mkdtemp(join(tmpdir(), 'dimens-upload-'));
+    const pngPath = join(tempDir, 'poster.png');
+    await writeFile(pngPath, 'png-data');
+
+    let result;
+    try {
+      result = await sdk.uploadMaterialWithCdnFallback(pngPath, {
+        teamId: 'TEAM1',
+        source: 'material',
+      });
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+
+    const completeInit = fetchMock.mock.calls[3]?.[1] as RequestInit;
+    expect(JSON.parse(String(completeInit.body))).toEqual(
+      expect.objectContaining({
+        name: 'poster.png',
+        mimeType: 'image/png',
+        url: 'https://cdn.example.com/materials/TEAM1/20260617/poster.png',
+      })
+    );
+    expect(result.data.url).toBe('https://cdn.example.com/materials/TEAM1/20260617/poster.png-bintelai.webp');
   });
 
   it('should fall back to local material upload when cdn is disabled', async () => {
