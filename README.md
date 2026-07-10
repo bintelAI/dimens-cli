@@ -33,6 +33,8 @@ https://dimens.bintelai.com/api
 - `row-policy`
 - `row-acl`
 - `ai`
+- `workflow-public`
+- `plugin-public`
 - `skill`
 - `system`
 
@@ -52,6 +54,8 @@ https://dimens.bintelai.com/api
 - `sdk.rowPolicy`
 - `sdk.rowAcl`
 - `sdk.ai`
+- `sdk.workflowPublic`
+- `sdk.pluginPublic`
 
 ## 安装
 
@@ -135,6 +139,8 @@ node ./bin/dimens-cli.js help permission
 node ./bin/dimens-cli.js help row-policy
 node ./bin/dimens-cli.js help row-acl
 node ./bin/dimens-cli.js help ai
+node ./bin/dimens-cli.js help workflow-public
+node ./bin/dimens-cli.js help plugin-public
 node ./bin/dimens-cli.js help skill
 ```
 
@@ -532,6 +538,38 @@ node ./bin/dimens-cli.js ai chat-completions \
   --team-id TEAM1 \
   --message "你好" \
   --model default
+```
+
+公开工作流管理与免登录调用：
+
+```bash
+node ./bin/dimens-cli.js workflow-public upsert \
+  --team-id TEAM1 \
+  --flow-id 12 \
+  --enabled true \
+  --run-as-user-id 1001 \
+  --project-id PROJ1
+
+node ./bin/dimens-cli.js workflow-public invoke \
+  --public-id wfpub_xxx \
+  --public-secret wfsk_xxx \
+  --message "帮我分析这个客户的续费风险" \
+  --metadata '{"source":"crm","customerId":"C10001"}'
+```
+
+公开插件发布与安装：
+
+```bash
+node ./bin/dimens-cli.js plugin-public publish \
+  --team-id TEAM1 \
+  --plugin-id 3
+
+node ./bin/dimens-cli.js plugin-public list --keyword 审批
+
+node ./bin/dimens-cli.js plugin-public install-flow \
+  --team-id TEAM2 \
+  --resource-id 88 \
+  --project-scope-type all_projects
 ```
 
 调用 AI 图片生成：

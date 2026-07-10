@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 
-import { createCommand, createCommandGroup, registerGroupCommand } from '../registry';
-import { getSkill, getAllSkills, getSkillsRootPath } from '../../skills';
 import { formatSuccess } from '../../core/output';
+import { getAllSkills, getSkill, getSkillsRootPath } from '../../skills';
+import { createCommand, createCommandGroup, registerGroupCommand } from '../registry';
 import { getContext, parseFlags, printError } from '../utils';
 
 function requireSkillName(args: string[]): string {
@@ -75,6 +75,8 @@ const SKILL_RECOMMEND_EXAMPLES: Record<string, string[]> = {
     '信息图 PPT 复杂展示',
     '保存画布版本并发布组件资源',
     '工作流 默认模型 AI 分析',
+    '公开工作流 wfpub wfsk',
+    '公开插件 flow_plugin 应用市场',
     'AI 自动生成审批工作流',
     '一键生成业务审批流程',
     'api-key token 第三方鉴权',
@@ -127,6 +129,12 @@ const SYSTEM_BUILD_TARGETS = [
 
 const WORKFLOW_INTENT_KEYWORDS = [
   '工作流',
+  '公开工作流',
+  'public workflow',
+  'workflow-public',
+  'public-access',
+  'wfpub',
+  'wfsk',
   'workflow',
   'flow',
   '默认模型',
@@ -139,6 +147,10 @@ const WORKFLOW_INTENT_KEYWORDS = [
   '自动生成审批工作流',
   '一键生成业务审批流程',
   '自动化',
+  '公开插件',
+  'flow_plugin',
+  'plugin-public',
+  '应用市场',
 ];
 
 const AUTH_INTENT_KEYWORDS = [
@@ -224,6 +236,15 @@ const SDK_INTENT_KEYWORDS = [
   'sdk',
   'http',
   'api 调用',
+  '公开接口',
+  '公开调用',
+  'open api',
+  'public api',
+  'public-access',
+  'workflow-public',
+  'plugin-public',
+  'wfpub',
+  'wfsk',
   '接口',
   'web 接入',
   'web',
@@ -250,6 +271,9 @@ const SDK_RESOURCE_CONTEXT_KEYWORDS = [
   'doc',
   'ai',
   'chat-completions',
+  '公开工作流',
+  '公开插件',
+  'flow_plugin',
   '上传',
   'upload',
 ];

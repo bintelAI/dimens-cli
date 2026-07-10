@@ -19,16 +19,16 @@ export { registerVersionCommand } from './version';
 
 import { logger } from '../core/logger';
 import { registerAICommands } from './ai/index';
-import { registerHelpCommand } from './help';
-import { registerVersionCommand } from './version';
-import { createCommandGroup } from './registry';
 import { registerAuthCommands } from './auth/index';
 import { registerCanvasCommands } from './canvas/index';
 import { registerColumnCommands } from './column/index';
 import { registerCreateCommands } from './create/index';
 import { registerDocCommands } from './doc/index';
-import { registerProjectCommands } from './project/index';
+import { registerHelpCommand } from './help';
 import { registerPermissionCommands } from './permission/index';
+import { registerPluginPublicCommands } from './plugin-public/index';
+import { registerProjectCommands } from './project/index';
+import { createCommandGroup } from './registry';
 import { registerReportCommands } from './report/index';
 import { registerRichTextFieldCommands } from './richtext-field/index';
 import { registerRoleCommands } from './role/index';
@@ -41,7 +41,9 @@ import { registerSystemCommands } from './system';
 import { registerTeamCommands } from './team/index';
 import { registerUploadCommands } from './upload/index';
 import { registerUserCommands } from './user/index';
+import { registerVersionCommand } from './version';
 import { registerViewCommands } from './view/index';
+import { registerWorkflowPublicCommands } from './workflow-public/index';
 
 export function registerCommands(): void {
   logger.info('开始注册所有命令...');
@@ -63,6 +65,8 @@ export function registerCommands(): void {
   registerReportCommands();
   registerRoleCommands();
   registerPermissionCommands();
+  registerWorkflowPublicCommands();
+  registerPluginPublicCommands();
   registerSheetCommands();
   registerColumnCommands();
   registerViewCommands();

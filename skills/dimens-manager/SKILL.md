@@ -51,7 +51,8 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 | 项目初始化 | `references/project/overview.md` | 创建项目、项目菜单、文档资源、初始化主链 |
 | 多维表格 | `references/table/overview.md` | 表、字段、视图、行数据、relation、筛选查询 |
 | 权限管理 | `references/permission/overview.md` | 角色、项目权限、表/列/行权限、ACL、公开访问 |
-| 工作流 | `references/workflow/overview.md` | 工作流定义、项目挂载、运行调用、模型配置 |
+| 工作流 | `references/workflow/overview.md` | 工作流定义、项目挂载、运行调用、模型配置、公开工作流 |
+| 应用市场/公开插件 | `references/market/overview.md` | 团队插件发布为公开插件、公开插件浏览与安装 |
 | 报表 | `references/report/overview.md` | 报表、图表组件、参数联动、数据源查询 |
 | 画布 | `references/canvas/overview.md` | 画布资源、AI 生成画布、PPT 画布、版本管理、组件资源市场 |
 
@@ -69,10 +70,11 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
    - 审批工作流 AI 自动生成必须继续看 `references/workflow/references/approval-generation.md`。
    - 审批工作流节点类型必须继续对照 `references/workflow/references/approval-existing-cases.md`，不能生成不存在的节点。
    - 审批工作流节点参数必须继续看 `references/workflow/references/approval-node-parameters.md`，不能只输出空节点。
-10. 统计分析和看板问题看 `references/report/overview.md`。
-11. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
-12. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
-13. 如果是项目初始化或批量建表，最后必须执行一次全量验收：`sheet tree` 确认无空目录，逐表 `column list` 确认字段，逐表 `row page` 确认非空数据，逐报表 `query-widget/query` 确认可出数。
+10. 公开插件、应用市场安装和团队插件发布看 `references/market/overview.md`。
+11. 统计分析和看板问题看 `references/report/overview.md`。
+12. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
+13. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
+14. 如果是项目初始化或批量建表，最后必须执行一次全量验收：`sheet tree` 确认无空目录，逐表 `column list` 确认字段，逐表 `row page` 确认非空数据，逐报表 `query-widget/query` 确认可出数。
 
 ### 全量验收矩阵
 
@@ -151,6 +153,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - `references/table/overview.md`
 - `references/permission/overview.md`
 - `references/workflow/overview.md`
+- `references/market/overview.md`
 - `references/workflow/references/approval-generation.md`
 - `references/workflow/references/approval-existing-cases.md`
 - `references/workflow/references/approval-node-parameters.md`

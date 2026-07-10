@@ -162,6 +162,10 @@ describe('Skill Commands', () => {
     expect(output).toContain('upload file');
     expect(output).toContain('ProjectSDK');
     expect(output).toContain('UploadSDK');
+    expect(output).toContain('workflow-public');
+    expect(output).toContain('plugin-public');
+    expect(output).toContain('WorkflowPublicSDK');
+    expect(output).toContain('PluginPublicSDK');
     expect(output).toContain('dimens-manager/references/project/references/bootstrap-flow.md');
     logSpy.mockRestore();
   });
@@ -182,6 +186,29 @@ describe('Skill Commands', () => {
     expect(output).toContain('维表智联业务管理技能');
     expect(output).toContain('dimens-manager/references/workflow/references/model-routing.md');
     expect(output).toContain('dimens-manager/references/canvas/references/command-mapping.md');
+    expect(output).toContain('公开工作流');
+    expect(output).toContain('dimens-manager/references/market/overview.md');
+    expect(output).toContain('公开插件');
+    logSpy.mockRestore();
+  });
+
+  it('should recommend manager and sdk for public workflow and plugin intents', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'recommend'
+    );
+
+    await command?.handler(['公开工作流', 'wfpub', '公开插件', '--output', 'json']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('dimens-manager');
+    expect(output).toContain('dimens-sdk');
+    expect(output).toContain('workflow-intent');
+    expect(output).toContain('sdk-intent');
     logSpy.mockRestore();
   });
 

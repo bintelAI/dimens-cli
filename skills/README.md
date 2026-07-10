@@ -96,6 +96,7 @@ windows-utf8.md
 | `dimens-manager/references/table/overview.md` | `sheet *`、`column *`、`view *`、`row *` | 负责工作表、字段、视图、行数据建模与更新 | `sheet/column/row` 的更新都走“先读再改再更”，字段设计还要考虑后续报表映射 |
 | `dimens-manager/references/permission/overview.md` | `role *`、`permission *`、`row-policy *`、`row-acl *` | 负责角色、项目权限、行级策略、单行 ACL | 权限类更新也走“先拿当前记录再更新”，CLI 成功不等于权限快照已全部收敛 |
 | `dimens-manager/references/workflow/overview.md` | `flow_*`、`dimens-cli ai *` | 负责工作流定义、项目挂载、运行调用、模型边界 | 先分清团队定义、项目挂载、运行调用三层，不要混用结论 |
+| `dimens-manager/references/market/overview.md` | `plugin-public *` | 负责公开插件发布、公开插件市场列表、安装、升级与卸载 | 团队插件发布到公开市场后沉淀为 `flow_plugin`，安装落地为目标团队工作流实例 |
 | `dimens-manager/references/report/overview.md` | `report *`、`widget-*`、`query*`、`preview` | 负责报表主资源、组件、查询和预检链路 | 报表和组件更新都默认先取当前数据，新增或修改组件前优先走 `preview` |
 | `dimens-manager/references/canvas/overview.md` | `canvas *`、`sheet create --type canvas` | 负责画布资源、AI 生成图数据、版本和组件资源市场 | 保存前先 `canvas info` 拿版本，再 `canvas save --base-version`，不要把画布当成可执行工作流 |
 | `dimens-sdk` | SDK / HTTP 接入链路 | 负责 Node、Web、H5、App、BFF 的接入方式说明 | 适合端侧接入和 SDK 使用，不替代 CLI 资源运维主链 |
@@ -130,6 +131,7 @@ windows-utf8.md
 | 多维表格 | `dimens-manager/references/table/overview.md` | 工作表、字段、视图、行数据、系统视图字段 |
 | 权限管理 | `dimens-manager/references/permission/overview.md` | 准入、表级、列级、行级、协同权限、公开访问者 |
 | 工作流 | `dimens-manager/references/workflow/overview.md` | 工作流、AI 分析、审批、自动化、默认模型问题 |
+| 应用市场/公开插件 | `dimens-manager/references/market/overview.md` | 公开插件、应用市场浏览、安装和升级 |
 | 报表 | `dimens-manager/references/report/overview.md` | 报表、图表、参数筛选、数据源查询与创建前预检 |
 | 画布 | `dimens-manager/references/canvas/overview.md` | 画布、白板、流程图、AI 生成画布、版本恢复、资源市场 |
 

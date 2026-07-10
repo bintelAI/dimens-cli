@@ -238,6 +238,32 @@ dimens-cli help <group> <command>  # 查看具体命令的用法和示例
 | `ai embeddings --input <text>` | 文本向量化 |
 | `ai rerank --query <text> --documents <json-array>` | 重排序 |
 
+## 🌐 公开工作流 (workflow-public)
+
+| 命令 | 说明 |
+|------|------|
+| `workflow-public get --flow-id <id>` | 查询单工作流公开访问配置 |
+| `workflow-public upsert --flow-id <id> [--enabled true] [--run-as-user-id <uid>] [--project-id <pid>]` | 创建或更新公开访问配置 |
+| `workflow-public disable --flow-id <id>` | 关闭公开访问 |
+| `workflow-public reset-secret --flow-id <id>` | 重置公开密钥，密钥只返回一次 |
+| `workflow-public invoke --public-id <wfpub> --public-secret <wfsk> --message <text>` | 免登录调用公开工作流 |
+
+> 公开工作流调用的是 `/open/flow/:publicId/v1/chat/completions`，`publicSecret` 不是用户 token，也不是 API Key 登录的 `apiSecret`。
+
+## 🧩 公开插件 (plugin-public)
+
+| 命令 | 说明 |
+|------|------|
+| `plugin-public publish --plugin-id <id>` | 发布团队插件到公开插件市场 |
+| `plugin-public list [--keyword <kw>]` | 查询公开插件市场列表 |
+| `plugin-public detail --resource-id <id>` | 查询公开插件详情 |
+| `plugin-public install-flow --resource-id <id> [--project-scope-type all_projects|selected_projects]` | 安装公开插件为团队工作流实例 |
+| `plugin-public install --resource-id <id>` | 市场通用安装入口 |
+| `plugin-public uninstall --resource-id <id>` | 卸载公开插件安装实例 |
+| `plugin-public upgrade --resource-id <id>` | 升级公开插件安装实例 |
+
+> 公开插件资源类型固定为 `flow_plugin`。`pluginId` 是团队插件 ID，`resourceId` 是市场资源 ID。
+
 ## 📚 技能查看 (skill)
 
 | 命令 | 说明 |

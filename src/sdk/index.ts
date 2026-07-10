@@ -5,22 +5,24 @@ import { ColumnSDK } from './column';
 import { DocumentSDK } from './document';
 import { FlowChatSDK } from './flow-chat';
 import { PermissionSDK } from './permission';
+import { PluginPublicSDK } from './plugin-public';
 import { ProjectSDK } from './project';
 import { ReportSDK } from './report';
 import { RichTextFieldSDK } from './richtext-field';
+import { RoleSDK } from './role';
 import { RowSDK } from './row';
 import { RowAclSDK } from './row-acl';
 import { RowPolicySDK } from './row-policy';
-import { RoleSDK } from './role';
 import { SheetSDK } from './sheet';
 import { TeamSDK } from './team';
 import { UploadSDK } from './upload';
 import { UserSDK } from './user';
 import { ViewSDK } from './view';
+import { WorkflowPublicSDK } from './workflow-public';
 
 export type { APIResponse, DimensClientOptions };
 
-export interface SDKConfig extends DimensClientOptions {}
+export type SDKConfig = DimensClientOptions;
 
 export class DimensSDK {
   readonly client: DimensClient;
@@ -30,6 +32,7 @@ export class DimensSDK {
   readonly canvas: CanvasSDK;
   readonly role: RoleSDK;
   readonly permission: PermissionSDK;
+  readonly pluginPublic: PluginPublicSDK;
   readonly sheet: SheetSDK;
   readonly team: TeamSDK;
   readonly user: UserSDK;
@@ -42,6 +45,7 @@ export class DimensSDK {
   readonly ai: FlowChatSDK;
   readonly upload: UploadSDK;
   readonly richtextField: RichTextFieldSDK;
+  readonly workflowPublic: WorkflowPublicSDK;
 
   constructor(config: SDKConfig) {
     this.client = new DimensClient(config);
@@ -51,6 +55,7 @@ export class DimensSDK {
     this.canvas = new CanvasSDK(this.client);
     this.role = new RoleSDK(this.client);
     this.permission = new PermissionSDK(this.client);
+    this.pluginPublic = new PluginPublicSDK(this.client);
     this.sheet = new SheetSDK(this.client);
     this.team = new TeamSDK(this.client);
     this.user = new UserSDK(this.client);
@@ -63,6 +68,7 @@ export class DimensSDK {
     this.ai = new FlowChatSDK(this.client);
     this.upload = new UploadSDK(this.client);
     this.richtextField = new RichTextFieldSDK(this.client);
+    this.workflowPublic = new WorkflowPublicSDK(this.client);
   }
 }
 
@@ -78,6 +84,7 @@ export { ReportSDK } from './report';
 export { RichTextFieldSDK } from './richtext-field';
 export { RoleSDK } from './role';
 export { PermissionSDK } from './permission';
+export { PluginPublicSDK } from './plugin-public';
 export { SheetSDK } from './sheet';
 export { TeamSDK } from './team';
 export { ColumnSDK } from './column';
@@ -89,3 +96,4 @@ export { RowAclSDK } from './row-acl';
 export { FlowChatSDK } from './flow-chat';
 export { UploadSDK } from './upload';
 export { UserSDK } from './user';
+export { WorkflowPublicSDK } from './workflow-public';

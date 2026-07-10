@@ -1,5 +1,5 @@
-import { getUserAgent } from '../core/version';
 import { requestJson } from '../core/http';
+import { getUserAgent } from '../core/version';
 
 export interface DimensClientOptions {
   baseUrl: string;
@@ -61,6 +61,24 @@ export class DimensClient {
     return requestJson<APIResponse<T>>(this.buildUrl(path), requestInit);
   }
 
+  async put<T>(
+    path: string,
+    body?: unknown,
+    init: RequestInit = {}
+  ): Promise<APIResponse<T>> {
+    const requestInit: RequestInit = {
+      ...init,
+      method: 'PUT',
+      headers: this.buildHeaders(init.headers, true),
+    };
+
+    if (body !== undefined) {
+      requestInit.body = JSON.stringify(body);
+    }
+
+    return requestJson<APIResponse<T>>(this.buildUrl(path), requestInit);
+  }
+
   async postFormData<T>(
     path: string,
     formData: FormData,
@@ -106,15 +124,20 @@ export class DimensClient {
     if (hasFormDataBody) {
       delete merged['Content-Type'];
     }
-    if (this.options.token) {
+    if (this.options.token && !hasHeader(merged, 'Authorization')) {
       merged.Authorization = `Bearer ${this.options.token}`;
     }
-    if (this.options.refreshToken) {
+    if (this.options.refreshToken && !hasHeader(merged, 'X-Refresh-Token')) {
       merged['X-Refresh-Token'] = this.options.refreshToken;
     }
 
     return merged;
   }
+}
+
+function hasHeader(headers: Record<string, string>, name: string): boolean {
+  const normalizedName = name.toLowerCase();
+  return Object.keys(headers).some(key => key.toLowerCase() === normalizedName);
 }
 
 function normalizeHeaders(headers?: unknown): Record<string, string> {

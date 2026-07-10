@@ -81,4 +81,33 @@ describe('DimensClient', () => {
       'token 已失效'
     );
   });
+
+  it('should let explicit authorization headers override profile token', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ code: 1000, message: 'success', data: { ok: true } }),
+    });
+
+    const client = new DimensClient({
+      baseUrl: 'https://api.example.com',
+      token: 'user-token',
+    });
+
+    await client.post('/open/flow/wfpub_1/v1/chat/completions', {
+      messages: [{ role: 'user', content: '你好' }],
+    }, {
+      headers: {
+        Authorization: 'Bearer wfsk_public',
+      },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/open/flow/wfpub_1/v1/chat/completions',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer wfsk_public',
+        }),
+      })
+    );
+  });
 });

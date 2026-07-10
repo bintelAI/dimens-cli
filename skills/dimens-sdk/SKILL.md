@@ -59,6 +59,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 | 资源域调用 | `references/resources/overview.md` | 表格、文档、报表、权限、画布、AI 等代码调用 |
 | 文件与媒体 | `references/media/overview.md` | 上传图片、附件、封面后写入业务资源 |
 | AI 多能力模型代理 | `references/ai-examples.md` | 聊天、模型列表、图片生成/编辑/变体、视频任务、音频、Embedding、Rerank |
+| 公开工作流/公开插件 API | `references/public-api-examples.md` | `workflow-public`、`plugin-public`、`WorkflowPublicSDK`、`PluginPublicSDK` |
 | 接入路径选择 | `references/integration-paths.md` | SDK、HTTP、BFF 的选型边界 |
 | 当前 SDK 能力 | `references/capability-status.md` | 判断能否直接用 SDK |
 
@@ -78,6 +79,8 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 | “移动端/小程序怎么接，密钥放哪” | `references/mobile/overview.md`、`references/mobile-examples.md` | 强调服务端代理、短期 token、业务接口编排 |
 | “报表只读、报表创建、组件查询怎么写” | `references/report-examples.md` | 说明 `reportId=sheetId` 兼容口径和 queryWidget/query 链路 |
 | “AI 生图/生视频/Embedding/Rerank 怎么接” | `references/ai-examples.md`、`references/capability-status.md` | 默认走 `sdk.ai` 和维表后端代理，不直连 new-api |
+| “公开工作流怎么给第三方系统调用 / wfpub wfsk 怎么用” | `references/public-api-examples.md` | 说明 `publicSecret` 与登录 token/API Key 的边界，给 `workflowPublic.invoke()` |
+| “公开插件怎么发布和安装” | `references/public-api-examples.md` | 说明 `flow_plugin` 市场资源与团队插件实例边界 |
 | “上传素材库为什么要 teamId” | `references/upload-examples.md`、`references/media/overview.md` | 说明 `--source material --team-id`、CDN-first 和 fallback |
 
 ## 默认处理顺序
@@ -123,6 +126,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - 不要用一个“万能请求模板”混掉表格、文档、报表、工作流的不同上下文。
 - 不要跳过 `version/baseVersion` 并发控制直接更新行、文档或画布。
 - 不要把 `chat/completions` 当成完整工作流管理接口。
+- 不要把公开工作流 `publicSecret` 当成用户登录 token；它只用于 `/open/flow/:publicId/v1/chat/completions`。
 - 不要认为登录成功就自动拥有项目、表格、报表权限。
 
 ## 常见错误与修正
@@ -172,3 +176,4 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - `references/document-examples.md`
 - `references/report-examples.md`
 - `references/ai-examples.md`
+- `references/public-api-examples.md`
