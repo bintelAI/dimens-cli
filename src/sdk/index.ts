@@ -21,6 +21,10 @@ import { ViewSDK } from './view';
 import { WorkflowPublicSDK } from './workflow-public';
 
 export type { APIResponse, DimensClientOptions };
+export { DimensRequestError } from './client';
+export type { ProjectInfo, ProjectPagePayload, ProjectPageResult } from './project';
+export type { TeamInfo, TeamSummary } from './team';
+export type { UserInfo } from './user';
 
 export type SDKConfig = DimensClientOptions;
 

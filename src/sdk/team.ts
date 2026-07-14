@@ -1,13 +1,15 @@
 import type { APIResponse } from './client';
 import { DimensClient } from './client';
 
-export interface TeamInfo {
+export interface TeamSummary {
   id: string;
   name?: string;
   remark?: string;
   description?: string;
   [key: string]: unknown;
 }
+
+export interface TeamInfo extends TeamSummary {}
 
 export interface TeamMemberInfo {
   id?: number | string;

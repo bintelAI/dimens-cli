@@ -52,8 +52,8 @@ export class RowSDK {
     payload: RowPagePayload
   ): Promise<APIResponse<RowPageResult>> {
     return this.client.post<RowPageResult>(
-      `/app/mul/${teamId}/${projectId}/sheet/${sheetId}/row/page`,
-      payload
+      `/app/mul/sheet/${sheetId}/row/page`,
+      { ...payload, teamId, projectId }
     );
   }
 
@@ -65,8 +65,8 @@ export class RowSDK {
     options: RowInfoOptions = {}
   ): Promise<APIResponse<RowInfo>> {
     return this.client.get<RowInfo>(
-      `/app/mul/${teamId}/${projectId}/sheet/${sheetId}/row/${rowId}/info`,
-      { include: options.include }
+      `/app/mul/sheet/${sheetId}/row/${rowId}/info`,
+      { include: options.include, teamId, projectId }
     );
   }
 

@@ -1,6 +1,8 @@
 import { requestJson } from '../core/http';
 import { getUserAgent } from '../core/version';
 
+export { DimensRequestError } from '../core/http';
+
 export interface DimensClientOptions {
   baseUrl: string;
   token?: string;
@@ -97,7 +99,10 @@ export class DimensClient {
   private buildUrl(path: string, query?: QueryParams): string {
     const base = this.options.baseUrl.replace(/\/+$/, '');
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-    const url = new URL(`${base}${normalizedPath}`);
+    const browserOrigin = getBrowserOrigin();
+    const url = browserOrigin
+      ? new URL(`${base}${normalizedPath}`, browserOrigin)
+      : new URL(`${base}${normalizedPath}`);
 
     Object.entries(query || {}).forEach(([key, value]) => {
       if (value === undefined || value === null || value === '') {
@@ -116,7 +121,9 @@ export class DimensClient {
   ): Record<string, string> {
     const merged = normalizeHeaders(headers);
     merged.Accept = 'application/json';
-    merged['User-Agent'] = getUserAgent();
+    if (!getBrowserOrigin()) {
+      merged['User-Agent'] = getUserAgent();
+    }
 
     if (hasJsonBody && !hasFormDataBody) {
       merged['Content-Type'] = 'application/json';
@@ -133,6 +140,11 @@ export class DimensClient {
 
     return merged;
   }
+}
+
+function getBrowserOrigin(): string | undefined {
+  const browserWindow = (globalThis as { window?: { location?: { origin?: string } } }).window;
+  return browserWindow?.location?.origin;
 }
 
 function hasHeader(headers: Record<string, string>, name: string): boolean {

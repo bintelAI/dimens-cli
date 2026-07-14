@@ -51,6 +51,7 @@ export {
   DimensSDK,
   createSDK,
   DimensClient,
+  DimensRequestError,
   AuthSDK,
   CanvasSDK,
   ColumnSDK,
@@ -64,6 +65,12 @@ export {
   type SDKConfig,
   type APIResponse,
   type DimensClientOptions,
+  type ProjectInfo,
+  type ProjectPagePayload,
+  type ProjectPageResult,
+  type TeamInfo,
+  type TeamSummary,
+  type UserInfo,
 } from './src/sdk';
 
 /**

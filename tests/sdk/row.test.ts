@@ -33,10 +33,10 @@ describe('RowSDK', () => {
     await sdk.page('TEAM1', 'PROJ1', 'S1', { page: 1, size: 20 });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://api.example.com/app/mul/TEAM1/PROJ1/sheet/S1/row/page',
+      'https://api.example.com/app/mul/sheet/S1/row/page',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ page: 1, size: 20 }),
+        body: JSON.stringify({ page: 1, size: 20, teamId: 'TEAM1', projectId: 'PROJ1' }),
       })
     );
   });
@@ -89,7 +89,7 @@ describe('RowSDK', () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://api.example.com/app/mul/TEAM1/PROJ1/sheet/S1/row/R1/info?include=relations%2Crichtext',
+      'https://api.example.com/app/mul/sheet/S1/row/R1/info?include=relations%2Crichtext&teamId=TEAM1&projectId=PROJ1',
       expect.objectContaining({
         method: 'GET',
       })

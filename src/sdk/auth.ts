@@ -1,5 +1,6 @@
 import type { APIResponse } from './client';
 import { DimensClient } from './client';
+import type { TeamSummary } from './team';
 
 export interface LoginPayload {
   username: string;
@@ -35,6 +36,7 @@ export interface CurrentUserInfo {
   phone?: string;
   headImg?: string;
   avatar?: string;
+  teams?: TeamSummary[];
   [key: string]: unknown;
 }
 
