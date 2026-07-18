@@ -113,5 +113,35 @@
     "id": "manager-009",
     "prompt": "帮我生成一个 AI 工作流 JSON，节点类型直接用 retriever、parser、writer、ai_review。",
     "expected": "应命中 workflow/node-dictionary、ai-generation 和 ai-node-templates；说明 AI 工作流节点类型白名单只有 start/action/llm/condition/end；拒绝未知 workflow node type，把 retriever/parser/writer 映射为 action，把 ai_review 映射为 condition 或 llm 后的质量检查，并说明模板来源。"
+  },
+  {
+    "id": "manager-010",
+    "prompt": "我只想管理现有项目的维表：先找到客户表，再改名为客户主表并移到客户中心目录，不要给我项目初始化、权限或报表流程。",
+    "expected": "应命中日常维表管理路径：用户明确指定客户表，先确认 teamId/projectId 并用一次 sheet list 定位唯一的 type=sheet 客户表；再用 sheet tree 定位 type=folder 的客户中心目录，第二阶段使用同一条 sheet update 同时传 --name 和 --folder-id 完成改名与移动，不展开项目初始化、权限、工作流或报表。不得用当前页面 sheetId 替代客户表；必须说明当前 CLI 的 update 会先读再更新，因此两阶段不等于严格两次网络请求。"
+  },
+  {
+    "id": "manager-011",
+    "prompt": "项目菜单已经给我了，里面应该有客户表字段吧？直接用客户名称和跟进状态给它新增一行。",
+    "expected": "应说明 sheet tree 的表节点会携带按列权限过滤的 config.columns，可用于第一阶段展示字段；但新增行必须只对已定位客户表执行 sheet structure 或 column list，取得最新真实 fieldId 和字段类型后再组织行操作。禁止把中文字段名、占位 fld_xxx、其他表的 fieldId，或菜单树里的可见字段直接当作完整可执行行数据。"
+  },
+  {
+    "id": "manager-012",
+    "prompt": "把项目里的历史客户表删除掉，越快越好。",
+    "expected": "应先用 sheet tree 定位历史客户表并说明 sheetId、资源类型和目录影响；删除是破坏性操作，必须等待用户显式确认后才给出或执行 sheet delete，不能直接删除，也不应无关扩展到权限、工作流或报表流程。"
+  },
+  {
+    "id": "manager-013",
+    "prompt": "我在本地小龙虾里，帮我查询项目的客户表并新增一条客户数据。",
+    "expected": "应先阅读 key-auth/overview 并完成认证，再检查 dimens-cli --version；执行任何 project/sheet/column/row/ai 命令前不得跳过认证。用户明确指定客户表，之后先用一次 sheet list 定位唯一 sheetId，行写入前仍只对目标表执行 column list 或 sheet structure 获取最新 fieldId。不得用当前页面或 URL 的 sheetId 替代客户表，也不要把 CLI 输出 pipe 给 JSON 解析器。"
+  },
+  {
+    "id": "manager-014",
+    "prompt": "运行环境=线上维表。我已经在线上小龙虾会话里，帮我把客户表改名为客户主表。",
+    "expected": "应先确认线上标志，跳过本地 Key 认证、dimens-cli --version 和升级；用户明确指定客户表，先用一次 sheet list 定位唯一 sheetId，再执行 sheet update 改名。仍需确认 teamId/projectId、资源归属和写入权限；不要展开本地初始化、认证或版本检查流程。"
+  },
+  {
+    "id": "manager-015",
+    "prompt": "帮我看下我的保养计划表。",
+    "expected": "应把 URL 仅作为 teamId/projectId 上下文，先用一次 sheet list 定位唯一的保养计划表 sheetId，再直接用 row page 读取数据；不得查询当前页面表，不默认执行 column list，也不主动输出工具调用次数、调用复盘或试错过程。"
   }
 ]

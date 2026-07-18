@@ -21,9 +21,9 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - ✅ SDK、HTTP、Web、BFF、Node.js 接入问题先用 `dimens-sdk`。
 - ✅ Windows 下生成或修改中文文件时，必须遵守 `../windows-utf8.md`：用 UTF-8 写入，禁止 `cmd echo` / 默认重定向写中文正文，写完读回确认没有 `??`。
 - ✅ **<u>执行任何 `dimens-cli` 命令前，必须先查阅 `references/dimens-cli-quickref.md`（命令速查手册）确认命令名称、参数格式和前置条件</u>**；不查阅直接执行可能因拼写错误、参数遗漏或缺失前置条件导致操作失败。
-- ✅ 每次准备使用 `dimens-cli` 前，先执行 `dimens-cli --version` 查看当前版本；只有命令不存在、版本明显低于需求、当前 help/source 与技能规则不一致，或用户确认升级时，才执行 `npm -g install @bintel/dimens-cli@latest`。升级后必须再次执行 `dimens-cli --version` 和必要的 `dimens-cli help <group>` 复核。
+- ✅ 在**本地小龙虾**中，每次准备使用 `dimens-cli` 前，先执行 `dimens-cli --version` 查看当前版本；只有命令不存在、版本明显低于需求、当前 help/source 与技能规则不一致，或用户确认升级时，才执行 `npm -g install @bintel/dimens-cli@latest`。升级后必须再次执行 `dimens-cli --version` 和必要的 `dimens-cli help <group>` 复核。
 - ✅ 项目内查询、创建、更新、上传、验证等操作优先推荐并执行 `dimens-cli` 命令；自定义 URL 只作为上下文解析或 CLI 未覆盖时的补充路径，不作为首选解决方案。
-- ✅ 执行任何写操作前先确认认证、`teamId`、`projectId` 与资源归属。
+- ✅ 执行任何写操作前先确认认证、`teamId`、`projectId` 与资源归属；线上维表小龙虾以已确认的线上会话作为认证上下文，不重复执行本地 Key 登录。
 - ✅ 更新类操作统一遵循"先读取当前数据 -> 修改目标字段 -> 再提交更新"。
 - ✅ 项目资源默认按"三驾马车"理解：表格、文档、报表。
 - ✅ 报表创建当前走项目菜单 `sheet/create type=report`；返回的 `reportId` 等于 `sheetId`。
@@ -42,6 +42,17 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 | 项目内资源创建、配置、更新、排查 | `dimens-manager` |
 | SDK、HTTP API、Web/BFF/Node.js/移动端接入 | `dimens-sdk` |
 
+## 运行环境分流
+
+线上标志固定为 `运行环境=线上维表`。只有用户在当前请求中提供该完整标志，才按线上路径处理；缺少标志一律按本地小龙虾处理，不能因为 URL、项目名称或猜测而跳过认证。
+
+| 运行位置 | 前置处理 | `project / sheet / column / row / ai` 操作方式 |
+| --- | --- | --- |
+| 本地小龙虾，或未提供线上标志 | 先阅读 `references/key-auth/overview.md` 并完成认证；再检查 `dimens-cli --version`，仅在需要时升级 | 使用本地 `dimens-cli`；认证、版本和上下文完成后再执行业务命令 |
+| 线上维表小龙虾，且提供 `运行环境=线上维表` | 确认标志与线上会话上下文；不执行本地 Key 认证、`dimens-cli --version` 或升级 | 直接执行 `sheet tree` 获取菜单和可见字段，再执行一项表操作；普通单表管理以两个步骤完成 |
+
+本地认证要求：执行任何 `project / sheet / column / row / ai` 命令前，先完成认证；认证方式优先参考 `references/key-auth/overview.md`。线上标志只免除本地认证和版本检查，不免除 `teamId`、`projectId`、资源归属、删除确认和字段权限校验。
+
 ## 快速路由表
 
 | 业务域 | 入口文档 | 适用场景 |
@@ -58,10 +69,24 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 
 ## 默认处理顺序
 
+### 日常维表管理优先路径
+
+用户只要求查询、新建、改名、移动或删除项目中的单张维表时，优先走下面两个阶段；不要自动展开项目初始化、权限、工作流或报表流程。
+
+1. **定位目标表**：本地路径先完成认证与版本检查；线上路径先确认 `运行环境=线上维表`。资源目标优先级固定为“显式 `sheetId` > 用户明确表名 > URL 当前表 > 当前页面推断”。用户明确指定表名时，不能用当前页面或 URL 的 `sheetId` 代替目标表；先执行一次 `sheet list` 定位唯一的 `sheetId`，再继续字段或行查询。只有用户使用“当前表/本页”等相对表达，或需要回查目录归属时，才使用 `sheet tree`。
+2. **只执行一项操作**：创建用 `sheet create`；查询直接使用菜单树或目标表 `sheet structure`；改名或“改名并移动”用 `sheet update`（同时传 `--name` 和 `--folder-id`）；仅移动用 `sheet move`；删除前必须说明资源和目录影响，并取得用户显式确认后才执行 `sheet delete`。
+
+边界：按表名定位时，`sheet list` 输出可能混入 CLI 日志；只做一次简单文本匹配提取紧邻的 `sheetId`，不要把 CLI 输出直接 pipe 给 JSON 解析器，也不要在 `sheet tree`、`python`、`sed` 等多种解析方式之间重复尝试。无法唯一匹配时停止并请用户确认。用户只要求查看表数据时，定位后直接执行 `row page`，不默认执行 `column list`；只有用户要求字段结构、按字段筛选或排序、字段 ID 映射或写入数据时才读取字段。`sheet tree` 的表节点会携带按列权限过滤的 `config.columns`，可用于展示、当前表场景和目录回查；字段定义变更、筛选、行写入或行更新时，仍只对已定位的目标表追加 `sheet structure` 或 `column list`，取得最新可执行的字段映射。行数据仍必须使用该表真实 `fieldId`，行更新仍先读取当前行和版本。这里的“两阶段”指最少用户交互路径，不承诺所有 CLI 内部网络请求严格只有两次。
+
+### 结果回复边界
+
+- 默认只向用户呈现查询结果、必要的范围说明和未完成项，不主动复述技能读取、命令选择、日志解析或试错过程。
+- 除非用户明确要求复盘、统计或解释工具调用，否则禁止主动输出工具调用次数、调用清单、内部命令、失败尝试或“我会记住”等内部过程描述。
+
 1. 识别用户目标：查询、创建、更新、排查、导入、生成画布或验证。
-2. 只要后续会执行或给出 `dimens-cli` 命令，先执行 `dimens-cli --version`；命令不可用或版本不满足当前任务时再安装/升级，并在升级后复核版本和 help。
-3. **构造命令前，先查阅 `references/dimens-cli-quickref.md` 确认当前目标对应的命令名、参数格式和全局参数用法，而不是凭记忆或猜测直接写命令。**
-4. 先看 `references/key-auth/overview.md`，确认认证方式。
+2. 本地小龙虾只要后续会执行或给出 `dimens-cli` 命令，先执行 `dimens-cli --version`；命令不可用或版本不满足当前任务时再安装/升级，并在升级后复核版本和 help。已确认 `运行环境=线上维表` 时跳过此步。
+3. **构造本地 `dimens-cli` 命令前，先查阅 `references/dimens-cli-quickref.md` 确认当前目标对应的命令名、参数格式和全局参数用法，而不是凭记忆或猜测直接写命令。**
+4. 本地小龙虾先看 `references/key-auth/overview.md` 并完成认证；已确认 `运行环境=线上维表` 时复用线上会话，不执行本地登录。
 5. 再看 `references/team/overview.md`，明确 `teamId / projectId / baseUrl`。
 6. 项目容器问题看 `references/project/overview.md`。
 7. 数据模型问题看 `references/table/overview.md`。
@@ -73,7 +98,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 10. 公开插件、应用市场安装和团队插件发布看 `references/market/overview.md`。
 11. 统计分析和看板问题看 `references/report/overview.md`。
 12. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
-13. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
+13. 输出前按“运行环境、认证或线上标志、命令链、必要参数、验证命令、风险点”检查一遍；本地额外说明 CLI 版本或升级结果。
 14. 如果是项目初始化或批量建表，最后必须执行一次全量验收：`sheet tree` 确认无空目录，逐表 `column list` 确认字段，逐表 `row page` 确认非空数据，逐报表 `query-widget/query` 确认可出数。
 
 ### 全量验收矩阵
@@ -114,6 +139,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 - 不要只生成 `id/type/label` 空节点；每个审批节点都要按 `approval-node-parameters.md` 补齐必填参数。
 - 不要只看 CLI 命令执行成功就判断权限生效；还要关注缓存失效、权限快照和前端刷新。
 - 不要只看 `sheet create --folder-id` 就判断资源已进入目录；必须 `sheet tree` 回查，必要时 `sheet move`。
+- 不要把 `sheet tree.config.columns` 当成完整且可直接写入的字段模型；它只反映当前用户可见字段。涉及字段变更、筛选或行数据时，必须追加读取目标表的 `sheet structure` 或 `column list`。
 - 不要复用其它表的 `fieldId` 写入当前表；`row batch-create` 即使返回成功，也可能因为字段 ID 错误导致业务 `data` 为空。
 - 不要把空目录、空表、行 `data:{}`、空报表留到用户反馈后再修；这些都属于执行阶段必须主动发现的问题。
 - 不要把历史规则文档里的 Windows 路径、旧 CLI 版本行为或未复核 bug 当成当前通用事实；先复核再固化。
@@ -124,6 +150,7 @@ tags: [manager, project, table, permission, workflow, report, canvas, auth, dime
 | 错误 | 修正 |
 | --- | --- |
 | 只给 `projectId` 就开始改资源 | 先确认 `teamId` 和资源归属 |
+| 把 `sheet tree.config.columns` 当作完整字段清单 | 菜单树字段受列权限过滤，只用于展示和定位；字段与行操作对目标表补 `sheet structure` 或 `column list` |
 | 直接局部 update | 先读取当前数据，再合并目标字段 |
 | 报表创建后读取不到 `reportId` | 使用返回的 `sheetId` 作为 `reportId`，或使用已归一化的 CLI 输出 |
 | 权限创建成功就认为前端已生效 | 继续检查权限快照、缓存失效和前端刷新 |

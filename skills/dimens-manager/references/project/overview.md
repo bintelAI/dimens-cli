@@ -17,7 +17,7 @@ tags: [project, bootstrap, setup, initialization, dimens-cli]
 
 ## 执行前必读
 
-- ✅ 执行任何项目命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`
+- ✅ 本地小龙虾执行任何项目命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`。用户明确提供 `运行环境=线上维表` 时复用线上会话，不执行本地 Key 登录，但仍校验团队、项目和资源归属。
 - ✅ 项目一定挂在团队下面，创建项目前必须先确认 `teamId`
 - ✅ 当用户给的是 `https://dimens.bintelai.com/#/TEAM_ID/PROJECT_ID/` 这类链接时，优先直接解析成当前项目上下文
 - ✅ CLI 是项目初始化首选执行入口；只有命令未覆盖时才补充真实接口或产品侧边界

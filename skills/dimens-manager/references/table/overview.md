@@ -17,7 +17,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 ## 执行前必读
 
-- ✅ 执行任何 `project / sheet / column / row / ai` 命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`
+- ✅ 本地小龙虾执行任何 `project / sheet / column / row / ai` 命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`。用户明确提供 `运行环境=线上维表` 时复用线上会话，不执行本地 Key 登录，但仍校验项目、资源和字段权限。
 - ✅ 表格能力默认要先确认 `projectId`，大多数写操作还需要 `teamId`
 - ✅ CLI 是表、字段、视图、行数据操作的首选入口；接口案例只用于解释真实契约和边界
 - ✅ 缺少 `teamId/projectId/sheetId/fieldId/rowId/viewId` 时，先用列表、详情或用户确认补齐，不要猜 ID
@@ -282,6 +282,71 @@ dimens-cli sheet list --project-id PROJ1
 
 - 排查问题时尽量显式补 `--team-id`
 - 避免被本地默认上下文误导
+
+### 场景 1.0：日常维表管理（两阶段）
+
+适用于“帮我看看项目里有哪些表”“新建一个客户表”“把客户表改名或移到客户目录”“删除不用的表”这类单表操作。不要自动进入项目初始化、权限、工作流或报表链路。
+
+先判断运行环境：本地小龙虾必须先阅读 `references/key-auth/overview.md`、完成认证并检查 `dimens-cli --version`；只有用户明确提供 `运行环境=线上维表` 时，才复用线上会话并跳过本地认证、版本检查和升级，直接进入下面两步。线上标志不免除 `teamId`、`projectId`、资源归属、删除确认或字段权限校验。
+
+第一阶段只读取项目菜单，用于定位目标资源：
+
+```bash
+dimens-cli sheet tree \
+  --team-id TEAM1 \
+  --project-id PROJ1
+```
+
+从结果中确认目标节点的 `sheetId`、`type`、名称、`parentId` 和目录位置。普通维表必须是 `type=sheet`；目录是 `type=folder`。表节点的 `config.columns` 带有当前用户可见的字段，可直接用于展示字段和选择目标字段；它受列权限过滤，不是字段写入的最终依据。
+
+第二阶段每次只执行用户指定的一项 CRUD：
+
+```bash
+# 新建表
+dimens-cli sheet create \
+  --team-id TEAM1 \
+  --project-id PROJ1 \
+  --name 客户表 \
+  --type sheet \
+  --folder-id folder_customer
+
+# 改名并移动到目录（同一项操作）
+dimens-cli sheet update sheet_customer \
+  --team-id TEAM1 \
+  --project-id PROJ1 \
+  --name 客户主表 \
+  --folder-id folder_customer
+
+# 仅移动到目录
+dimens-cli sheet move sheet_customer \
+  --team-id TEAM1 \
+  --project-id PROJ1 \
+  --folder-id folder_customer
+```
+
+删除属于破坏性操作：先明确要删除的 `sheetId`、名称、类型和目录影响；用户显式确认后才执行：
+
+```bash
+dimens-cli sheet delete sheet_customer \
+  --team-id TEAM1 \
+  --project-id PROJ1
+```
+
+说明：此流程优先减少用户交互轮次，不承诺所有网络请求严格两次。当前 `sheet update` 和 `sheet move` 会先读取目标节点再提交更新；创建或移动后如果需要证明目录已归位，仍以额外一次 `sheet tree` 回查为准。
+
+字段定义变更、筛选或行数据是最小读取例外：
+
+```bash
+# 仅在需要字段、筛选、写行数据时读取目标表字段
+dimens-cli sheet structure sheet_customer
+# 或
+dimens-cli column list \
+  --team-id TEAM1 \
+  --project-id PROJ1 \
+  --sheet-id sheet_customer
+```
+
+后续行操作只能使用这里返回的最新真实 `fieldId`；更新行时还要先读取当前行和版本。不要为了省一次读取而把菜单树里的可见字段当作完整写入模型，也不要猜测字段名、字段 ID 或字段类型。
 
 ### 场景 1.1：为新表补公开默认视图
 
