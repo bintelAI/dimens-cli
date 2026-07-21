@@ -4,6 +4,7 @@ import { DimensClient, type DimensClientOptions } from './sdk/client';
 import { ColumnSDK } from './sdk/column';
 import { DocumentSDK } from './sdk/document';
 import { FlowChatSDK } from './sdk/flow-chat';
+import { JsonFieldSDK } from './sdk/json-field';
 import { PermissionSDK } from './sdk/permission';
 import { PluginPublicSDK } from './sdk/plugin-public';
 import { ProjectSDK } from './sdk/project';
@@ -40,6 +41,7 @@ export class DimensSDK {
   readonly rowPolicy: RowPolicySDK;
   readonly rowAcl: RowAclSDK;
   readonly ai: FlowChatSDK;
+  readonly jsonField: JsonFieldSDK;
   readonly richtextField: RichTextFieldSDK;
   readonly workflowPublic: WorkflowPublicSDK;
 
@@ -62,6 +64,7 @@ export class DimensSDK {
     this.rowPolicy = new RowPolicySDK(this.client);
     this.rowAcl = new RowAclSDK(this.client);
     this.ai = new FlowChatSDK(this.client);
+    this.jsonField = new JsonFieldSDK(this.client);
     this.richtextField = new RichTextFieldSDK(this.client);
     this.workflowPublic = new WorkflowPublicSDK(this.client);
   }
@@ -72,6 +75,15 @@ export function createSDK(config: SDKConfig): DimensSDK {
 }
 
 export { DimensClient, DimensRequestError } from './sdk/client';
+export { JsonFieldSDK } from './sdk/json-field';
+export type {
+  ExtendedJsonFieldReference,
+  JsonFieldContent,
+  JsonFieldRootType,
+  JsonFieldSavePayload,
+  JsonFieldSaveResult,
+  JsonFieldValue,
+} from './sdk/json-field';
 export type { APIResponse, DimensClientOptions } from './sdk/client';
 export type { ProjectInfo, ProjectPagePayload, ProjectPageResult } from './sdk/project';
 export type { TeamInfo, TeamSummary } from './sdk/team';

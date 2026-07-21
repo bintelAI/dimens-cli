@@ -4,6 +4,7 @@ import { DimensClient, type APIResponse, type DimensClientOptions } from './clie
 import { ColumnSDK } from './column';
 import { DocumentSDK } from './document';
 import { FlowChatSDK } from './flow-chat';
+import { JsonFieldSDK } from './json-field';
 import { PermissionSDK } from './permission';
 import { PluginPublicSDK } from './plugin-public';
 import { ProjectSDK } from './project';
@@ -47,6 +48,7 @@ export class DimensSDK {
   readonly rowPolicy: RowPolicySDK;
   readonly rowAcl: RowAclSDK;
   readonly ai: FlowChatSDK;
+  readonly jsonField: JsonFieldSDK;
   readonly upload: UploadSDK;
   readonly richtextField: RichTextFieldSDK;
   readonly workflowPublic: WorkflowPublicSDK;
@@ -70,6 +72,7 @@ export class DimensSDK {
     this.rowPolicy = new RowPolicySDK(this.client);
     this.rowAcl = new RowAclSDK(this.client);
     this.ai = new FlowChatSDK(this.client);
+    this.jsonField = new JsonFieldSDK(this.client);
     this.upload = new UploadSDK(this.client);
     this.richtextField = new RichTextFieldSDK(this.client);
     this.workflowPublic = new WorkflowPublicSDK(this.client);
@@ -98,6 +101,15 @@ export { RowSDK } from './row';
 export { RowPolicySDK } from './row-policy';
 export { RowAclSDK } from './row-acl';
 export { FlowChatSDK } from './flow-chat';
+export { JsonFieldSDK } from './json-field';
+export type {
+  ExtendedJsonFieldReference,
+  JsonFieldContent,
+  JsonFieldRootType,
+  JsonFieldSavePayload,
+  JsonFieldSaveResult,
+  JsonFieldValue,
+} from './json-field';
 export { UploadSDK } from './upload';
 export { UserSDK } from './user';
 export { WorkflowPublicSDK } from './workflow-public';
