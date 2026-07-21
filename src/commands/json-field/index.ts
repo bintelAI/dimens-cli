@@ -49,6 +49,19 @@ function assertJsonContainer(content: string): void {
   }
 }
 
+function getFirstPositionalArg(args: string[]): string | undefined {
+  for (let index = 0; index < args.length; index += 1) {
+    const current = args[index];
+    if (!current?.startsWith('--')) {
+      return current;
+    }
+    if (!current.includes('=') && args[index + 1] && !args[index + 1]?.startsWith('--')) {
+      index += 1;
+    }
+  }
+  return undefined;
+}
+
 export function registerJsonFieldCommands(): void {
   createCommandGroup('json-field', 'JSON 字段管理');
 
@@ -64,7 +77,7 @@ export function registerJsonFieldCommands(): void {
         try {
           const teamId = requireTeamId(context, flags);
           const projectId = requireProjectId(context, flags);
-          const id = flags.id || args[0];
+          const id = flags.id || getFirstPositionalArg(args);
           if (!id) {
             throw new Error('缺少 JSON 数据 ID，请传入 --id');
           }

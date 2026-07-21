@@ -90,6 +90,17 @@ describe('JSON Field Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should reject content lookup when id is missing', async () => {
+    const command = getCommandGroup('json-field')?.commands.find(item => item.name === 'content');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    await command?.handler(['--team-id', 'TEAM1', '--project-id', 'PROJ1']);
+
+    expect(logSpy.mock.calls.flat().join('\n')).toContain('缺少 JSON 数据 ID，请传入 --id');
+    expect(jsonFieldSdkSpies.getContent).not.toHaveBeenCalled();
+    logSpy.mockRestore();
+  });
+
   it('should save JSON field content with concurrency versions', async () => {
     const command = getCommandGroup('json-field')?.commands.find(item => item.name === 'save');
 
