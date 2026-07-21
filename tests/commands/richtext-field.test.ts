@@ -1,3 +1,6 @@
+import { writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearCommands, getCommandGroup } from '../../src/commands/registry';
 
@@ -68,6 +71,7 @@ describe('RichText Field Commands', () => {
     clearCommands();
     richTextFieldSdkSpies.getContent.mockClear();
     richTextFieldSdkSpies.save.mockClear();
+    process.exitCode = undefined;
   });
 
   it('should register richtext-field group and execute content command', async () => {
@@ -136,6 +140,57 @@ describe('RichText Field Commands', () => {
       title: 'AI 生成说明',
     });
     expect(logSpy.mock.calls.flat().join('\n')).toContain('富文本字段保存成功');
+    logSpy.mockRestore();
+  });
+
+  it('should read richtext HTML from a UTF-8 file', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    registerCommands();
+    const filePath = join(tmpdir(), `dimens-richtext-field-${Date.now()}.html`);
+    const content = '<h1>中文标题</h1><p>字段正文</p>';
+    await writeFile(filePath, content, 'utf-8');
+    const command = getCommandGroup('richtext-field')?.commands.find(item => item.name === 'save');
+
+    await command?.handler([
+      '--sheet-id',
+      'sh_1',
+      '--row-id',
+      'row_1',
+      '--field-id',
+      'fld_richtext',
+      '--file',
+      filePath,
+    ]);
+
+    expect(richTextFieldSdkSpies.save).toHaveBeenCalledWith('TEAM1', 'PROJ1', {
+      sheetId: 'sh_1',
+      rowId: 'row_1',
+      fieldId: 'fld_richtext',
+      content,
+    });
+  });
+
+  it('should reject conflicting richtext content sources', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    registerCommands();
+    const command = getCommandGroup('richtext-field')?.commands.find(item => item.name === 'save');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    await command?.handler([
+      '--sheet-id',
+      'sh_1',
+      '--row-id',
+      'row_1',
+      '--field-id',
+      'fld_richtext',
+      '--content',
+      '<p>inline</p>',
+      '--file',
+      '/tmp/content.html',
+    ]);
+
+    expect(logSpy.mock.calls.flat().join('\n')).toContain('--content 和 --file 不能同时传入');
+    expect(richTextFieldSdkSpies.save).not.toHaveBeenCalled();
     logSpy.mockRestore();
   });
 });

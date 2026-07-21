@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { RichTextFieldSDK } from '../../sdk/richtext-field';
 import { createCommand, createCommandGroup, registerGroupCommand } from '../registry';
 import {
@@ -19,6 +20,21 @@ function parseOptionalInteger(value: string | undefined, fieldName: string): num
     throw new Error(`${fieldName} 必须是大于等于 1 的整数`);
   }
   return parsed;
+}
+
+function readRequiredContent(flags: Record<string, string>): string {
+  const content = flags.content;
+  const file = flags.file;
+  if (content !== undefined && file !== undefined) {
+    throw new Error('--content 和 --file 不能同时传入');
+  }
+  if (file !== undefined) {
+    return readFileSync(file, 'utf-8');
+  }
+  if (content !== undefined) {
+    return content;
+  }
+  throw new Error('缺少 HTML 内容，请传入 --content 或 --file');
 }
 
 export function registerRichTextFieldCommands(): void {
@@ -73,7 +89,6 @@ export function registerRichTextFieldCommands(): void {
           const sheetId = flags['sheet-id'];
           const rowId = flags['row-id'];
           const fieldId = flags['field-id'];
-          const content = flags.content;
 
           if (!sheetId) {
             throw new Error('缺少 sheetId，请传入 --sheet-id');
@@ -84,9 +99,7 @@ export function registerRichTextFieldCommands(): void {
           if (!fieldId) {
             throw new Error('缺少 fieldId，请传入 --field-id');
           }
-          if (content === undefined) {
-            throw new Error('缺少 HTML 内容，请传入 --content');
-          }
+          const content = readRequiredContent(flags);
 
           const payload: {
             sheetId: string;
@@ -123,9 +136,10 @@ export function registerRichTextFieldCommands(): void {
       },
       {
         usage:
-          'richtext-field save --sheet-id <sheetId> --row-id <rowId> --field-id <fieldId> --content <html> [--document-id <documentId>] [--row-version <version>] [--title <title>] [--team-id <teamId>] [--project-id <projectId>] [--app-url <url>]',
+          'richtext-field save --sheet-id <sheetId> --row-id <rowId> --field-id <fieldId> (--content <html> | --file <path>) [--document-id <documentId>] [--row-version <version>] [--title <title>] [--team-id <teamId>] [--project-id <projectId>] [--app-url <url>]',
         examples: [
           'dimens-cli richtext-field save --team-id TEAM1 --project-id PROJ1 --sheet-id sh_1 --row-id row_1 --field-id fld_richtext --content "<h1>AI 生成说明</h1><p>这里是 HTML。</p>"',
+          'dimens-cli richtext-field save --team-id TEAM1 --project-id PROJ1 --sheet-id sh_1 --row-id row_1 --field-id fld_richtext --file ./detail.html',
         ],
       }
     )

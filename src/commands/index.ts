@@ -25,6 +25,7 @@ import { registerColumnCommands } from './column/index';
 import { registerCreateCommands } from './create/index';
 import { registerDocCommands } from './doc/index';
 import { registerHelpCommand } from './help';
+import { registerJsonFieldCommands } from './json-field/index';
 import { registerPermissionCommands } from './permission/index';
 import { registerPluginPublicCommands } from './plugin-public/index';
 import { registerProjectCommands } from './project/index';
@@ -58,6 +59,7 @@ export function registerCommands(): void {
   registerSkillCommands();
   registerSystemCommands();
   registerUploadCommands();
+  registerJsonFieldCommands();
   registerRichTextFieldCommands();
   registerProjectCommands();
   registerDocCommands();
