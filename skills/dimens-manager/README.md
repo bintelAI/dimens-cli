@@ -12,7 +12,6 @@
 - `dimens-manager/references/table/overview.md`
 - `dimens-manager/references/permission/overview.md`
 - `dimens-manager/references/workflow/overview.md`
-- `dimens-manager/references/market/overview.md`
 - `dimens-manager/references/report/overview.md`
 - `dimens-manager/references/canvas/overview.md`
 
@@ -28,7 +27,6 @@
 | `references/table/` | `dimens-manager/references/table/overview.md` | 表、字段、视图、行、relation 和筛选 |
 | `references/permission/` | `dimens-manager/references/permission/overview.md` | 角色、项目权限、资源权限、行级策略 |
 | `references/workflow/` | `dimens-manager/references/workflow/overview.md` | 工作流定义、项目挂载、运行与模型边界 |
-| `references/market/` | `dimens-manager/references/market/overview.md` | 公开插件、应用市场浏览、安装和升级 |
 | `references/report/` | `dimens-manager/references/report/overview.md` | 报表、组件、参数、数据源与查询 |
 | `references/canvas/` | `dimens-manager/references/canvas/overview.md` | 画布资源、AI 生成画布、版本与组件资源市场 |
 

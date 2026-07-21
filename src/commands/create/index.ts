@@ -1,23 +1,14 @@
-import AdmZip from 'adm-zip';
-import { createInterface } from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
-import {
-  mkdir,
-  mkdtemp,
-  readdir,
-  rename,
-  rm,
-  stat,
-  writeFile,
-} from 'node:fs/promises';
+import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { basename, dirname, join, relative, resolve, sep } from 'node:path';
-import { tmpdir } from 'node:os';
+import { mkdir, readdir, rename, stat } from 'node:fs/promises';
+import { basename, dirname, join, resolve } from 'node:path';
+import { stdin as input, stdout as output, stderr as errorOutput } from 'node:process';
+import { createInterface } from 'node:readline/promises';
 
 import { createCommand, registerGroupCommand } from '../registry';
 import { parseFlags, printError } from '../utils';
 
-const SCAFFOLD_URL = 'https://imgs.bintelai.com/dimens-web.zip';
+const SCAFFOLD_REPOSITORY = 'https://gitee.com/bintelai/dimens-web.git';
 const DEFAULT_DIR = 'dimens-web';
 
 interface CreatePrompter {
@@ -25,15 +16,17 @@ interface CreatePrompter {
   askConfirm(question: string, defaultValue: boolean): Promise<boolean>;
 }
 
-type ZipExtractor = (zipPath: string, destination: string) => Promise<void>;
+type GitRunner = (command: string, args: string[]) => Promise<void>;
 
 let testPrompter: CreatePrompter | undefined;
-let testZipExtractor: ZipExtractor | undefined;
+let testGitRunner: GitRunner | undefined;
 
 const defaultPrompter: CreatePrompter = {
   async askText(question, defaultValue) {
     if (!input.isTTY) {
-      throw new Error(`非交互环境请显式传入 --dir <path>，例如 dimens-cli create --dir ${defaultValue}`);
+      throw new Error(
+        `非交互环境请显式传入 --dir <path>，例如 dimens-cli create --dir ${defaultValue}`
+      );
     }
     const rl = createInterface({ input, output });
     try {
@@ -63,8 +56,8 @@ export function __setCreateCommandPrompterForTests(prompter?: CreatePrompter): v
   testPrompter = prompter;
 }
 
-export function __setZipExtractorForTests(extractor?: ZipExtractor): void {
-  testZipExtractor = extractor;
+export function __setGitRunnerForTests(runner?: GitRunner): void {
+  testGitRunner = runner;
 }
 
 export function registerCreateCommands(): void {
@@ -73,7 +66,7 @@ export function registerCreateCommands(): void {
     createCommand(
       'create',
       '创建自定义页面脚手架目录',
-      async args => {
+      async (args) => {
         try {
           await handleCreateCommand(args);
         } catch (error) {
@@ -99,9 +92,8 @@ async function handleCreateCommand(args: string[]): Promise<void> {
   }
 
   const prompter = testPrompter || defaultPrompter;
-  const targetDirInput = flags.dir === 'true'
-    ? await prompter.askText('请输入自定义页面目录', DEFAULT_DIR)
-    : flags.dir;
+  const targetDirInput =
+    flags.dir === 'true' ? await prompter.askText('请输入自定义页面目录', DEFAULT_DIR) : flags.dir;
   if (!targetDirInput) {
     throw new Error('目录不能为空，请传入 --dir <path>');
   }
@@ -133,12 +125,7 @@ async function handleCreateCommand(args: string[]): Promise<void> {
     await mkdir(targetDir, { recursive: true });
   }
 
-  const zipPath = await downloadScaffoldZip();
-  try {
-    await extractZip(zipPath, targetDir);
-  } finally {
-    await rm(zipPath, { force: true });
-  }
+  await cloneScaffold(targetDir);
 
   console.log(`自定义页面脚手架创建成功: ${targetDir}`);
   console.log('下一步:');
@@ -147,43 +134,34 @@ async function handleCreateCommand(args: string[]): Promise<void> {
   console.log('  pnpm run dev');
 }
 
-async function downloadScaffoldZip(): Promise<string> {
-  let response: Response;
+async function cloneScaffold(targetDir: string): Promise<void> {
+  const runner = testGitRunner || runCommand;
   try {
-    response = await fetch(SCAFFOLD_URL);
+    await runner('git', ['clone', '--depth', '1', SCAFFOLD_REPOSITORY, targetDir]);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`脚手架下载失败，请检查网络后重试: ${message}`);
+    throw new Error(`脚手架克隆失败，请确认已安装 Git 并检查网络后重试: ${message}`);
   }
-
-  if (!response.ok) {
-    throw new Error(`脚手架下载失败，请检查网络后重试: HTTP ${response.status}`);
-  }
-
-  const tempDir = await mkdtemp(join(tmpdir(), 'dimens-web-'));
-  const zipPath = join(tempDir, 'dimens-web.zip');
-  const buffer = Buffer.from(await response.arrayBuffer());
-  await writeFile(zipPath, buffer);
-  return zipPath;
 }
 
-async function extractZip(zipPath: string, destination: string): Promise<void> {
-  const extractor = testZipExtractor || extractZipWithAdmZip;
-  await extractor(zipPath, destination);
-}
+async function runCommand(command: string, args: string[]): Promise<void> {
+  await new Promise<void>((resolvePromise, reject) => {
+    const child = spawn(command, args, { stdio: ['inherit', 'inherit', 'pipe'] });
+    let stderr = '';
 
-async function extractZipWithAdmZip(zipPath: string, destination: string): Promise<void> {
-  const zip = new AdmZip(zipPath);
-  const entries = zip.getEntries();
-
-  for (const entry of entries) {
-    const entryPath = resolve(destination, entry.entryName);
-    if (!isPathInside(destination, entryPath)) {
-      throw new Error(`压缩包包含非法路径: ${entry.entryName}`);
-    }
-  }
-
-  zip.extractAllTo(destination, true);
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+      errorOutput.write(chunk);
+    });
+    child.once('error', (error) => reject(new Error(`无法启动 ${command}: ${error.message}`)));
+    child.once('close', (code) => {
+      if (code === 0) {
+        resolvePromise();
+        return;
+      }
+      reject(new Error(stderr.trim() || `${command} 退出码: ${code ?? 'unknown'}`));
+    });
+  });
 }
 
 async function backupExistingEntries(targetDir: string, entries: string[]): Promise<void> {
@@ -198,9 +176,4 @@ async function backupExistingEntries(targetDir: string, entries: string[]): Prom
 
 function createTimestamp(): string {
   return new Date().toISOString().replace(/[:.]/g, '-');
-}
-
-function isPathInside(parent: string, candidate: string): boolean {
-  const relativePath = relative(resolve(parent), resolve(candidate));
-  return relativePath === '' || (!relativePath.startsWith('..') && !relativePath.startsWith(sep));
 }

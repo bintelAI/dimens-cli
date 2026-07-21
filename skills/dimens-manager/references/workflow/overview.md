@@ -19,9 +19,7 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 
 - ✅ 所有工作流能力先确认 `teamId`
 - ✅ 工作流章节现在按四层组织：总规范、节点词典、AI 场景模板、审批场景模板
-- ✅ CLI 优先：登录态聊天兼容调用走 `dimens-cli ai chat-completions`；公开工作流配置和免登录调用走 `dimens-cli workflow-public *`
-- ✅ 公开工作流必须以 `.trae/推进方案/126 AI 工作流接口的公开.md` 和 `.trae/推进方案/126-1 AI 工作流接口公开研发文档.md` 的接口为准：管理态 `/app/flow/:teamId/info/:flowId/public-access`，免登录调用 `/open/flow/:publicId/v1/chat/completions`
-- ✅ 不复用旧 `/open/flow/run/invoke` 作为公开主链路，不把 API Key 登录当成公开工作流密钥；`publicSecret` 只用于 `workflow-public invoke`
+- ✅ CLI 优先：当前已封装的聊天兼容调用优先走 `dimens-cli ai chat-completions`，未封装的管理、挂载、发布能力必须说明 `server-only` 或产品侧边界
 - ✅ 缺少 `teamId/projectId/flowId/label` 时，先补上下文或输出待确认项，不要把 `label`、`model`、`flowId` 混写成同一个确定值
 - ✅ 项目内工作流展示必须区分“团队工作流定义”和“项目工作流挂载”
 - ✅ 解释工作流问题时，不能只看 `flow_info`，还要看项目绑定关系
@@ -29,9 +27,6 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - ✅ `chat/completions` 接口与普通工作流节点执行是两条不同链路，不能混为一谈
 - ✅ 涉及项目入口、AI 分析、审批、自动化时，要同时检查项目上下文和权限边界
 - ✅ AI 工作流和审批工作流共用节点词典，但不能混淆人工挂起语义与模型编排语义
-- ✅ 工作流节点必须先命中节点词典、节点模板或真实案例；禁止生成未知 workflow node type。
-- ✅ 生成 AI 工作流时，节点类型必须对照 `references/ai-node-templates.md` 和 `references/node-dictionary.md` 的 AI 工作流节点类型白名单。
-- ✅ 生成审批工作流时，节点类型必须对照 `references/node-dictionary.md` 的审批节点类型白名单和 `approval-existing-cases.md` 的真实案例。
 - ✅ AI 自动生成审批工作流时，必须同时输出业务蓝图、`pluginType=approval` 的图草案和项目落地计划
 - ✅ 审批工作流如果要从表格行发起，必须继续说明 `workflow` 字段绑定、`rowId`、`sourceSnapshot`、`bizData.payload` 和摘要回写边界
 - ✅ Windows 下写入含中文的工作流 JSON、审批草案或说明文档时，必须使用 UTF-8，并在提交前读回确认中文没有损坏
@@ -45,11 +40,6 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 | `flow_run_invoke` | 正式执行工作流 | `teamId`, `flowId` 或 `label` | `projectId`, `debug`, `input` | 正式执行和调试执行要分开理解，不能混用结论 |
 | `flow_run_debug` | 调试运行工作流 | `teamId`, `flowId` 或 `label` | `projectId`, `input` | 更适合排查节点执行问题和输入输出结构 |
 | `dimens-cli ai chat-completions` | 走 OpenAI 兼容接口调用团队模型或工作流能力 | `teamId`, `messages` | `model`, `temperature`, `stream` | `model` 为空时可能走团队默认文本模型，但不等于所有工作流节点都这样继承 |
-| `dimens-cli workflow-public get` | 查询单工作流公开配置 | `teamId`, `flowId` | - | 不回显 `publicSecret` |
-| `dimens-cli workflow-public upsert` | 创建或更新公开访问配置 | `teamId`, `flowId` | `runAsUserId`, `projectId`, `expireTime`, `ipWhitelist`, `rateLimit` | 只有团队管理员/所有者可开启；首次或重置才返回 `publicSecret` |
-| `dimens-cli workflow-public disable` | 关闭公开访问 | `teamId`, `flowId` | - | 关闭后原公开入口应立即不可用 |
-| `dimens-cli workflow-public reset-secret` | 重置公开访问密钥 | `teamId`, `flowId` | - | 新密钥只展示一次 |
-| `dimens-cli workflow-public invoke` | 使用 `wfpub/wfsk` 免登录调用公开工作流 | `publicId`, `publicSecret`, `message` 或 `payload` | `metadata`, `user`, `stream` | 请求体不能覆盖 `teamId/flowId/projectId/runAsUserId`，这些只能来自后端公开配置 |
 | `flow_config_get` | 查询团队默认模型策略 | `teamId` | `type=default_models` | 只说明团队默认模型配置，不代表节点自动回退一定生效 |
 | `dimens-cli ai chat-completions` | 辅助生成 AI 工作流或审批工作流草案 | `teamId`, `messages` | `model=team-default` | 可用于让 AI 产出蓝图和 JSON 草案，但创建、发布、挂载仍要看当前能力边界 |
 
@@ -58,8 +48,6 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - 工作流问题默认要分三层看：团队定义、项目挂载、运行调用，不能只查一个接口就下结论。
 - 如果后续存在更新类工作流配置命令，也应遵循“拿数据 -> 改数据 -> 更新数据”的通用规则，先读当前定义或绑定关系再改。
 - `chat-completions` 和普通工作流节点执行是两条链路，不能因为一条可用就推断另一条也正常。
-- 公开工作流是第三条受控公开链路：公开的是单个工作流调用入口，不公开用户 token、refreshToken、new-api token 或团队身份。
-- `workflow-public invoke` 的 `Authorization` 是 `Bearer <publicSecret>`，不是用户登录 token；CLI 会用显式 header 覆盖本地 profile token。
 - 用户说“项目里看不到工作流”时，默认先查 `flow_list` 再查 `project_workflow_binding_list`，不要直接怀疑前端。
 
 ## 输出与验证契约
@@ -68,7 +56,6 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - 调用类输出必须包含：使用的 `teamId`、`model/flowId/label`、是否流式、CLI 命令或接口、返回摘要。
 - AI 工作流自动生成输出必须包含：业务目标、`pluginType=ai` 图草案、项目落地计划、当前未执行或未封装的边界说明。
 - 审批自动生成输出必须包含：业务蓝图、`pluginType=approval` 图草案、项目落地计划、当前未执行或未封装的边界说明。
-- 工作流 JSON 草案输出前必须列出节点类型来源：AI 节点来自 `ai-node-templates.md`，审批节点来自 `node-dictionary.md` 或 `approval-existing-cases.md`；没有来源的节点不能输出。
 - 行数据绑定输出必须包含：`workflow` 字段、绑定 `flowId`、`sheetId/rowId/fieldId`、`sourceSnapshot`、`bizData.payload` 映射和摘要回写验证。
 - 如果只是生成草案而未写入项目，必须明确写“尚未创建/发布/挂载”，避免把自然语言方案说成已落地。
 
@@ -91,7 +78,6 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - 管理态接口负责工作流 CRUD、草稿、发布
 - 运行态接口负责调试、执行、SSE 回传
 - OpenAI 兼容聊天接口是工作流体系对外暴露的一条兼容入口，不等于完整工作流管理接口
-- 公开工作流接口只允许调用单个已发布 AI 工作流；匿名调用方不能自行指定或覆盖 `teamId/flowId/projectId/runAsUserId`
 
 ### 4. 上下文要求
 
@@ -109,7 +95,6 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - “生成 AI 工作流”与“生成审批工作流”都属于本章节，但前者重点看 `references/ai-generation.md`，后者重点看 `references/approval-generation.md`。
 - “生成审批系统”属于系统级建设，先用 `dimens-system-orchestrator`。
 - AI 生成结果必须能落成工作流图草案，不能只输出自然语言流程说明。
-- AI 生成结果不能为了表达业务语义临时编造节点类型；未知节点要改写为 `action`、`condition`、`llm`、`end` 等已记录类型，或移到落地计划说明。
 - 审批真值以后端审批实例表为准，表格 `workflow` 字段只负责发起和展示摘要。
 - 表格行发起审批必须能定位到 `sheetId + rowId + fieldId`，否则后端无法把审批摘要稳定回写到对应单元格。
 
@@ -186,37 +171,6 @@ tags: [workflow, ai, automation, flow, dimens-cli]
 - `model` 可以被解释为 `flowId` 或 `label`
 - 如果工作流已绑定项目入口，还要检查调用时是否需要额外业务上下文
 
-### 场景 3.1：公开并调用单个 AI 工作流
-
-管理态开启公开配置：
-
-```bash
-dimens-cli workflow-public upsert \
-  --team-id TEAM1 \
-  --flow-id 12 \
-  --enabled true \
-  --run-as-user-id 1001 \
-  --project-id PROJ1 \
-  --ip-whitelist 1.2.3.4 \
-  --rate-limit '{"perMinute":60,"concurrency":5}'
-```
-
-免登录调用公开入口：
-
-```bash
-dimens-cli workflow-public invoke \
-  --public-id wfpub_xxx \
-  --public-secret wfsk_xxx \
-  --message "帮我分析这个客户的续费风险" \
-  --metadata '{"source":"crm","customerId":"C10001"}'
-```
-
-注意：
-
-- 开启公开前必须确认该工作流已发布、已启用，并通过后端公开节点安全扫描。
-- 请求体里的 `teamId/flowId/projectId/runAsUserId/newApiToken` 不可信，不能作为执行身份来源。
-- 关闭公开用 `workflow-public disable`；重置密钥用 `workflow-public reset-secret`，旧密钥应立即失效。
-
 ### 场景 4：AI 自动生成审批工作流
 
 推荐输出顺序：
@@ -229,7 +183,6 @@ dimens-cli workflow-public invoke \
 
 - 如果缺少 `teamId/projectId`，只能生成草案和落地步骤，不要声称已经写入项目。
 - 如果需要保存为可视化画布，另看 `dimens-manager`；可视化画布不等于可执行审批工作流。
-- 节点 `type` 必须来自审批节点类型白名单或真实案例；业务动作名只能放在 `data.label/data.options` 或落地计划里。
 
 ### 场景 5：AI 自动生成工作流
 
@@ -243,7 +196,6 @@ dimens-cli workflow-public invoke \
 
 - 如果缺少 `teamId/projectId`，只能生成草案和落地步骤，不要声称已经写入项目。
 - 如果场景里出现人工审批、挂起、候选人、同意或拒绝，这不是 AI 工作流，应切到 `approval-generation.md`。
-- 节点 `type` 必须来自 AI 工作流节点类型白名单；未知 workflow node type 一律拒绝，先改写为已支持节点或转为落地计划说明。
 
 ## 常见错误与排查
 
@@ -252,7 +204,6 @@ dimens-cli workflow-public invoke \
 | 团队里能看到工作流，项目里看不到 | 只创建了团队工作流，没有做项目挂载 | 检查项目绑定关系与系统视图配置 |
 | 配了默认模型，但某个节点仍然报模型缺失 | 普通 LLM 节点未必自动回退到团队默认模型 | 检查节点自身模型配置与后端真实实现 |
 | `chat/completions` 能调用，工作流界面不能跑 | 两条链路的入口和校验条件不同 | 区分聊天兼容调用与工作流运行链路 |
-| 公开工作流调用 401/403 | `publicSecret` 错误、公开配置关闭、过期、IP 白名单不匹配或工作流未通过公开校验 | 先 `workflow-public get` 查配置，再确认 `wfsk` 是否为最新一次返回的密钥 |
 | 调试可用，正式执行失败 | 调试和正式执行走不同运行上下文或参数 | 检查运行参数、发布版本和正式执行入口 |
 | 同一个工作流在不同项目表现不同 | 项目绑定、权限或系统视图不同 | 联动检查 `projectId`、绑定关系与权限 |
 

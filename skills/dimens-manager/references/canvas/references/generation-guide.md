@@ -47,28 +47,6 @@ AI 生成画布时，目标不是生成说明文，而是生成能被 `CanvasBoa
 
 支持的节点类型包括：`RECTANGLE`、`CIRCLE`、`TRIANGLE`、`DIAMOND`、`PARALLELOGRAM`、`HEXAGON`、`CYLINDER`、`CLOUD`、`DOCUMENT`、`TEXT`、`STICKY_NOTE`、`GROUP`、`SECTION`、`MINDMAP`、`IMAGE`、`VIDEO`、`CUSTOM_AGENT`、`MARKDOWN`、`CLOCK`、`SVG`、`INFOGRAPHIC`、`EMBEDDED_SHEET`。不要发明前端无法识别的新类型。
 
-### 3.1 节点类型白名单与未知节点处理
-
-节点类型必须来自已记录的支持列表。没有文档或案例支撑的节点类型一律拒绝生成，不能因为用户说“AI 审核节点、超时节点、归档节点、回写节点、机器人节点”就把这些词直接写进 `type`。
-
-未知节点类型必须改写为已支持节点或转为说明文本：
-
-- 能表达为普通业务动作时，使用 `RECTANGLE`，把原始语义写入 `data.label` 和 `data.text`。
-- 能表达为条件分支时，使用 `DIAMOND`，并给出分支边 label。
-- 能表达为数据读写或沉淀时，使用 `CYLINDER`。
-- 能表达为文档、报告、SOP 或长说明时，使用 `DOCUMENT` 或 `MARKDOWN`。
-- 能表达为展示材料时，使用 `INFOGRAPHIC`、`TEXT`、`IMAGE`、`SVG` 或 `VIDEO`。
-- 需要真实自动化执行时，不在画布里编造节点，改为引用 `references/workflow/overview.md` 的工作流落地计划。
-
-## Canvas 节点案例索引
-
-| 场景 | 已有节点类型 | 案例或文档来源 | 生成要求 |
-| --- | --- | --- | --- |
-| 售后工单流程画布 | `PARALLELOGRAM`、`RECTANGLE`、`DIAMOND`、`CYLINDER`、`DOCUMENT` | `examples.md#2-售后工单工作流画布` | 可直接复用为流程画布案例；新增节点必须落在同一支持列表内 |
-| PPT 演示稿画布 | `SECTION`、`TEXT`、`INFOGRAPHIC` | `examples.md#3-ppt-演示稿画布` | 一页一个 `SECTION`，复杂展示优先 `INFOGRAPHIC` |
-| 节点职责与字段模板 | 支持列表中的全部节点 | `generation-guide.md#4-节点类型详解`、`generation-guide.md#5-节点字段写法` | 每个节点都要有业务职责、尺寸、坐标、样式和说明 |
-| 结构与保存校验 | 支持列表中的全部节点 | `validation-checklist.md#3-节点校验` | 未知 `type`、缺字段、深色背景或无业务职责都不能保存 |
-
 ## 4. 节点类型详解
 
 ### `RECTANGLE` 普通动作节点
@@ -211,37 +189,6 @@ AI 生成画布时，目标不是生成说明文，而是生成能被 `CanvasBoa
 - 数据沉淀节点可用 `#f8fafc` 或 `#eef2ff`。
 - 文字颜色可以使用 `#111827` 这类深色，用来保证浅背景上的可读性。
 - 不要把深色用作节点背景；如果需要强调，用边框色、图标、标签或信息图主题色表达。
-- 背景色、文字色、边框色必须成对设计，不能只设置背景不管文字；任何普通节点默认 `textColor=#111827`，辅助说明可用 `#334155`，禁用白字配浅底或黑字配黑底。
-- 节点颜色必须符合人工视觉：主流程保持克制，职责差异用轻微底色区分，风险/判断/成功只用浅色语义色，不用大面积高饱和色或深色整块背景。
-- 每个节点生成后都做一次可读性自检：背景和文字是否能明显区分，标题是否一眼可读，边框是否能帮助识别节点边界。
-
-### 5.1 视觉配色矩阵
-
-生成节点时优先从下表选色，不要临场随机配色。表中颜色都按“浅背景 + 深文字 + 中等边框”组合，适合白色画布和演示场景。
-
-| 节点职责 / 类型 | 背景 `backgroundColor` | 边框 `borderColor` | 文字 `textColor` | 说明 |
-| --- | --- | --- | --- | --- |
-| 默认动作 `RECTANGLE` | `#ffffff` / `#f8fafc` | `#cbd5e1` | `#111827` | 主流程默认用白色或浅灰，保证长期阅读舒适 |
-| 输入输出 `PARALLELOGRAM` | `#eff6ff` | `#60a5fa` | `#111827` | 浅蓝表示信息进入或输出 |
-| 判断审批 `DIAMOND` | `#fff7ed` / `#fef3c7` | `#f97316` | `#111827` | 浅橙 / 浅黄表示分支判断，边框增强识别 |
-| 数据沉淀 `CYLINDER` | `#f8fafc` / `#eef2ff` | `#64748b` | `#111827` | 灰蓝适合表达表格、数据库、日志沉淀 |
-| 成功 / 通过动作 | `#ecfdf5` / `#dcfce7` | `#10b981` | `#064e3b` | 绿色只用于正向结果，不要全流程滥用 |
-| 风险 / 异常 / 待处理 | `#fff7ed` / `#fef2f2` | `#f97316` / `#ef4444` | `#7f1d1d` | 风险节点用浅底深字，不用红底白字 |
-| 文档 / 报告 `DOCUMENT` | `#ffffff` / `#f8fafc` | `#94a3b8` | `#111827` | 文档节点保持干净，避免像警告节点 |
-| 长说明 `MARKDOWN` | `#ffffff` | `#e2e8f0` | `#111827` | 内容较多时更需要高可读性 |
-| 分组 `SECTION` | `#f8fafc` / `#f1f5f9` | `#e2e8f0` | `#334155` | 分组背景要退后，不能抢主节点视觉 |
-| 标题 `TEXT` | `transparent` | `transparent` | `#111827` | 标题节点透明背景 + 深文字 |
-| 备注 `STICKY_NOTE` | `#fefce8` | `#facc15` | `#422006` | 便签可以浅黄，但文字必须深棕/深灰 |
-| 信息图 `INFOGRAPHIC` | `#ffffff` | `#cbd5e1` | `#111827` | 主题色放在 DSL palette，不要改成深色节点底 |
-
-禁用组合：
-
-- `backgroundColor=#000000` 且 `textColor=#000000`：黑底黑字，完全不可读。
-- `backgroundColor=#111827/#1f2937/#0f172a` 且文字仍为深色：深底深字，不可读。
-- `backgroundColor=#ffffff/#f8fafc/#fefce8` 且 `textColor=#ffffff`：浅底白字，不可读。
-- 高饱和纯色大面积背景，例如纯红、纯蓝、纯紫、纯绿；需要强调时用浅底 + 深边框。
-
-如果用户要求“酷炫深色风格”，技能仍要优先保护可读性：普通流程节点不得深底深字；确需深色主题时，只允许在 `SECTION` 或画布背景层做轻量氛围，节点本体继续保持浅底深字。
 
 ```json
 {

@@ -1,5 +1,19 @@
 # 当前 SDK 能力状态
 
+> **AI 契约提示（基于仓库 `@bintel/dimens-cli` 1.0.15 源码复核）：** `FlowChatSDK` 的 TypeScript 泛型、单元测试夹具和服务端代理的真实返回包装并不完全一致。调用 `models`、图片或视频接口时，先记录包版本和脱敏响应，再按 `unknown` 在 SDK 边界归一化；不要把这里记录的某个历史层级当成永久协议。
+
+## AI 方法与当前边界
+
+| 能力 | 当前 SDK 方法 | 当前实现注意点 |
+| --- | --- | --- |
+| 模型列表 | `sdk.ai.models(teamId, query)` | `capability` 当前接受能力值或字符串；列表可能出现在响应本身、`data` 或嵌套 `data` |
+| 图片生成 | `sdk.ai.generateImage(teamId, payload)` | 图片项至少检查 `url`、`image_url`、`b64_json`，并允许供应商扩展字段 |
+| 图片编辑 | `sdk.ai.editImage(teamId, formData)` | 方法是扁平入口，没有 `sdk.ai.images.edit` 命名空间；文件通过 `FormData` 传入 |
+| 视频任务 | `sdk.ai.createVideo/getVideo` | 任务可能是直接对象或位于 `data/output/result`；任务 ID 和状态必须按真实响应归一化 |
+| 视频内容 | `sdk.ai.getVideoContent` | 当前服务端会保存到团队空间并返回 `resource`；兼容历史 URL 字段，但优先读取 `resource.url/resource.key` |
+
+模型列表是运行时、团队和 capability 相关事实。不要在技能中永久写死某一批模型 ID；展示名可按实际字段使用 `description || name || id`，提交时使用返回的真实 `id`。列表为空不等于接口永久不可用：若当前后端支持默认模型注入，可传 `model: "default"`，否则应显示不可用状态。
+
 ## 已封装业务域
 
 - `auth`
@@ -26,12 +40,11 @@
 - 团队详情与团队成员列表读取
 - 项目创建与查询
 - 表格、字段、行数据基础调用
-- 单行详情增强读取：`sdk.row.info(..., { include })` 与公开读取 `sdk.row.openInfo(..., { include })`
 - 文档读写与版本恢复
 - 报表创建、查询、组件管理
 - 画布创建、保存、版本、资源市场调用
 - 角色、权限、行级策略、行级 ACL 调用
-- AI 多能力模型代理调用，包括聊天、模型列表、图片、视频、音频、Embedding、Rerank
+- AI 聊天、模型列表、图片、视频、音频、Embedding、Rerank 代理调用；媒体结果须在 SDK 边界归一化
 - 文件上传
 
 ## 聚合导出
@@ -60,23 +73,6 @@
 - `UserSDK`
 
 ## 用户与团队上下文能力
-
-## 行数据能力
-
-| 入口 | 方法 / 命令 | 接口 |
-| --- | --- | --- |
-| SDK | `sdk.row.page(teamId, projectId, sheetId, payload)` | `POST /app/mul/:teamId/:projectId/sheet/:sheetId/row/page` |
-| SDK | `sdk.row.info(teamId, projectId, sheetId, rowId, { include? })` | `GET /app/mul/:teamId/:projectId/sheet/:sheetId/row/:rowId/info` |
-| SDK | `sdk.row.openInfo(teamId, projectId, sheetId, rowId, { include? })` | `GET /open/mul/:teamId/:projectId/sheet/:sheetId/row/:rowId/info` |
-| CLI | `dimens-cli row info --sheet-id SHEET1 --row-id ROW1 [--include relations,richtext]` | 登录态行详情 |
-| CLI | `dimens-cli row open-info --sheet-id SHEET1 --row-id ROW1 [--include relations,richtext]` | 公开行详情 |
-
-注意：
-
-- `include` 支持 `relations`、`richtext` 或 `relations,richtext`。
-- 不传 `include` 时保持基础行详情，不额外查询关联目标行或富文本原始 content。
-- 增强数据附加在 `data.included`，原始 `data[fieldId]` 不会被改写。
-- 公开行详情走公开角色权限，不能用登录态详情结果替代公开访问验证。
 
 当前用户信息：
 
@@ -125,15 +121,14 @@
 - 画布保存要关注 `baseVersion`
 - 写接口示例时必须说明 401、403、404 分别如何排查
 - 更新类能力默认按“先读当前数据 -> 合并目标字段 -> 提交更新”设计
-- AI 侧不直连 new-api，不在浏览器、App、小程序或日志中暴露 new-api `sk-` token
-- AI 媒体生成默认传 `model: "default"`，由维表后端按团队和 capability 注入默认模型；`projectId/resourceId/modelScope/tokenScope` 只用于维表归因和模式控制
+- AI 示例不得固定读取 `response.data.data`；必须先按当前版本和真实响应复核包装层
 
 ## 不要默认假设
 
 - 不要默认假设 SDK 等于完整开放平台
 - 不要默认假设所有服务端接口都已经封装成稳定 SDK
 - 不要默认假设聊天兼容接口等于完整工作流管理接口
-- 不要默认假设 new-api 官方所有接口都已开放维表代理；未开放接口必须先补后端代理、权限、默认模型能力映射和 usage 归因
+- 不要默认假设 TypeScript 泛型、测试夹具和线上代理返回始终同层
 
 ## 最小验证链路
 
@@ -148,9 +143,6 @@ dimens-cli project info PROJECT_ID --team-id TEAM_ID
 dimens-cli sheet info SHEET_ID --team-id TEAM_ID --project-id PROJECT_ID
 dimens-cli report info REPORT_ID --project-id PROJECT_ID
 dimens-cli upload mode
-dimens-cli ai models --team-id TEAM_ID --capability image
-dimens-cli ai chat-completions --team-id TEAM_ID --message "测试"
-dimens-cli ai image-generate --team-id TEAM_ID --prompt "企业数据驾驶舱海报" --model default --size 1024x1024
 ```
 
 如果 CLI 都无法读取目标资源，优先排查 token、团队成员、项目权限和资源 ID，不要先改 SDK 代码。

@@ -17,7 +17,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 ## 执行前必读
 
-- ✅ 本地小龙虾执行任何 `project / sheet / column / row / ai` 命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`。用户明确提供 `运行环境=线上维表` 时复用线上会话，不执行本地 Key 登录，但仍校验项目、资源和字段权限。
+- ✅ 执行任何 `project / sheet / column / row / ai` 命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`
 - ✅ 表格能力默认要先确认 `projectId`，大多数写操作还需要 `teamId`
 - ✅ CLI 是表、字段、视图、行数据操作的首选入口；接口案例只用于解释真实契约和边界
 - ✅ 缺少 `teamId/projectId/sheetId/fieldId/rowId/viewId` 时，先用列表、详情或用户确认补齐，不要猜 ID
@@ -25,35 +25,25 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 字段、视图、行数据都属于工作表上下文，不能脱离 `sheetId` 单独判断
 - ✅ 默认要优先帮助用户把“项目 -> 表 -> 字段 -> 关联 -> 示例数据 -> 查询案例”搭起来
 - ✅ 字段设计必须细到可落地，不能只写“有客户名称、状态、时间”这种抽象描述
-- ✅ 创建字段时规范参数使用 `--label`；`--title` 只作为兼容参数说明，不作为技能生成命令的推荐写法。
 - ✅ 创建字段前必须先判断是否存在稳定枚举语义；如果字段天然是状态、阶段、等级、分类、来源、标签、优先级、风险级别等有限集合，优先使用 `select` 或 `multiSelect`，不要退化成普通 `text`
-- ✅ 金额、数量、人数、库存、时长、评分、完成率等后续要统计或聚合的指标字段必须设计为 `number`；不能为了省事全建成 `text`。
 - ✅ relation 字段创建必须补齐目标表，推荐显式传 `--target-sheet-id`，并尽量补 `--display-column-id`
-- ✅ 创建多张表前必须先拆依赖层级：无依赖表可有限并发创建；被 relation / 单向绑定引用的基础表先创建并写入样例数据；存在单向绑定、relation 依赖目标表 / 字段 / 行的表最后创建。
 - ✅ `select` / `multiSelect` 字段在技能创建时必须同时给出完整候选项，不能只定义字段名和类型
 - ✅ `select` / `multiSelect` / 下拉选择类配置在技能输出时必须同时给出规范 `options`：每个选项至少包含唯一 `id`、非空 `label`、合法 `color`；不要只给字符串数组或只给 `label`
 - ✅ `options` 推荐始终使用 JSON 对象数组传给 `--options`；逗号分隔字符串只是 CLI 兼容能力，不作为技能生成规范
 - ✅ 用户上传 Excel 并要求创建选择器字段时，必须先从 Excel 表头和样本值提取候选项，用 `column create --options` 创建完整下拉；行数据写入必须映射到这些候选项，不能把不存在的下拉值直接写入
 - ✅ 选项颜色字符串要与前端真实实现对齐：内置颜色使用 `bg-xxx-100 text-xxx-700`，自定义颜色使用 `custom:{\"bg\":\"#xxxxxx\",\"text\":\"#xxxxxx\"}`
 - ✅ 当前 `dimens-cli` 对字段选项颜色的内置白名单已与前端真实字段配置对齐为 12 色；如果超出这 12 种内置色，优先改用 `custom:{...}`，不要直接写扩展类名
-- ✅ `select` / `multiSelect`、`person` 都属于特殊字段，不能只按普通文本字段理解
+- ✅ `select` / `multiSelect`、`person`、`department` 都属于特殊字段，不能只按普通文本字段理解
 - ✅ 如果项目已经有自己的部门、内置角色和用户体系，且需求本质是“人员下拉 / 负责人选择 / 成员选择”，优先配置 `person` 字段，不要误建成普通下拉字段
-- ✅ 部门字段当前执行规则：当前禁止生成 `department` 字段类型，统一使用 `text` 字段保存部门名称；示例命令为 `dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 所属部门 --type text`
-- ✅ 如果需求本质是部门选择、部门归属、部门筛选，当前先按“部门名称文本”落地，不要误建成普通下拉字段，也不要生成 `department` 类型
+- ✅ 如果需求本质是部门选择、部门归属、部门筛选，优先配置 `department` 字段，不要误建成普通下拉字段
 - ✅ 新表落地后必须确认至少存在一个公开默认视图；如果技能链路没有自动补齐，就要显式执行 `view create`
 - ✅ `row/page` 默认要按“基于字段的搜索、筛选、排序”来解释，不只是分页
 - ✅ 系统视图相关问题要区分团队级默认字段和项目级实际分配字段
 - ✅ 如果字段类型是 `workflow`，必须同时看工作流字段绑定与行数据链路：`dimens-manager/references/workflow/references/field-binding.md`
+- ✅ 如果字段类型是 `richtext` 或 `json`，必须读取 `references/richtext-json-fields.md`；富文本和 JSON 都必须走专用内容命令，不能套用普通 `doc` 或 `row` 写入链路
 - ✅ 处理字段和行写入问题时，不能只看字段结构，还要同步看权限与系统字段边界
 - ✅ 表格接口能读取不代表一定可写，行级、列级、协同权限可能继续收敛
-- ✅ API Key 登录后如果 `row create / row batch-create / row delete` 返回“缺少权限校验上下文”，不要继续重试同一命令；先确认团队、项目、用户角色和写入权限，必要时切到带完整上下文的 HTTP/API 调试路径，并继续用 `row page` 验证结果。
 - ✅ 如果后续要做报表，这一步就要提前考虑字段能否直接进入 `report preview / query-widget / dataMapping`，不要等到报表阶段再返工
-- ✅ 字段 ID 是每张表独立生成的系统 ID；`column create` 后必须对目标表执行 `column list`，用真实 `fieldId` 写入行数据。即使字段名相同，也不能跨表复用 `fieldId`。
-- ✅ 行数据 JSON 的 key 只能使用当前目标表真实 `fieldId`；禁止使用中文字段名、占位 `fld_xxx`、`fld_1` 或其它表字段 ID 当成可执行数据。
-- ✅ 行数据写入后必须立即执行 `row page` 验证：每张应有样例数据的表都要有行，且业务 `data` 不能是 `{}`；发现空表、空行、数值字段写成文本或 select 值不匹配时，先修数据再进入下一步。
-- ✅ `row batch-create` 返回成功只代表行创建请求完成，不代表业务字段一定写入成功；验收以 `row page` 读出的 `data` 为准。
-- ✅ 初始化、迁移、补录、示例数据写入统一使用 `row batch-create --file <JSON文件路径>`。不要用 `row create --data` 或 `row create --values` 直接传 JSON 字符串写样例数据；命令行 JSON 字符串存在解析/转义风险，可能导致数据没有正确写入。
-- ✅ 示例数据必须按表清单逐表写入和验收；每张需要样例数据的表都要有对应 JSON 文件、导入命令和 `row page` 结果，不能遗漏任何表。
 - ✅ Windows 下保存含中文的导入文件、字段配置、JSON 或命令说明时，必须使用 UTF-8 并读回确认
 
 ## 高风险跑偏点
@@ -62,17 +52,15 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 1. 只设计字段名，不设计字段类型
 2. 把本该用于统计的字段建成文本字段
-3. 把人员字段误建成普通 `select`，或把部门字段误建成 `select` / `department`
+3. 把人员、部门字段误建成普通 `select`
 4. 认为 `select` 只要有字段名就行，忘记补候选项
 5. 明明是稳定枚举，却建成 `text`，导致后续筛选、分组、报表维度不可控
 6. 给了候选项，但没给唯一 `id` 或合法 `color`，导致前端标签风格、更新和统计不稳定
 7. 把前端支持的 `custom:` 自定义颜色写丢，导致技能输出只能覆盖一半能力
 8. 建表时没考虑哪些字段后面要做报表维度、数值轴、筛选项
 9. 只关心表能录数据，不关心字段是否可用于 `preview` 和报表映射
-10. 复用其它表的字段 ID 导入当前表，导致行存在但业务 `data` 为空
-11. 批量导入后不立即回查，等报表阶段才发现数据字段类型或值结构错误
-12. 把金额、数量、人数等统计指标建成 `text`，导致报表 `sum/avg/min/max` 无法稳定聚合
-13. 技能输出仍把 `--title` 当字段创建规范写法，而不是统一使用 `--label`
+10. 用 `doc update` 写富文本字段，混淆在线文档和单元格关联文档
+11. 用 `row set-cell --value-json` 写 JSON 字段，绕过专用存储和版本控制
 
 对应提醒：
 
@@ -81,63 +69,44 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - 如果字段后续要进入报表，尽量在建表阶段就明确“谁做维度、谁做指标”
 - 不要等到 `dimens-manager/references/report/overview.md` 阶段才发现字段类型不适合出图
 
-## 字段与导入强制校验表
-
-| 检查项 | 强制规则 | 不通过时 |
-| --- | --- | --- |
-| 字段创建参数 | 技能生成命令统一用 `column create --label`；`--title` 只保留为兼容说明 | 改写命令，不把兼容参数作为推荐主写法 |
-| 真实字段 ID | 每张表字段创建后都要 `column list`，记录“表名 + 字段名 + type + fieldId” | 重新取当前表字段映射；不同表同名字段不能复用 |
-| 行数据 JSON key | 只能使用当前表真实 `fieldId` | 用 `column list` 结果重建 JSON 后再导入 |
-| 示例数据导入 | 初始化、迁移、示例数据统一 `row batch-create --file` | 不用 `row create --data/--values` 写多行或初始化数据 |
-| 写后回查 | 每张需要数据的表都立刻 `row page --size 5` | `rows=0`、`data:{}` 或字段值结构错时先修数据，不能进入报表 |
-| 选项字段 | `select/multiSelect` 必须有唯一 `id`、非空 `label`、合法 `color` | 先补/修 options，再导入行数据 |
-| 人员字段 | 负责人、审批人、成员等优先 `person` | 不退化成普通静态下拉 |
-| 部门字段 | 所属部门、负责部门、归属组织当前用 `text` 保存部门名称 | 不生成 `department`，也不误建普通 `select` |
-| 数值指标 | 金额、数量、人数、库存、时长、评分、完成率等用 `number` | 先修字段类型和数据，再做报表 |
-
 ## 命令维护表
 
 | 命令 | 作用 | 必填参数 | 常用可选 | 细节说明 |
 | --- | --- | --- | --- | --- |
 | `dimens-cli sheet list` | 查询项目下工作表列表 | `projectId` | `teamId` | 表入口通常先从项目进入，排查问题时建议显式补 `teamId` |
 | `dimens-cli sheet info` | 获取工作表详情 | `teamId`, `projectId`, `sheetId` | - | 表更新前默认先读当前表数据，确认结构和归属 |
-| `dimens-cli sheet create` | 创建表或目录节点 | `projectId`, `name` | `teamId`, `folder-id`, `type` | 新表落地后还要继续检查默认公开视图是否存在；要放入目录时可以显式传 `--folder-id`，但创建后仍以 `sheet tree` 为准，不归位就 `sheet move` |
+| `dimens-cli sheet create` | 创建表或目录节点 | `projectId`, `name` | `teamId`, `folder-id`, `type` | 新表落地后还要继续检查默认公开视图是否存在；要放入目录时必须显式传 `--folder-id` |
 | `dimens-cli sheet update` | 更新表基础信息，兼容移动菜单归属 | `projectId`, `sheetId` | `teamId`, `name`, `folder-id`, `app-url` | 默认先 `sheet info` 拿当前数据，再改字段后更新；`--folder-id` 会映射为后端 `parentId` |
 | `dimens-cli sheet move` | 把已有表格、报表、文档或画布移动到项目菜单目录 | `teamId`, `projectId`, `sheetId`, `folder-id` | `app-url` | 移动已有资源优先用这个命令；执行后必须 `sheet tree` 回查目录归位 |
 | `dimens-cli column list` | 查询字段列表 | `teamId`, `projectId`, `sheetId` | - | 用于先确认字段结构、字段类型和现有字段 ID |
 | `dimens-cli column create` | 创建字段 | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `property`, `uiType`, `config`, `required`, `unique`, `key`, `options`, `flow-id`, `system-view` | `select/multiSelect` 必须补完整 `options`；`workflow` 字段可用 `--flow-id --system-view approval` 绑定审批入口 |
 | `dimens-cli column update` | 更新字段定义 | `teamId`, `projectId`, `sheetId`, `fieldId` | `label`, `title`, `type`, `config`, `required`, `unique`, `app-url`, `flow-id`, `system-view` | 默认先拿当前表结构，从 `structure.columns` 找到目标字段后再合并更新；`--config` 与 `--flow-id/--system-view` 会合并字段配置 |
+| `dimens-cli richtext-field content/save` | 读取或保存富文本字段 HTML | `teamId`, `projectId`；保存还需 `sheetId`, `rowId`, `fieldId` | `document-id`, `content`, `file`, `row-version`, `title` | 富文本字段不是在线文档；正文只接受 HTML，`--content` 与 `--file` 二选一 |
+| `dimens-cli json-field content/save` | 读取 extended JSON 或保存 JSON 字段 | `teamId`, `projectId`；保存还需 `sheetId`, `rowId`, `fieldId` | `id`, `content`, `file`, `json-version`, `row-version` | JSON 禁止普通 row 写入；inline 从行读取，extended 使用内容 ID；更新 extended 时 ID 与 JSON 版本必须成对出现 |
 | `dimens-cli view list` | 查询视图列表 | `teamId`, `projectId`, `sheetId` | - | 建表后先确认默认公开视图是否已经落地 |
 | `dimens-cli view create` | 创建公开默认视图或业务视图 | `teamId`, `projectId`, `sheetId`, `name`, `type` | `isPublic`, `config` | 技能建表链路默认要求至少补一个公开 grid 视图 |
 | `dimens-cli row page` | 分页查询行数据，也是后续数据分析的核心取数入口 | `teamId`, `projectId`, `sheetId` | `viewId`, `page`, `size`, `keyword`, `search-field-ids`, `filters`, `filter-match-type`, `sort-rule` | 使用前必须先 `column list` 获取真实字段 ID，再按字段设计搜索、筛选、排序；行读取链路会同时受字段筛选、视图配置和权限影响 |
-| `dimens-cli row info` | 获取登录态单行详情 | `teamId`, `projectId`, `sheetId`, `rowId` | `include` | 默认只返回原行结构；`--include relations,richtext` 会在顶层 `included` 附加可见单向关联目标行和富文本原始 content，仍受权限与列级脱敏控制 |
-| `dimens-cli row open-info` | 获取公开单行详情 | `teamId`, `projectId`, `sheetId`, `rowId` | `include` | 走公开读取链路；`--include relations,richtext` 同样只附加 `included`，公开角色无权查看的行或字段不会泄露 |
-| `dimens-cli row create` | 新增单行数据 | `sheetId`, `values` | - | 仅用于少量交互式单行补录；不用于初始化、迁移、示例数据或 JSON 字符串批量写入 |
-| `dimens-cli row batch-create` | 批量新增行数据 | `sheetId`, `file` | `batch-size` | 初始化、迁移、补数据、示例数据写入的标准命令；数据先写 JSON 文件，再用 `--file` 导入；CLI 默认按 200 行稳定分片 |
+| `dimens-cli row create` | 新增单行数据 | `sheetId`, `values` | - | 写入前必须先通过 `column list` 确认真实 `fieldId`，CLI 会把 `--values` 映射成服务端 `data` |
+| `dimens-cli row batch-create` | 批量新增行数据 | `sheetId`, `file` 或 `values` | `batch-size` | 推荐大批量初始化、迁移和补数据使用；CLI 默认按 200 行稳定分片，后端单批硬限制 1000 行且单批事务原子 |
 | `dimens-cli row update` | 更新整行数据 | `teamId`, `projectId`, `sheetId`, `rowId` | `data`, `version`, `app-url` | 默认先读当前行数据，再修改目标字段，再 update；不要只凭局部字段直接覆盖 |
-| `dimens-cli row set-cell` | 更新单个单元格 | `sheetId`, `rowId`, `fieldId`, `value` 或 `value-json` | `version`, `columnId` | 服务端真实契约以 `fieldId` 为准；对象值用 `--value-json`，但 `workflow` 审批摘要通常应由后端托管回写 |
+| `dimens-cli row set-cell` | 更新普通单个单元格 | `sheetId`, `rowId`, `fieldId`, `value` 或 `value-json` | `version`, `columnId` | 服务端真实契约以 `fieldId` 为准；`json` 字段禁止使用本命令，`workflow` 审批摘要通常也应由后端托管回写 |
 
 ### 强调细节
 
 - 表、字段、行的更新类命令默认都按“拿数据 -> 改数据 -> 更新数据”执行，不能把局部 patch 当成稳定更新方式。
 - `sheet update` / `sheet move` 前默认先 `sheet info`；移动目录时 CLI 的 `--folder-id` 会提交为后端真实字段 `parentId`；`column update` 前默认先取当前 `structure.columns`；`row update` 前默认先读取当前行数据。
 - 涉及搜索、筛选、排序、统计分析、报表预检时，不能直接盲猜字段名调用 `row page`；必须先 `column list` 拿到字段 ID、字段类型、选项值，再组装 `search-field-ids`、`filters`、`sort-rule`。
-- 初始化、迁移、补数据、示例数据写入统一用 `row batch-create --file`，不要让技能循环调用 `row create` 逐条写入，也不要用 `row create --data/--values` 直接传 JSON 字符串；CLI 默认按 200 行稳定分片，后端只保证每个分片事务原子。
-- 批量写入数据前先生成“目标表字段映射表”：`sheetId + 字段名 + type + fieldId`。每张表单独生成，不能用另一张表的映射文件替代。
-- 批量写入后立刻 `row page --size 5` 抽查，验收标准是有行、业务 `data` 非空、每个样例字段的值类型符合字段类型。`data:{}` 或只有系统字段时，必须重新获取该表 `fieldId` 并重建导入文件。
-- 单行详情默认用 `row info` 回查；只有用户明确需要单向关联目标行或富文本原始 content 时才加 `--include relations,richtext`。公开页面、外部链接或匿名公开读取场景使用 `row open-info`，不能用登录态结果替代公开角色权限验证。
-- 多表初始化时先生成“表清单验收表”：`表名 + 是否单向绑定 + 依赖目标 + 创建批次 + JSON文件 + 预计行数 + row page结果`。只有清单中所有需要样例数据的表都验收通过，才能进入报表或画布。
+- 初始化、迁移、补数据这类多行写入优先用 `row batch-create --file`，不要让技能循环调用 `row create` 逐条写入；CLI 默认按 200 行稳定分片，后端只保证每个分片事务原子。
 - 如果字段后续要进入报表，建模阶段就要把字段类型、选项、数值字段和维度字段设计清楚，不要拖到报表阶段返工。
 - 新建表后默认检查公开默认视图，不要只建表不补视图。
 - 行写入和字段更新除了结构正确，还要同步考虑权限、协同链路和版本字段。
+- `richtext` 和 `json` 不属于普通行写入：富文本使用 `richtext-field`，JSON 使用 `json-field`；完整规则看 `references/richtext-json-fields.md`。
 
 ## 输出与验证契约
 
 - 建表类输出必须包含：表 ID、字段清单、字段类型、选项配置、默认视图和示例数据策略。
 - 字段更新输出必须包含：`column list` 读取结果、目标字段 ID、合并后的配置和更新后回查。
 - 行写入输出必须包含：真实 `fieldId` 映射、写入方式、批量分片策略和 `row page/info` 回查结果。
-- 项目初始化或批量补数据输出必须逐表说明：字段映射来自哪次 `column list`、导入了几行、`row page` 抽查是否存在业务 `data`。
-- 多表项目输出必须说明建表依赖批次：哪些表可有限并发创建，哪些表是被引用基础表，哪些表有单向绑定必须最后创建。
 - 报表联动场景必须说明哪些字段用于维度、指标、筛选和排序，并给出后续 `report preview` 风险点。
 
 ## 核心约束
@@ -176,7 +145,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
   2. 自定义颜色：使用 `custom:{\"bg\":\"#xxxxxx\",\"text\":\"#xxxxxx\"}` 字符串
 - 当前前端真实颜色来源在多维表格字段配置与字典管理页，技能输出时不要自造颜色协议
 - 如果字段语义是“选人”，且项目本身已有用户体系、部门体系、内置角色，则这不是普通 `select`，应优先落到 `person`
-- 如果字段语义是“选部门 / 归属部门 / 所属组织”，当前执行层必须落到 `text`，保存部门名称；不要生成 `department` 类型，避免 Web 前端白屏
+- 如果字段语义是“选部门 / 归属部门 / 所属组织”，则这不是普通 `select`，应优先落到 `department`
 - 关联字段默认要明确：目标表、展示字段、是否多选、是否双向、编辑视图字段
 - 涉及工作流、AI 分析、审批、自动化入口时，还要同时检查系统视图字段映射
 - `workflow` 字段不是普通业务字段，它负责从行数据发起审批和展示摘要；真实审批状态以审批实例表为准，字段绑定、`sourceSnapshot` 和摘要回写规则看 `dimens-manager/references/workflow/references/field-binding.md`
@@ -194,10 +163,10 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 | 报表用途 | 推荐字段类型 | 说明 |
 | --- | --- | --- |
-| 类目维度 | `text` / `select` / `date` / `person` | 用于横轴、分类、分组；部门维度当前用 `text` 保存部门名称 |
+| 类目维度 | `text` / `select` / `date` / `department` / `person` | 用于横轴、分类、分组 |
 | 数值指标 | `number` | 用于求和、排序、统计 |
 | 详情说明 | `text` | 不要默认当 `valueKey` |
-| 组织筛选 | `text` | 当前用部门名称文本筛选；不要生成 `department` 类型 |
+| 组织筛选 | `department` | 不要退化成普通 `select` |
 | 人员筛选 | `person` | 不要退化成普通 `select` |
 
 ### 4. 权限边界
@@ -223,6 +192,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `dimens-manager/references/workflow/references/field-binding.md` | `workflow` 字段绑定、行数据发起、`sourceSnapshot`、摘要回写 | 处理审批字段、行数据绑定工作流、字段状态不刷新时必须看 |
 | `dimens-manager/references/report/overview.md` | 报表组件、字段映射、固定预检链 | 字段后续要进入看板、图表、统计分析时必须看 |
 | `references/field-design-patterns.md` | 字段设计模板、relation 结构 | 设计字段时必须看 |
+| `references/richtext-json-fields.md` | 富文本/JSON 字段创建、专用读写、inline/extended、双版本控制 | 处理 `richtext` 或 `json` 字段时必须看 |
 | `references/field-option-colors.md` | 单选/多选/下拉选择器颜色体系、默认颜色、自定义颜色协议 | 处理选项字段时必须看 |
 | `references/row-filters.md` | `row/page` 搜索、筛选、排序与 `viewId` 继承 | 设计查询案例时必须看 |
 | `references/field-rules.md` | 字段规则和系统视图字段边界 | 处理系统字段时必须看 |
@@ -255,23 +225,6 @@ tags: [table, sheet, row, column, view, dimens-cli]
 2. 哪些字段会做统计指标
 3. 哪些字段要支持后续 `report preview` 和 `dataMapping`
 
-### 场景 0.5：多表创建顺序和有限并发
-
-当一次创建多张表时，先按依赖关系分批，不要把所有表同时创建：
-
-| 批次 | 表类型 | 是否可并发 | 处理规则 |
-| --- | --- | --- | --- |
-| A | 无依赖表 | 可有限并发 | 不依赖其它表，也不被当前要配置的单向绑定字段阻塞；创建后逐表 `sheet tree / column list / view list` |
-| B | 被引用基础表 | 可有限并发，但必须早于依赖表 | 先创建字段和样例数据，拿到真实 `sheetId/fieldId/rowId` |
-| C | 普通主业务表 | 按依赖顺序 | 如果只依赖基础表，等基础表验收后创建 |
-| D | 单向绑定表 / relation 依赖表 | 最后创建 | 必须等目标表、目标展示字段、必要目标行都存在后再创建和写入数据 |
-
-执行要求：
-
-- “有限并发”只适用于同一批次内的无依赖表；并发后仍要逐表回查，不要合并验收。
-- 有单向绑定的表最后创建；如果不确定是否单向绑定，先按有依赖处理。
-- 写案例数据前生成完整表清单，逐表标注 JSON 文件和验收命令；清单没全部通过，不进入报表阶段。
-
 ### 场景 1：查询某项目下的表列表
 
 ```bash
@@ -282,71 +235,6 @@ dimens-cli sheet list --project-id PROJ1
 
 - 排查问题时尽量显式补 `--team-id`
 - 避免被本地默认上下文误导
-
-### 场景 1.0：日常维表管理（两阶段）
-
-适用于“帮我看看项目里有哪些表”“新建一个客户表”“把客户表改名或移到客户目录”“删除不用的表”这类单表操作。不要自动进入项目初始化、权限、工作流或报表链路。
-
-先判断运行环境：本地小龙虾必须先阅读 `references/key-auth/overview.md`、完成认证并检查 `dimens-cli --version`；只有用户明确提供 `运行环境=线上维表` 时，才复用线上会话并跳过本地认证、版本检查和升级，直接进入下面两步。线上标志不免除 `teamId`、`projectId`、资源归属、删除确认或字段权限校验。
-
-第一阶段只读取项目菜单，用于定位目标资源：
-
-```bash
-dimens-cli sheet tree \
-  --team-id TEAM1 \
-  --project-id PROJ1
-```
-
-从结果中确认目标节点的 `sheetId`、`type`、名称、`parentId` 和目录位置。普通维表必须是 `type=sheet`；目录是 `type=folder`。表节点的 `config.columns` 带有当前用户可见的字段，可直接用于展示字段和选择目标字段；它受列权限过滤，不是字段写入的最终依据。
-
-第二阶段每次只执行用户指定的一项 CRUD：
-
-```bash
-# 新建表
-dimens-cli sheet create \
-  --team-id TEAM1 \
-  --project-id PROJ1 \
-  --name 客户表 \
-  --type sheet \
-  --folder-id folder_customer
-
-# 改名并移动到目录（同一项操作）
-dimens-cli sheet update sheet_customer \
-  --team-id TEAM1 \
-  --project-id PROJ1 \
-  --name 客户主表 \
-  --folder-id folder_customer
-
-# 仅移动到目录
-dimens-cli sheet move sheet_customer \
-  --team-id TEAM1 \
-  --project-id PROJ1 \
-  --folder-id folder_customer
-```
-
-删除属于破坏性操作：先明确要删除的 `sheetId`、名称、类型和目录影响；用户显式确认后才执行：
-
-```bash
-dimens-cli sheet delete sheet_customer \
-  --team-id TEAM1 \
-  --project-id PROJ1
-```
-
-说明：此流程优先减少用户交互轮次，不承诺所有网络请求严格两次。当前 `sheet update` 和 `sheet move` 会先读取目标节点再提交更新；创建或移动后如果需要证明目录已归位，仍以额外一次 `sheet tree` 回查为准。
-
-字段定义变更、筛选或行数据是最小读取例外：
-
-```bash
-# 仅在需要字段、筛选、写行数据时读取目标表字段
-dimens-cli sheet structure sheet_customer
-# 或
-dimens-cli column list \
-  --team-id TEAM1 \
-  --project-id PROJ1 \
-  --sheet-id sheet_customer
-```
-
-后续行操作只能使用这里返回的最新真实 `fieldId`；更新行时还要先读取当前行和版本。不要为了省一次读取而把菜单树里的可见字段当作完整写入模型，也不要猜测字段名、字段 ID 或字段类型。
 
 ### 场景 1.1：为新表补公开默认视图
 
@@ -383,37 +271,9 @@ dimens-cli row set-cell \
 - `fieldId` 需要先通过 `dimens-cli column list` 获取，不能直接拿中文字段名当写入键
 - 如果是系统字段、只读字段或命中行级策略，后端仍可能拒绝
 
-### 场景 2.x：不要用 `row create --data/--values` 写初始化数据
-
-已知风险：`row create` 的 `--data` / `--values` 参数在直接传 JSON 字符串时，容易受到 shell 转义、引号、换行和字段值结构影响，出现命令返回但业务字段没有正确写入的情况。
-
-规则：
-
-- 初始化、迁移、补录多行、创建示例数据：一律写 JSON 文件，再执行 `row batch-create --file <文件路径>`。
-- `row create` 只保留给少量手动单行补录，并且执行后仍要立刻 `row page` 验证。
-- 发现 `row create --data/--values` 后行存在但 `data` 为空时，不要继续重试命令行 JSON 字符串；改用 JSON 文件 + `row batch-create --file`。
-
 ### 场景 2.0：批量初始化行数据
 
-推荐把示例数据、迁移数据或补录数据写入 JSON 文件，再批量导入。注意：下面的 `fld_customerName / fld_customerLevel` 只是示例占位，真实执行前必须替换成当前目标表 `column list` 返回的真实 `fieldId`。
-
-第一步，先取目标表字段：
-
-```bash
-dimens-cli column list \
-  --team-id TTFFEN \
-  --project-id PUQUNFE \
-  --sheet-id SHEET1
-```
-
-把结果整理成只属于当前表的映射：
-
-| 字段名 | 字段类型 | 真实 fieldId | 写入值要求 |
-| --- | --- | --- | --- |
-| 客户名称 | text | fld_xxx | 字符串 |
-| 客户等级 | select | fld_yyy | 已存在 option 的 label 或 id |
-
-第二步，只用当前表真实 `fieldId` 写 JSON：
+推荐把示例数据、迁移数据或补录数据写入 JSON 文件，再批量导入：
 
 ```json
 [
@@ -427,47 +287,6 @@ dimens-cli row batch-create \
   --sheet-id SHEET1 \
   --file ./data/customers.json
 ```
-
-CLI 和 HTTP API 的格式差异：
-
-| 入口 | 传入格式 | 说明 |
-| --- | --- | --- |
-| `dimens-cli row batch-create --file` | JSON 顶层数组，例如 `[{ "fld_xxx": "值" }]` 或 `[{ "data": { "fld_xxx": "值" } }]` | CLI 会把每一行归一化为 `{ "data": ... }` 后再请求后端 |
-| HTTP API `POST /app/mul/sheet/{sheetId}/row/batch-create` | `{ "rows": [{ "data": { "fld_xxx": "值" } }] }` | 直调接口时必须显式使用 `data`，不要写成 `values` |
-
-HTTP API 直调示例：
-
-```json
-{
-  "rows": [
-    {
-      "data": {
-        "fld_customerName": "华东智造",
-        "fld_customerLevel": "A"
-      }
-    }
-  ]
-}
-```
-
-第三步，写后立刻验：
-
-```bash
-dimens-cli row page \
-  --team-id TTFFEN \
-  --project-id PUQUNFE \
-  --sheet-id SHEET1 \
-  --page 1 \
-  --size 5
-```
-
-通过标准：
-
-- `rows.length > 0`。
-- 每行 `data` 里能看到刚写入的业务字段，不是 `{}`。
-- `number` 字段读出为数字或后端认可的数值结构。
-- `select / multiSelect` 字段值能对应字段 `options`。
-- relation 字段不是展示文本，而是接口要求的目标行 ID 或对象结构。
 
 如果数据量超过 200 行，CLI 默认按 200 行稳定切分请求：
 
@@ -484,17 +303,8 @@ dimens-cli row batch-create \
 - 真实导入不要使用 1000 行分片，已确认 1000 行存在静默丢数据风险；技能生成命令默认使用 200 行。
 - CLI 多批导入时，每批在后端事务内原子提交；整个文件不是一个全局事务。
 - 仍然必须使用真实 `fieldId` 写入，不要用中文字段名。
-- 同名字段在不同表也有不同 `fieldId`，不要复用其它表的字段映射。
-- 如果 `row page` 显示行存在但 `data` 为空，根因通常是 fieldId 错误；回到 `column list` 重建 JSON，不要继续做报表。
 - `select` / `multiSelect` 字段写入前必须先回查字段 `options`，把 Excel 单元格值映射到已有候选项；字段没有下拉时先补 `--options`，不能先导入行数据。
 - 写入会继续受表级、列级、行级权限影响，只读字段会被后端过滤或拒绝。
-
-导入失败后的清理策略：
-
-- `row batch-create` 返回成功但 `row page` 看到 `data: {}`，通常说明字段 ID 映射错误或直调接口用了错误请求体。
-- 先停止继续导入，重新执行 `column list`，用当前目标表真实 `fieldId` 重建 JSON。
-- 已产生的空行不会自动清理；确认 `rowId` 后用 `dimens-cli row delete --sheet-id SHEET1 --row-id ROW_ID` 逐行删除，再重新导入。
-- 清理后必须再次 `row page --size 5`，确认空行已移除且新写入行的业务 `data` 非空。
 
 ### 场景 2.1：设计带颜色的单选/多选字段
 
@@ -531,14 +341,12 @@ dimens-cli row batch-create \
 | --- | --- | --- |
 | 表搭出来了，但字段不好用 | 字段只按名字设计，没有提前考虑筛选、排序、主展示和关联 | 回到字段模板，补齐字段能力设计 |
 | 人员下拉被建成普通下拉字段 | 没识别项目已有用户体系、内置角色、部门体系，误把“选人”当成静态枚举 | 优先改用 `person` 字段，先判断是不是用户选择场景 |
-| 部门字段被建成普通下拉或 `department` 字段 | 当前 Web 前端对 `department` 字段类型支持不完整，且静态下拉会丢失部门语义 | 改用 `text` 保存部门名称，例如 `--label 所属部门 --type text`，后续前端专用字段稳定后再迁移 |
+| 部门字段被建成普通下拉字段 | 没识别“部门归属 / 部门筛选”属于组织结构字段 | 优先改用 `department` 字段，不要用静态 `select` 代替 |
 | 后面做报表时发现字段出不了图 | 建表阶段没区分维度字段、指标字段和说明字段 | 回到字段设计模板，先把用于报表的字段类型设计正确 |
 | 行能查出来，但筛选条件不好表达 | 没按 `keyword / searchFieldIds / filters / filterMatchType / sortRule` 结构设计 | 按 `row/page` 真实请求结构重写查询案例 |
 | 表能查到，但字段写入失败 | 字段类型不匹配、列级只读或系统字段受控 | 先查字段结构，再查列权限与系统字段规则 |
-| `row create --data/--values` 后数据没有写入 | 命令行 JSON 字符串解析、转义或值结构不稳定 | 把数据写成 JSON 文件，使用 `row batch-create --file`，再 `row page` 验证 |
-| `row batch-create` 成功但表格业务字段为空 | 使用了占位 `fieldId`、中文字段名或其它表的字段 ID | 对目标表重新 `column list`，用真实 `fieldId` 重建导入 JSON，再导入并 `row page` 验证 |
-| 某些表有数据，另一些同结构表为空 | 复用了上一张表的字段映射 | 每张表单独维护“字段名 -> fieldId”，同名字段也按目标表重新映射 |
-| 报表预览时数值为空或无法聚合 | 数值业务字段被建成文本或写入了字符串标签 | 把金额、数量、人数、时长等指标字段设计成 `number`，修正后重写数据 |
+| 富文本内容写进了错误资源 | 把富文本字段误当在线文档，使用了 `doc update` | 改用 `richtext-field save`，HTML 正文用 `--content` 或 `--file` |
+| JSON 字段被普通行命令拒绝 | 使用了 `row set-cell/create/update` | 根据存储模式改用 `json-field save`；extended 更新同时带 ID、JSON 版本和行版本 |
 | 行分页读取正常，协同更新异常 | 普通接口权限和 Yjs 协同过滤不是同一条缓存链 | 检查协同权限快照、系统字段净化和广播过滤 |
 | AI 分析入口工作流分类不对 | 把团队级默认字段当成项目级实际分配字段 | 区分 `usageType` 与 `systemView` |
 | 同一字段在不同项目表现不同 | 项目级绑定、权限或系统视图规则不同 | 结合 `projectId` 重新判断，不要跨项目直接套用 |

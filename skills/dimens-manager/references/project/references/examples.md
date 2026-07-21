@@ -148,7 +148,6 @@ dimens-cli sheet tree --project-id PROJECT_ID
 说明：
 
 - `project-cover.svg` 建议由 SVG 工具提前生成，要求符合项目主题、`250x150px`、淡色背景且具备轻量动态效果；上传文件名必须保留 `.svg`，CLI 会按 `image/svg+xml` 提交
-- 示例中的 `--source material --team-id` 是素材库路径，会优先走 CDN 直传并完成素材入库；CDN 未启用或配置不完整时回退本地上传。上传成功后仍要把返回的 `url` 写回项目封面字段
 - `FOLDER_CUSTOMER_ID`、`FOLDER_DOC_ID` 等目录 ID 可以在创建目录后，从返回结果里拿到
 - 文档当前走 `doc create --parent-id` 挂到目录下；表格当前走 `sheet create --folder-id`
 - 创建目录只会生成目录节点，不会自动把其他菜单移动进去；已存在的表格/报表/目录资源必须再执行 `sheet move --folder-id`
@@ -213,7 +212,6 @@ dimens-cli doc restore \
 - 用户创建文档时，默认至少补状态标签、淡色摘要卡片或提示块，让文档更生动但保持可读
 - 如果文档涉及业务流程、审批流、状态流转或系统对接，优先用 Mermaid 图表块写入文档内容，不要截图上传
 - 如果文档里要放状态标签、提示色块、图片或附件，先参考 `doc-richtext-guidelines.md`
-- 如果目标是“字段富文本写回”，不要继续往下套 `doc update`，而是切到 `richtext-field save`
 
 ## 5.1 带颜色状态的文档更新示例
 

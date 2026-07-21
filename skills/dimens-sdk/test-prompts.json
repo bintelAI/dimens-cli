@@ -55,23 +55,13 @@
     "expected": "应说明 displayRows/rowSnapshot 是轻量快照，不是权威数据；最新或完整数据必须通过 useDimens SDK/API 重新读取，写入必须走后端权限校验。"
   },
   {
-    "id": "sdk-012",
-    "prompt": "我有个 React 客户列表页，已经拿到 token 了，想先拉项目，再拉第一张客户表的数据，最好顺手告诉我 401、403、404 怎么判断。",
-    "expected": "应命中 Web/H5 前端案例，给项目 -> 表 -> 行数据的最小链路，说明 teamId/projectId/sheetId 的来源，并区分 401 refresh、403 权限不足、404 上下文错误。"
+    "id": "sdk-016",
+    "prompt": "React 中 sdk.ai.models 和 sdk.ai.generateImage 请求成功，但 response.data.data 是 undefined；线上有时 response.data 直接是数组，有时又有 data 包装，怎么写才不会让模型下拉框和图片结果变空？",
+    "expected": "应要求先记录 SDK 版本和脱敏真实响应，再在 SDK 边界把原始响应按 unknown 归一化；兼容响应本身、response.data 和 response.data.data 中的数组，图片来源至少兼容 url/image_url/data.url/b64_json，不允许页面组件固定读取 response.data.data 或用类型断言掩盖差异。"
   },
   {
-    "id": "sdk-013",
-    "prompt": "Node.js 服务端想把 AI 生成的海报图写回客户表的一行记录里，怎么组织调用顺序？",
-    "expected": "应命中 ai-examples 和 table-examples，说明 sdk.ai.generateImage -> 取 url -> sdk.row.info -> sdk.row.update 的顺序，并强调临时签名 URL 和 version。"
-  },
-  {
-    "id": "sdk-014",
-    "prompt": "这张图不是普通上传，我要直接进素材库，优先 CDN，失败再回退，SDK 和 CLI 各怎么用？",
-    "expected": "应命中 upload-examples 和 media/overview，说明 uploadMaterialWithCdnFallback、source=material、必须带 teamId、CDN-first + fallback，以及对应的 upload mode / upload file CLI 验证命令。"
-  },
-  {
-    "id": "sdk-015",
-    "prompt": "我在维表自定义页面里已经有脚手架目录了，想加一个审批详情页，别给我重建项目，直接告诉我看哪些文件、路由怎么加、案例在哪。",
-    "expected": "应命中 dimens-web-scaffold 和 micro-module-wujie-context，先说明 UI/UX 前置，再说明复用已有目录、修改 src/pages 与 routes.tsx，且不要重复执行 create --dir。"
+    "id": "sdk-017",
+    "prompt": "用 sdk.ai.createVideo/getVideo/getVideoContent 做视频生成，taskId 和状态字段在不同环境不一致，成功后有时返回 resource.url。请给一个不会无限轮询的实现原则。",
+    "expected": "应先按当前源码和真实响应复核方法签名；在 SDK 边界兼容任务对象及 data/output/result 包装，使用成功/失败状态集合、可配置间隔、总超时和取消信号；成功后优先解析当前服务端 resource.url/resource.key，同时兼容直接 url/video_url；未知结构要携带脱敏响应明确失败，不能静默 mock 或无限轮询。"
   }
 ]

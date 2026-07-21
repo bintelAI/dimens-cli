@@ -81,10 +81,10 @@ dimens-cli create --dir=./my-custom-page
 
 命令规则：
 
-- `create --dir` 会下载 `https://imgs.bintelai.com/dimens-web.zip` 并解压成自定义页面脚手架。
+- `create --dir` 会执行 `git clone --depth 1 https://gitee.com/bintelai/dimens-web.git <目标目录>`，并保留 `.git` 供后续更新。
 - 未传目录值时，CLI 会交互询问目录名，默认推荐 `dimens-web`。
 - 目标目录已存在且非空时，CLI 会询问是否覆盖；确认后旧内容迁移到同级 `backupDel/<目录名>-<时间戳>/`，不会直接删除。
-- 下载失败直接失败并提示检查网络，不使用本地兜底。
+- 使用前需确保本机已安装 Git；克隆失败直接提示检查 Git 和网络，不使用本地兜底。
 - 如果用户明确是在已有脚手架里新增页面，不要再次执行 `create --dir`，直接修改现有 `src/pages`、`src/router/routes.tsx` 和相关 SDK resource。
 
 ## 6. 本地开发

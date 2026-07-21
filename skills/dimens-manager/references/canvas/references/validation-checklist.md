@@ -42,14 +42,12 @@ dimens-cli canvas validate --data '<json>'
 - 顶层 `nodes` 和 `edges` 是数组。
 - 节点有稳定 `id`，且不重复。
 - 节点 `type` 属于前端支持范围。
-- 节点 `type` 必须能在 `generation-guide.md` 支持列表、节点详解或 `examples.md` 案例中找到依据；未知节点类型必须拒绝保存。
 - 节点包含可渲染尺寸和坐标字段。
 - 边的 `source/target` 都能找到节点。
 - 边包含 handle、箭头和线条样式。
 - 判断节点 `DIAMOND` 至少有两条出边，且分支边有 label。
 - `INFOGRAPHIC`、`EMBEDDED_SHEET` 等特殊节点包含必要数据。
 - 节点背景色是淡色或 `transparent`，不会出现黑色 / 深色背景。
-- 节点 `backgroundColor/textColor/borderColor` 成对可读，不会出现黑底黑字、深底深字、浅底白字或其它明显低对比组合。
 
 ## 3. 节点校验
 
@@ -58,7 +56,7 @@ dimens-cli canvas validate --data '<json>'
 | 字段 | 要求 |
 | --- | --- |
 | `id` | 非空、唯一、稳定英文短名 |
-| `type` | 使用支持的节点类型，不发明新类型；没有文档或案例支撑的节点类型一律拒绝生成 |
+| `type` | 使用支持的节点类型，不发明新类型 |
 | `position.x/y` | 数值 |
 | `positionAbsolute.x/y` | 数值 |
 | `width/height` | 正数 |
@@ -66,8 +64,6 @@ dimens-cli canvas validate --data '<json>'
 | `selected/dragging` | 布尔值，保存型 JSON 默认 `false` |
 | `data.label` | 非空业务含义 |
 | `data.backgroundColor` | 只能是淡色十六进制颜色或 `transparent` |
-| `data.textColor` | 必须与背景形成清晰对比；普通节点默认 `#111827`，说明文字可用 `#334155` |
-| `data.borderColor` | 必须能看出节点边界；透明标题节点除外 |
 | `data.width/height` | 与顶层 `width/height` 一致 |
 | `data.align` | `left / center / right` |
 | `data.verticalAlign` | `top / center / bottom` |
@@ -93,23 +89,6 @@ dimens-cli canvas validate --data '<json>'
 - 其他接近黑色或高饱和深色的背景
 
 如果需要强调节点，优先使用边框色、图标、标签、连线色或 `INFOGRAPHIC` 主题色，不要把整个节点背景改成深色。
-
-背景/文字禁用组合：
-
-| 错误组合 | 问题 | 修正 |
-| --- | --- | --- |
-| `backgroundColor=#000000` + `textColor=#000000` | 黑底黑字，完全不可读 | 改浅背景，例如 `#ffffff/#f8fafc`，文字用 `#111827` |
-| `backgroundColor=#111827/#1f2937/#0f172a` + 深色文字 | 深底深字，远看近看都不清楚 | 改浅背景，强调色放到边框 |
-| `backgroundColor=#ffffff/#f8fafc/#fefce8` + `textColor=#ffffff` | 浅底白字，低对比 | 文字改 `#111827` 或 `#334155` |
-| 高饱和纯色背景 + 普通正文 | 视觉压迫，文字难读 | 改为同色系浅底 + 深色边框 |
-
-视觉配色通过标准：
-
-- 主流程节点远看能区分职责，近看能读清标题。
-- 背景主要使用白、浅灰、浅蓝、浅绿、浅橙、浅黄。
-- 文字使用深灰、深蓝灰、深棕红等深色，不使用和背景相近的颜色。
-- 状态强调优先通过 `borderColor`、连线、标签或 `INFOGRAPHIC` 主题色表达。
-- `SECTION` 分组背景要弱于内部节点，不能让内部文字或节点被淹没。
 
 特殊节点额外要求：
 
@@ -153,9 +132,7 @@ dimens-cli canvas validate --data '<json>'
 结构校验通过不代表业务可读。生成后还要人工或 AI 自检：
 
 - 每个节点只表达一个业务动作。
-- 每个节点类型都能追溯到 `generation-guide.md` 支持列表或 `examples.md` 案例。
 - `data.label` 是“动词 + 对象”或明确判断条件，不是“步骤 1 / 节点 A”。
-- 每个节点的颜色符合视觉语义：输入输出偏浅蓝，判断偏浅橙/浅黄，成功偏浅绿，风险偏浅红/浅橙，数据沉淀偏浅灰/浅靛；不能随机配色。
 - 主流程能看出起点、过程、终点。
 - 异常路径能看出拒绝、退回、撤回、超时、转交或人工兜底。
 - 数据沉淀节点能说明写入哪张表、哪个状态或哪个摘要。
@@ -236,14 +213,10 @@ dimens-cli canvas version SHEET_ID \
 | --- | --- | --- |
 | 节点只有 `id/type/position/data.label` | 前端可能不可见、尺寸丢失、拖拽异常 | 补齐可渲染字段模板 |
 | 节点背景是黑色或深色 | 文字不可读，视觉压迫，和画布风格不一致 | 改成浅色背景，深色文字 |
-| 节点背景和文字同为黑色或同为深色 | 用户完全看不清节点内容 | 使用视觉配色矩阵，浅背景 + 深文字 + 中等边框 |
-| 浅色背景配白色文字 | 低对比，演示时不可读 | 文字改为 `#111827` 或 `#334155` |
-| 随机使用高饱和背景色 | 画布杂乱，节点层级失控 | 用浅色语义底色，状态用边框和标签表达 |
 | 边只有 `source/target` | 无箭头、无 handle、分支不可读 | 补 `sourceHandle/targetHandle/markerEnd/style` |
 | `DIAMOND` 只有一条出边 | 判断节点没有业务意义 | 至少补两条分支边 |
 | 分支边没有 label | 用户不知道条件结果 | 写“是/否/通过/驳回” |
 | `INFOGRAPHIC` 没有 DSL | 信息图无法渲染 | 补 `data.infographicSyntax` |
 | PPT 内容没有 `parentNode` | 页面内容散落在无限画布 | 挂到对应 `SECTION` |
-| 生成了未知 `type`，如 `AI_REVIEW`、`TIMEOUT`、`ARCHIVE` | 前端无法识别，保存后可能不可渲染 | 未知节点类型必须改写为已支持节点或转为说明文本；需要执行语义时进入工作流章节 |
 | 引用虚构 `sheetId/viewId` | 嵌入表格不可用 | 先查询真实表格和视图 ID |
 | 保存后不回查版本 | 无法确认写入成功 | 补 `canvas info/versions` |

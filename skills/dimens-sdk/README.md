@@ -29,28 +29,6 @@
 3. 再看 `integration-paths.md` 与 `capability-status.md`，确认 SDK / HTTP / BFF 选型。
 4. 最后进入对应 `*-examples.md`，只读取当前任务需要的案例。
 
-## 高频案例入口
-
-如果你维护或使用这个技能时，想快速补“更像真实用户提问”的案例，优先看这些落点：
-
-| 需求类型 | 首选文档 |
-| --- | --- |
-| Web/H5/React 页面读取资源 | `references/web-examples.md` |
-| `dimens-web` 自定义页面 / Wujie / 微模块 | `references/dimens-web-scaffold.md`、`references/micro-module-wujie-context.md` |
-| Node.js / Next.js / BFF 服务端集成 | `references/bff-examples.md` |
-| App / 小程序 / 移动端代理接入 | `references/mobile-examples.md` |
-| 上传后写回表格 / 文档 / 画布 | `references/upload-examples.md` |
-| 表格、行、字段、视图 | `references/table-examples.md` |
-| 文档详情、更新、版本、Mermaid | `references/document-examples.md` |
-| 报表创建、组件查询、只读报表 | `references/report-examples.md` |
-| 聊天、生图、生视频、Embedding、Rerank | `references/ai-examples.md` |
-
-推荐做法：
-
-- `SKILL.md` 里只保留技能入口、约束和路由表。
-- 真实用户案例优先放到对应 `*-examples.md`。
-- 当某个案例开始同时涉及“接入位置 + 资源域 + 验证命令”三部分时，优先补案例文件，不要把大段示例塞回 `SKILL.md`。
-
 ## 维护原则
 
 - `SKILL.md` 只保留入口、路由和风险约束。

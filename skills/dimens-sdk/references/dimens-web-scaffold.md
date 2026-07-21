@@ -306,13 +306,17 @@ dimens-cli create --dir=./my-custom-page
 
 行为说明：
 
-- 命令会从 `https://imgs.bintelai.com/dimens-web.zip` 下载脚手架。
+- 命令会执行 `git clone --depth 1 https://gitee.com/bintelai/dimens-web.git <目标目录>`，并保留 `.git` 供后续更新。
 - `--dir` 不带值时会交互询问目录名，默认推荐 `dimens-web`。
 - 目标目录非空时会询问是否覆盖；确认后旧内容迁移到同级 `backupDel/<目录名>-<时间戳>/`。
-- 下载失败直接失败，不回退到本地 zip。
+- 使用前需确保本机已安装 Git；克隆失败直接提示检查 Git 和网络，不回退到本地包。
 - 覆盖由 CLI 交互确认；技能回答不要建议手动删除目录。
 
 ## 10. 本地开发与验证
+
+先检查 `vite.config.ts` 中 `/api` 代理目标是否可达。线上联调通常指向 `https://dimens.bintelai.com`；只有本地后端进程真实存在时才指向本地地址。出现空响应或 `Unexpected end of JSON input` 时先检查代理目标和 Network 响应，不要先改 SDK 解包。
+
+升级 `@bintel/dimens-cli` 后如果运行行为仍像旧版本，先核对锁文件与实际解析版本。确需刷新 Vite 预构建缓存时，不直接删除 `node_modules/.vite/deps`：将旧缓存迁移到项目根 `backupDel/`，并只在没有可复用热加载进程或用户确认后重启原服务，禁止另起新端口。
 
 ```bash
 cd <自定义页面目录>

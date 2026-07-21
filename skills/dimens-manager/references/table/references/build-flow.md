@@ -45,7 +45,7 @@
 - 哪些字段会作为图表维度字段
 - 哪些字段会作为图表指标字段
 - 哪些字段只是说明字段，不应该直接做 `valueKey`
-- 哪些字段要避免退化成普通下拉；人员走 `person`，部门当前用 `text` 保存部门名称
+- 哪些字段要避免退化成普通下拉，应该直接走人员字段或部门字段
 
 否则表虽然能建出来，后面进入 `report preview / query-widget / dataMapping` 时仍然会失败。
 
@@ -174,7 +174,7 @@ dimens-cli view create \
 
 | 字段角色 | 推荐类型 | 主要用途 |
 | --- | --- | --- |
-| 维度字段 | `text` / `select` / `date` / `person` | 分类、横轴、筛选、分组；部门维度当前用 `text` |
+| 维度字段 | `text` / `select` / `date` / `person` / `department` | 分类、横轴、筛选、分组 |
 | 指标字段 | `number` | 求和、计数、排序、统计值 |
 | 说明字段 | `text` | 详情补充、备注说明，不直接做数值映射 |
 
@@ -224,7 +224,7 @@ dimens-cli view create \
 如果字段语义本身就是“人员”或“部门”，不要退化成普通下拉：
 
 - 项目已有自己的用户体系、部门体系、内置角色体系时，优先直接配置人员字段
-- 部门字段当前执行规则：当前禁止生成 `department` 字段类型，统一使用 `text` 字段保存部门名称
+- 部门选择也优先直接配置部门字段
 - 这两类字段和普通下拉一样都属于特殊情况，不能简单按 `select` 处理
 
 这样后续做权限、筛选、报表统计时，字段语义才不会丢失。
@@ -264,7 +264,7 @@ dimens-cli column create \
 
 1. 维度字段是否有稳定可读值，而不是空值、长文本或混乱枚举
 2. 指标字段是否真的是 `number`，不要把金额、数量存成文本
-3. 人员字段是否保留真实业务语义；部门字段是否用 `text` 保存部门名称，而不是降级成普通下拉或生成 `department`
+3. 人员字段、部门字段是否保留真实业务语义，而不是降级成普通下拉
 4. 系统字段是否只作为补充说明，而不是直接当主维度或主指标
 
 ---
@@ -321,31 +321,18 @@ relation 的目标不是“看起来有关系”，而是为了后续能做：
 | --- | --- |
 | `POST` | `/app/mul/sheet/:sheetId/row/create` |
 
-初始化或示例数据写入不要用 `row create --values` 直接传 JSON 字符串；先写 JSON 文件：
-
-```json
-[
-  {
-    "fld_customerName": "华东智造",
-    "fld_customerLevel": "A",
-    "fld_customerStatus": "跟进中"
-  }
-]
-```
-
-再使用批量导入命令：
+CLI 命令：
 
 ```bash
-dimens-cli row batch-create \
+dimens-cli row create \
   --sheet-id sh_customer \
-  --file ./data/customers.json \
-  --batch-size 200
+  --values '{"fld_customerName":"华东智造","fld_customerLevel":"A","fld_customerStatus":"跟进中"}'
 ```
 
 注意：
 
 - 行创建前要先通过 `column list` 查询字段列表，拿到真实 `fieldId`
-- `row create --data/--values` 的命令行 JSON 字符串容易出现解析或转义问题，不作为初始化数据写入方式
+- `--values` 只是 CLI 参数名，CLI 内部会映射为服务端需要的 `data`
 - 不要直接把中文字段名当请求体 key，服务端真实写入以 `fieldId` 为准
 
 ---
@@ -472,7 +459,7 @@ dimens-cli report query --team-id TTFFEN --project-id PUQUNFE --sheet-id rpt_xxx
 
 1. 不要把“表能录入”误判成“后面一定能出报表”。
 2. 不要把金额、数量、次数这类指标字段设计成文本。
-3. 不要把人员字段、部门字段一律降级成普通下拉；部门字段当前也不要生成 `department`，统一用 `text`。
+3. 不要把人员字段、部门字段一律降级成普通下拉。
 4. 不要把系统字段默认当成主维度或主指标。
 5. 不要等到 `report widget-add` 失败了，才回头补字段语义。
 

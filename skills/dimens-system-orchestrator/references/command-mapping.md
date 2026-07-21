@@ -65,7 +65,7 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 确认团队与项目上下文 | `dimens-cli project list --team-id TEAM_ID` | 系统建设前先确认项目归属 |
 | 创建项目 | `dimens-cli project create --team-id TEAM_ID --name 项目名 [--description 描述] [--project-type spreadsheet]` | 从 `dimens-manager/references/project/overview.md` 主链进入，所有表都挂在项目下 |
 | 查看项目详情 | `dimens-cli project info --team-id TEAM_ID --project-id PROJECT_ID` | 校验上下文是否正确 |
-| 上传 SVG 封面/图标 | `dimens-cli upload file --path ./project-cover.svg --team-id TEAM_ID --scene project-cover` | SVG 默认 `250x150px`、淡色背景、轻量动态效果；文件名必须保留 `.svg`，CLI 会按 `image/svg+xml` 上传，上传后再把 URL 写回项目或文档；如果希望同时进入素材管理，再补 `--source material`，该素材库链路优先 CDN 直传并入库 |
+| 上传 SVG 封面/图标 | `dimens-cli upload file --path ./project-cover.svg --team-id TEAM_ID --scene project-cover` | SVG 默认 `250x150px`、淡色背景、轻量动态效果；文件名必须保留 `.svg`，CLI 会按 `image/svg+xml` 上传，上传后再把 URL 写回项目或文档；如果希望同时进入素材管理，再补 `--source material` |
 | 创建目录 | `dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 目录名 --type folder` | 只创建目录节点，不会自动移动其他菜单 |
 | 创建工作表 | `dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 表名 [--folder-id FOLDER_SHEET_ID]` | 新系统一般先建核心表；要进入目录必须显式带 `--folder-id` |
 | 查看字段列表 | `dimens-cli column list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 建表后立刻检查字段，尤其是自动生成的默认“名称”字段 |
@@ -84,9 +84,9 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 查看视图列表 | `dimens-cli view list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 建表后先确认默认视图是否已存在 |
 | 创建公开默认视图 | `dimens-cli view create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --name 默认视图 --type grid --is-public true --config '{"filters":[],"filterMatchType":"and","sortRule":null,"groupBy":[],"hiddenColumnIds":[],"rowHeight":"medium"}'` | 技能建表链路默认要求至少补一个公开默认视图 |
 | 查看字段列表 | `dimens-cli column list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 写入行数据前必须先取字段；如果有无用默认“名称”字段，先改名复用或清理 |
-| 创建字段 | `dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 字段名 --type text` | 推荐统一使用 `--label`；`select/multiSelect` 必须同步传 `--options`；如果语义是选人，优先改配 `person`；如果语义是选部门，当前用 `text` 保存部门名称，不生成 `department` |
-| 创建行 | `dimens-cli row batch-create --sheet-id SHEET_ID --file ./rows.json [--batch-size 200]` | 初始化、迁移、补数据、示例数据统一用 JSON 文件导入；不要用 `row create --data/--values` 直接传 JSON 字符串 |
-| 单行补录 | `dimens-cli row create --sheet-id SHEET_ID --values '{\"fld_xxx\":\"值\"}'` | 仅限少量交互式单行补录；写后仍必须 `row page` 验证，不用于系统初始化 |
+| 创建字段 | `dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 字段名 --type text` | 推荐统一使用 `--label`；`select/multiSelect` 必须同步传 `--options`；如果语义是选人或选部门，优先改配 `person` / `department`，不要误落成普通下拉 |
+| 创建行 | `dimens-cli row create --sheet-id SHEET_ID --values '{\"fld_xxx\":\"值\"}'` | CLI 会映射到服务端 `data` |
+| 批量创建行 | `dimens-cli row batch-create --sheet-id SHEET_ID --file ./rows.json [--batch-size 200]` | 系统初始化、迁移、批量补数据优先用这个命令；后端单批最高 1000 行，但真实导入默认按 200 行稳定分片 |
 | 更新行 | `dimens-cli row update --sheet-id SHEET_ID --row-id ROW_ID --version 1 --values '{\"fld_xxx\":\"新值\"}'` | 更新前要拿到版本号 |
 | 更新单元格 | `dimens-cli row set-cell --sheet-id SHEET_ID --row-id ROW_ID --field-id FIELD_ID --value 新值 --version 1` | 推荐用 `fieldId`，不要用中文字段名 |
 | 查询行数据 | `dimens-cli row page --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --page 1 --size 20` | 验证表是否可用 |
@@ -140,8 +140,6 @@ dimens-cli project create \
 
 dimens-cli project info --team-id TEAM_ID --project-id PROJECT_ID
 ```
-
-带 `--source material --team-id` 的素材库上传会优先走 CDN：先申请短期上传 token，直传七牛，再完成素材库入库；CDN 未启用或配置不完整时回退本地上传。
 
 `project-cover.svg` 生成要求：`width="250" height="150" viewBox="0 0 250 150"`，淡色背景，使用轻量 `animate` / `animateTransform` 做动态效果，视觉元素与项目主题一致。
 
@@ -204,7 +202,7 @@ dimens-cli column create \
 - 上传 SVG 后必须确认 URL 已写回项目封面/图标或文档内容；只上传不写回不算完成
 - 如果用户提到历史版本、回滚恢复、旧内容比对，在线文档继续走版本主链 `doc versions / doc version / doc restore`
 - 如果项目本身已经有用户体系、部门体系、内置角色，而字段需求本质是“负责人 / 成员 / 处理人 / 审批人”这类人员选择，则优先使用 `person`
-- 如果字段需求本质是“所属部门 / 负责部门 / 发起部门 / 归属组织”这类组织选择，当前执行规则是使用 `text` 保存部门名称；禁止生成 `department` 字段类型
+- 如果字段需求本质是“所属部门 / 负责部门 / 发起部门 / 归属组织”这类组织选择，则优先使用 `department`
 - 人员字段、部门字段和普通下拉字段都属于特殊情况，不能只看“UI 像下拉”就统一建成 `select`
 - 推荐写法示例：
 
@@ -261,11 +259,17 @@ dimens-cli column list \
 - 指标字段必须是非空数值或可聚合字段。
 - 时间趋势至少 2 个日期或周期。
 - 筛选字段不要全部为空。
-- relation / person 字段按真实结构写入；部门字段当前按 `text` 写入部门名称。
+- relation / person / department 字段按真实结构写入，不能只写展示文本。
 
 ### 4.6 用 fieldId 写入行
 
-初始化、迁移、补录多行或示例数据时，不要用 `row create --data/--values` 直接传 JSON 字符串。正确做法是先写 JSON 文件，再走批量命令：
+```bash
+dimens-cli row create \
+  --sheet-id SHEET_ID \
+  --values '{"fld_customerName":"华东智造","fld_customerLevel":"A"}'
+```
+
+批量初始化示例数据时，不要循环执行单行 `row create`，应写入 JSON 文件后走批量命令：
 
 ```bash
 dimens-cli row batch-create \
@@ -279,7 +283,6 @@ dimens-cli row batch-create \
 - `customers.json` 顶层必须是数组，每一项可以是 `{ "fld_xxx": "值" }` 或 `{ "data": { "fld_xxx": "值" } }`。
 - 后端单批最多 1000 行；CLI 会按 `--batch-size` 自动分片，默认使用 200 行。不要为了减少请求数改成 1000 行，真实导入中 1000 行分片存在静默丢数据风险。
 - 多批导入时只保证每个后端分片事务原子，不保证整个文件全局事务。
-- `row create --data/--values` 的命令行 JSON 字符串容易受 shell 转义、引号和字段值结构影响；如果行存在但业务 `data` 为空，改用 `row batch-create --file`，不要继续重试命令行 JSON 字符串。
 
 ## 5. 必须显式提醒的坑
 
@@ -291,11 +294,10 @@ dimens-cli row batch-create \
 | 建表后没处理默认“名称”字段 | 先 `column list`，能复用就改名为主展示字段，不能复用就按规则清理 |
 | `select` / `multiSelect` 只建字段不配选项 | 创建字段时直接补 `--options`，不要留空配置；Excel 导入前必须先从表头/样本值提取候选项并创建选项 |
 | 把人员字段误建成普通下拉 | 没识别项目已有用户、部门、角色体系，误把“选人”当静态枚举 | 优先改成 `person`，不要手工维护人员选项 |
-| 把部门字段误建成普通下拉或 `department` | 当前 Web 前端对 `department` 字段类型支持不完整，且静态下拉会丢失部门语义 | 改成 `text` 保存部门名称，例如 `--label 所属部门 --type text` |
+| 把部门字段误建成普通下拉 | 没识别组织结构字段和静态枚举字段的区别 | 优先改成 `department`，不要手工维护部门选项 |
 | relation 字段创建显示成功但没真正落库 | 当前复杂 relation 仍需按 API 的 `relationConfig` 校验，不要只看 CLI 成功提示 |
 | 行写入直接用中文字段名 | 先查字段列表，拿 `fieldId` 再写 |
 | 批量导入还循环调用 `row create` | 使用 `row batch-create --file`，让 CLI 默认按 200 行稳定分片，减少 HTTP 和数据库压力 |
-| 用 `row create --data/--values` JSON 字符串初始化数据 | 改为写 JSON 文件后执行 `row batch-create --file`，再用 `row page` 验证 `data` 非空 |
 | 报表查询为空还说完成 | 先查 `row page`、`report preview`、`query-widget`、`query`，定位是无数据、参数过窄、字段映射错还是组件配置错 |
 | 重复创建内置管理角色 | 超级管理员、系统管理员、管理员、编辑者、查看者、公开角色由平台内置管理；系统搭建只创建业务角色 |
 | 只创建业务角色不配权限 | 继续执行 `permission create/set-resource`、字段权限、行级策略、`role assign-user` 和 `myPermissions` 回查 |

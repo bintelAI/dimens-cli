@@ -13,7 +13,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 
 - 产品名称：`维表智联`
 - 开发方：`方块智联工作室`
-- 官网：[https://www.bintelai.com/](https://www.bintelai.com/)
+- 官网：[https://dimens.bintelai.com/](https://dimens.bintelai.com/)
 
 ## 执行前必读
 
@@ -23,19 +23,21 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ 如果是维表自定义页面、Wujie 嵌入页面或明确基于 `dimens-web` 脚手架开发，前端方案必须优先读取 `references/dimens-web-scaffold.md`，不要重新生成一套通用 auth/storage/sdk/retry 分层。
 - ✅ 如果是维表自定义页面开发，必须把 UI/UX 设计作为前置步骤：先确认是否已安装 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`），未安装时先安装；安装或可用后，先用该技能完成页面风格、配色、布局、组件、图表和交互状态设计，再进入 `dimens-web` 脚手架编码。
 - ✅ 如果用户提到微模块页面、按钮插件、视图插件、Wujie props、`sourceLocation`、`viewState`、`actionSnapshot`、按钮弹窗或抽屉，必须继续读取 `references/micro-module-wujie-context.md`，按“页面 / 视图 / 按钮”三类上下文协议输出。
-- ✅ 每次准备使用 `dimens-cli` 前，先执行 `dimens-cli --version` 查看当前版本；只有命令不存在、版本明显低于需求、当前 help/source 与技能规则不一致，或用户确认升级时，才执行 `npm -g install @bintel/dimens-cli@latest`。升级后必须再次执行 `dimens-cli --version` 和必要的 `dimens-cli help <group>` 复核。
+- ✅ 每次准备使用 `dimens-cli` 前，必须先在当前终端执行 `npm -g install @bintel/dimens-cli@latest` 升级全局 CLI；升级成功后再执行 `dimens-cli --version` 或 `dimens-cli --help` 确认可用，确保用户每次使用的都是最新版本。
 - ✅ 新增自定义页面但没有目标目录时，先询问或建议用 `dimens-cli create --dir <目录名>` 初始化脚手架；已有目录则先检查目录结构，不要重复创建。
 - ✅ 自定义页面新增业务页默认使用 `/xxx` 独立路由；不要改 `/` 根页面，不要覆盖 `/custom`、`/records`、`/settings`、`/embed`、`/debug/context` 等既有示例、配置或调试页面。
 - ✅ 自定义页面不等用户显式要求“好看”才做设计；所有新增或改造业务页面都先使用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）产出 UI/UX 方案，再基于 `dimens-web` 脚手架实现。
 - ✅ Windows 下生成中文示例代码、Markdown、JSON 或脚本文件时，必须遵守 `../windows-utf8.md`：统一 UTF-8 写入，写完读回检查，避免中文变成 `??`。
 - ✅ 浏览器端和移动端不要明文保存 `apiSecret`；涉及 API Secret 默认放服务端或 BFF 换 token。
 - ✅ 调试、验证、资源管理优先给 `dimens-cli` 命令行路径；只有在用户明确要做端侧集成、CLI 未覆盖能力或需要说明代码调用时，再补充 SDK / HTTP / 自定义 URL 方案。
-- ✅ 涉及 AI 生图、生视频、音频、Embedding、Rerank、Responses、Messages 或模型列表时，必须优先读取 `references/ai-examples.md` 和 `references/capability-status.md`；默认走维表后端 new-api 代理与 `sdk.ai`，不直连 new-api，不暴露 `sk-` token。
 - ✅ API Key 登录返回的是现有用户 token，不是独立开放平台权限体系。
 - ✅ `teamId` 是团队隔离边界，`projectId` 是项目内资源上下文，不能漏传或混传。
+- ✅ 当用户消息或当前页面携带维表 URL 时，先从 URL 解析上下文。格式 `http://localhost:3000/#/{teamId}/{projectId}/{sheetId}`；例如 `http://localhost:3000/#/TTFFEN/PM394YD/sh_lTyerp8gwW8QSVD1` 表示 `teamId=TTFFEN`、`projectId=PM394YD`、`sheetId=sh_lTyerp8gwW8QSVD1`。用户说“当前页面/当前表/这个表”时优先用这些 ID 连接维表。
 - ✅ 所有更新类接口统一按“先拿数据 -> 改数据 -> 更新数据”设计调用链。
 - ✅ 先判断密钥应该放在哪里：浏览器和移动端只拿短期 token，`apiSecret` 默认只在服务端或 BFF。
 - ✅ 代码示例必须带出失败处理边界：401 刷新、403 权限不足、404 上下文或资源 ID 错误。
+- ✅ 涉及 `sdk.ai.models/generateImage/createVideo/getVideo/getVideoContent` 时，必须继续读取 `references/ai-examples.md` 和 `references/capability-status.md`；先核对当前包版本、源码签名与脱敏真实响应，再决定解包层级。
+- ✅ AI 原始响应在 SDK 边界按 `unknown` 归一化；业务组件只消费稳定业务对象，不直接固定读取 `response.data.data`，也不靠类型断言掩盖运行时差异。
 
 ## 职责边界
 
@@ -58,39 +60,19 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 | 移动端 / 小程序 | `references/mobile/overview.md` | App 不直持密钥，端上只拿短期 token 或调自家服务端 |
 | 资源域调用 | `references/resources/overview.md` | 表格、文档、报表、权限、画布、AI 等代码调用 |
 | 文件与媒体 | `references/media/overview.md` | 上传图片、附件、封面后写入业务资源 |
-| AI 多能力模型代理 | `references/ai-examples.md` | 聊天、模型列表、图片生成/编辑/变体、视频任务、音频、Embedding、Rerank |
-| 公开工作流/公开插件 API | `references/public-api-examples.md` | `workflow-public`、`plugin-public`、`WorkflowPublicSDK`、`PluginPublicSDK` |
 | 接入路径选择 | `references/integration-paths.md` | SDK、HTTP、BFF 的选型边界 |
 | 当前 SDK 能力 | `references/capability-status.md` | 判断能否直接用 SDK |
-
-## 高频问题速查
-
-用户提问里如果已经出现下面这些意图，不要只停留在 `overview.md`，应直接继续读取右侧案例文件：
-
-| 用户常见说法 | 优先读取 | 预期输出 |
-| --- | --- | --- |
-| “前端能不能直接放 apiSecret” | `references/bff/overview.md`、`references/bff-examples.md` | 明确拒绝端侧存密钥，给 BFF 换 token 方案和最小验证命令 |
-| “React 页面怎么读项目/表格/行数据” | `references/frontend/overview.md`、`references/web-examples.md` | 给前端读取代码、上下文来源、401/403/404 判断 |
-| “单行详情怎么带关联子表或富文本原始 content” | `references/table-examples.md`、`references/capability-status.md` | 使用 `sdk.row.info(..., { include: 'relations,richtext' })`；公开读取用 `sdk.row.openInfo(...)`，增强数据只读 `included` |
-| “维表自定义页面 / dimens-web 怎么开始” | `references/dimens-web-scaffold.md` | 先做 UI/UX，再说明目录、路由、`useDimens()`、`runtimeStore` 落点 |
-| “Wujie props / 按钮弹窗 / 视图插件怎么传” | `references/micro-module-wujie-context.md` | 区分页/视图/按钮三类 props demo，不混成一个模板 |
-| “上传图片后写回表格/文档/画布” | `references/media/overview.md`、`references/upload-examples.md` | 先 upload，再 info/read，再 update/save，带回写示例 |
-| “Node.js/BFF 怎么读表格、文档、报表” | `references/node/overview.md`、`references/bff-examples.md` | 给 SDK 最小调用链和 CLI 回查命令 |
-| “移动端/小程序怎么接，密钥放哪” | `references/mobile/overview.md`、`references/mobile-examples.md` | 强调服务端代理、短期 token、业务接口编排 |
-| “报表只读、报表创建、组件查询怎么写” | `references/report-examples.md` | 说明 `reportId=sheetId` 兼容口径和 queryWidget/query 链路 |
-| “AI 生图/生视频/Embedding/Rerank 怎么接” | `references/ai-examples.md`、`references/capability-status.md` | 默认走 `sdk.ai` 和维表后端代理，不直连 new-api |
-| “公开工作流怎么给第三方系统调用 / wfpub wfsk 怎么用” | `references/public-api-examples.md` | 说明 `publicSecret` 与登录 token/API Key 的边界，给 `workflowPublic.invoke()` |
-| “公开插件怎么发布和安装” | `references/public-api-examples.md` | 说明 `flow_plugin` 市场资源与团队插件实例边界 |
-| “上传素材库为什么要 teamId” | `references/upload-examples.md`、`references/media/overview.md` | 说明 `--source material --team-id`、CDN-first 和 fallback |
+| AI 模型与媒体 | `references/ai-examples.md` | 模型列表、图片结果、视频任务、内容资源和兼容解包 |
 
 ## 默认处理顺序
 
 1. 先判断接入位置：`dimens-web` 自定义页面、普通浏览器、移动端、BFF、Node.js 服务端。
-2. 只要后续会执行或给出 `dimens-cli` 命令，先执行 `dimens-cli --version`；命令不可用或版本不满足当前任务时再安装/升级，并在升级后复核版本和 help。
+2. 只要后续会执行或给出 `dimens-cli` 命令，先执行 `npm -g install @bintel/dimens-cli@latest`，再用 `dimens-cli --version` 或 `dimens-cli --help` 验证。
 3. 如果是 `dimens-web` 自定义页面，先确认/安装并调用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）完成页面设计口径，再读 `references/dimens-web-scaffold.md`，判断目标目录是否已存在；没有目录时使用 `dimens-cli create --dir <目录名>` 初始化，再基于脚手架已有 `useDimens / runtimeStore / appSdk / retry` 输出方案。
 4. 如果是页面、视图、按钮三类微模块或 Wujie 宿主传参问题，继续读 `references/micro-module-wujie-context.md`，先区分定义级 `usageScene/mountLocation` 和运行时 `sourceLocation`，再输出 demo props。
 5. 再判断认证方式：用户登录 token、API Key 换 token、服务端代管 token。
 6. 明确 `baseUrl / teamId / projectId` 的来源和传递方式。
+   - 如果有 `/#/{teamId}/{projectId}/{sheetId}` 页面 URL，直接说明并复用 URL 中的上下文；只在缺段或冲突时追问。
 7. 先读对应 `overview.md`，再按资源域选择 table / document / report / upload / canvas / ai 示例。
 8. 先用 `dimens-cli` 给出可验证的调试路径，再给 SDK / HTTP 代码。
 9. 更新类接口必须先读取当前数据，再合并目标字段。
@@ -123,10 +105,14 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - 不要只依赖后端 `keyword` 搜索按钮微模块；字段配置保存 `pluginId = code` 时，运行器需要按 `moduleCode/code/id/name` 做前端精确匹配或兜底列表查询。
 - 不要在自定义页面没有设计口径时直接堆 UI；先确认/安装并使用 `ui-ux-pro-max-plus` 确定风格、配色、排版、图表和 UX 模式。
 - 不要把 SDK 接入问题误当成系统设计问题。
+- 不要只按 TypeScript 声明固定读取 AI 响应层级；当前不同入口可能返回业务对象、数组或带 `data` 的包装，必须在 SDK 边界按真实响应归一化。
+- 不要把业务引擎代码直接当作 AI `model`；优先使用运行时模型列表返回的 `id`，列表为空且后端支持默认模型注入时才传 `default`。
+- 不要把生产环境 AI 客户端未初始化静默伪装成 mock 成功；应显示未就绪状态，测试替身只在显式测试环境注入。
+- 不要让视频任务只判断单个成功状态或无限轮询；必须同时处理成功、失败、总超时、取消和未知结构。
+- 不要在用户已给出维表页面 URL 时继续追问完整上下文；先解析 `teamId/projectId/sheetId`，缺失部分再补问。
 - 不要用一个“万能请求模板”混掉表格、文档、报表、工作流的不同上下文。
 - 不要跳过 `version/baseVersion` 并发控制直接更新行、文档或画布。
 - 不要把 `chat/completions` 当成完整工作流管理接口。
-- 不要把公开工作流 `publicSecret` 当成用户登录 token；它只用于 `/open/flow/:publicId/v1/chat/completions`。
 - 不要认为登录成功就自动拥有项目、表格、报表权限。
 
 ## 常见错误与修正
@@ -138,8 +124,12 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 | 新增自定义页面时不知道目录 | 先询问是否新建目录，推荐 `dimens-cli create --dir <目录名>`；已有目录则先检查再开发 |
 | 登录成功但读不到资源 | 检查团队成员、项目授权、角色权限 |
 | 同一 token 调项目成功但调表失败 | 补齐 `teamId / projectId / sheetId` 上下文 |
+| 用户说当前页面但只给 URL | 从 `/#/{teamId}/{projectId}/{sheetId}` 解析上下文后再调用 SDK/API |
 | 行更新偶发失败 | 先查当前版本，再提交更新 |
 | 报表创建后找不到 `reportId` | 菜单报表创建返回的 `sheetId` 就是 `reportId` |
+| `response.data.data` 为 `undefined`，模型或图片为空 | 记录版本和脱敏真实响应，在 SDK 边界兼容响应本身、`data` 与嵌套 `data`，页面只消费归一化结果 |
+| 视频任务拿不到 ID 或成功后没有 URL | 兼容任务包装与 `resource.url/resource.key`，未知结构明确失败并保留脱敏诊断，不静默吞错 |
+| 更新 SDK 后 Vite 行为仍像旧版本 | 先确认锁文件和实际解析版本；确需清缓存时把旧缓存迁入项目根 `backupDel/`，并只在没有可复用热加载进程或用户确认后重启原服务 |
 
 ## 干跑测试样本
 
@@ -176,4 +166,3 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - `references/document-examples.md`
 - `references/report-examples.md`
 - `references/ai-examples.md`
-- `references/public-api-examples.md`

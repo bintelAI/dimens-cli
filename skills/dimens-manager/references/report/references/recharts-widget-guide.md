@@ -36,8 +36,6 @@
 
 Skill 不要输出前端未支持的图表类型名，也不要自造 `chartType`。
 
-特别注意：统计卡片的真实类型是 `stat`，不是 `statistic`。如果用户说“指标卡、统计卡片、总数卡片、KPI 卡片”，统一映射到 `stat`。
-
 ---
 
 ## 3. 数据结构分层
@@ -66,56 +64,6 @@ Skill 不要输出前端未支持的图表类型名，也不要自造 `chartType
 - `recommendedMapping` 不能替代 `dataMapping`
 - 有 `sheet.columns` 也不能省略 `dataMapping`
 - 只给 `dataMapping` 不给 `sheet.fieldIds / previewMapping`，查询链路也容易失败
-- 多维表格默认不能把 `fld_` 字段 ID 写进 `dataMapping.nameKey/valueKey`
-
-### 3.2 字段 ID / 字段标签 / 规范消费键三层映射
-
-多维表格报表组件必须把三层信息分开：
-
-| 层级 | 写在哪里 | 正确值 | 用途 |
-| --- | --- | --- | --- |
-| 查询层字段 ID | `dataSource.sheet.columns[].fieldId`、`dataSource.sheet.fieldIds` | `fld_xxx` | 后端查询真实字段 |
-| 规范消费键 | `recommendedMapping`、`previewMapping` | `name`、`value` | 预览、聚合和查询结果规范化 |
-| 前端渲染字段标签 | `dataMapping.nameKey/valueKey` | `油品类型`、`当前库存(升)` | 图表渲染和设置页维度/指标回显 |
-
-错误示例：
-
-```json
-{
-  "dataMapping": {
-    "nameKey": "fld_68FOgBqkaPfZ",
-    "valueKey": "fld_P3ER7CodfIC8"
-  }
-}
-```
-
-正确示例：
-
-```json
-{
-  "dataSource": {
-    "mode": "sheet",
-    "sheet": {
-      "sheetId": "sh_xxx",
-      "columns": [
-        { "fieldId": "fld_68FOgBqkaPfZ", "label": "油品类型", "type": "select" },
-        { "fieldId": "fld_P3ER7CodfIC8", "label": "当前库存(升)", "type": "number" }
-      ],
-      "fieldIds": ["fld_68FOgBqkaPfZ", "fld_P3ER7CodfIC8"],
-      "recommendedMapping": { "nameKey": "name", "valueKey": "value" },
-      "previewMapping": { "nameKey": "name", "valueKey": "value", "aggregation": "sum", "limit": 10 }
-    }
-  },
-  "dataMapping": {
-    "nameKey": "油品类型",
-    "valueKey": "当前库存(升)",
-    "aggregation": "sum",
-    "limit": 10
-  }
-}
-```
-
-验收时不能只看 `preview/query-widget` 是否有数据，还要执行 `report info` 回查已保存组件，确认 `dataMapping.nameKey/valueKey` 不是 `fld_` 字段 ID。
 
 ---
 
@@ -159,17 +107,6 @@ Skill 不要输出前端未支持的图表类型名，也不要自造 `chartType
   }
 }
 ```
-
-在生成这段配置前，必须先用 `row page` 确认数据源表有行且业务 `data` 非空。如果行存在但 `data:{}`，通常是导入数据时用错了 `fieldId`，应先回到表格章节修复，不能继续生成空图表。
-
-强制注意：
-
-- `dataSource` 必须使用 `mode: "sheet"` 和嵌套 `sheet` 对象。
-- 禁止旧格式 `{ "kind": "sheet", "sheetId": "S1" }`。
-- 禁止只写 `{ "mode": "sheet" }`。
-- 禁止把 `sheetId`、`columns`、`fieldIds` 平铺到 `dataSource` 顶层。
-- 禁止把 `dataMapping` 放进 `dataSource.sheet` 后省略顶层 `dataMapping`。
-- 如果历史脚本或用户输入是旧格式，先转换成标准结构，再执行 `preview/widget-add/widget-update/query-widget`。
 
 ### 4.1 字段选择规则
 
@@ -291,8 +228,6 @@ Skill 不要输出前端未支持的图表类型名，也不要自造 `chartType
 - 最终数据必须能落成单值
 - 默认取 `data[0][valueKey]`
 - 如果有对比值，前端会拿 `data[1][valueKey]` 作为上期
-- `dataMapping` 至少包含 `nameKey` 和 `valueKey`
-- `valueKey` 指向的字段必须是 `number` 或预览阶段可稳定聚合为数字
 
 ---
 
@@ -336,8 +271,6 @@ Skill 不要输出前端未支持的图表类型名，也不要自造 `chartType
 8. 是否明确 `limit`
 9. 是否给出默认展示配置
 10. 如果是 `composed` / `scatter` / `stat` 这类特殊图，是否补齐特殊字段要求
-11. 是否已用 `row page` 确认数据源表不是空表，且业务 `data` 不是 `{}`
-12. 是否已用 `report info` 回查保存后的组件，确认 UI 层 `dataMapping` 没有 `fld_` 字段 ID
 
 只要上面任一项缺失，Skill 就不应该直接说“可以创建成功”。
 
@@ -348,10 +281,7 @@ Skill 不要输出前端未支持的图表类型名，也不要自造 `chartType
 | 错误写法 | 为什么错 | 正确做法 |
 | --- | --- | --- |
 | 只写 `type: line` 和 `sheetId` | 前端不知道拿哪列做横轴和纵轴 | 同时补 `sheet.columns`、`fieldIds`、`dataMapping` |
-| 使用 `{ "kind": "sheet", "sheetId": "S1" }` | 这是旧数据来源格式，缺少 `dataSource.sheet.columns/fieldIds/previewMapping` | 改成 `{ "mode": "sheet", "sheet": { ... } }` |
-| 只写 `{ "mode": "sheet" }` | 没有 `sheet` 配置，CLI 会拒绝，后端也无法知道查询哪些字段 | 补 `sheetId`、`columns`、`fieldIds`、`recommendedMapping`、`previewMapping` |
 | 把 `recommendedMapping` 直接当最终映射 | 推荐映射是规范层，不是渲染层 | `dataMapping` 仍然要写实际列名 |
-| 把 `fld_xxx` 写进 `dataMapping` | 查询层字段 ID 被当成前端字段名，设置页维度/指标会显示 ID | `fieldIds` 用 `fld_xxx`，`dataMapping` 用字段标签 |
 | 给饼图使用文本数值字段 | Recharts 无法累计 | 数值字段必须是 `number` 或可转数值 |
 | 组合图只有 `valueKey` 却宣称双序列 | 当前前端第二条线优先读 `trend` | 没有 `trend` 时明确说明退化 |
 | 默认拿系统字段做图 | 很容易不符合业务意图 | 系统字段只在用户明确要求时使用 |
