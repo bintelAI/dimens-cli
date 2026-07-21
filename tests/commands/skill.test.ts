@@ -230,6 +230,27 @@ describe('Skill Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should show dedicated richtext and JSON field guidance in manager references', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(
+      item => item.name === 'show'
+    );
+
+    await command?.handler(['dimens-manager', '--references']);
+
+    expect(logSpy).toHaveBeenCalled();
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('richtext-json-fields.md');
+    expect(output).toContain('富文本字段不能使用 `doc update`');
+    expect(output).toContain('JSON 字段不能使用 `row set-cell`');
+    expect(output).toContain('inline');
+    expect(output).toContain('extended');
+    logSpy.mockRestore();
+  });
+
   it('should guide department fields to text until dedicated frontend support is safe', async () => {
     const { registerCommands } = await import('../../src/commands');
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
