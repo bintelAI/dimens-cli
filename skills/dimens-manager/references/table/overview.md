@@ -29,6 +29,8 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 字段设计必须细到可落地，不能只写“有客户名称、状态、时间”这种抽象描述
 - ✅ 创建字段前必须先判断是否存在稳定枚举语义；如果字段天然是状态、阶段、等级、分类、来源、标签、优先级、风险级别等有限集合，优先使用 `select` 或 `multiSelect`，不要退化成普通 `text`
 - ✅ relation 字段创建必须补齐目标表，推荐显式传 `--target-sheet-id`，并尽量补 `--display-column-id`
+- ✅ relation 字段必须明确 `relationMode`：`single` 保存单个 `rowId/null`，`multiple` 保存 `rowId[]/[]`；多表不限制数量时省略 `--max-selection`
+- ✅ `relationMode` 只能在创建字段时决定，编辑已有字段不得切换单表/多表；完整配置、兼容规则和 CLI/SDK/MCP 示例见 `references/relation-mode.md`
 - ✅ `select` / `multiSelect` 字段在技能创建时必须同时给出完整候选项，不能只定义字段名和类型
 - ✅ `select` / `multiSelect` / 下拉选择类配置在技能输出时必须同时给出规范 `options`：每个选项至少包含唯一 `id`、非空 `label`、合法 `color`；不要只给字符串数组或只给 `label`
 - ✅ `options` 推荐始终使用 JSON 对象数组传给 `--options`；逗号分隔字符串只是 CLI 兼容能力，不作为技能生成规范
@@ -81,7 +83,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `dimens-cli sheet update` | 更新表基础信息，兼容移动菜单归属 | `projectId`, `sheetId` | `teamId`, `name`, `folder-id`, `app-url` | 默认先 `sheet info` 拿当前数据，再改字段后更新；`--folder-id` 会映射为后端 `parentId` |
 | `dimens-cli sheet move` | 把已有表格、报表、文档或画布移动到项目菜单目录 | `teamId`, `projectId`, `sheetId`, `folder-id` | `app-url` | 移动已有资源优先用这个命令；执行后必须 `sheet tree` 回查目录归位 |
 | `dimens-cli column list` | 查询字段列表 | `teamId`, `projectId`, `sheetId` | - | 用于先确认字段结构、字段类型和现有字段 ID |
-| `dimens-cli column create` | 创建字段 | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `custom-id`, `property`, `uiType`, `config`, `required`, `unique`, `key`, `options`, `flow-id`, `system-view` | `--custom-id` 只传后缀，后端保存为 `projectId_suffix`；唯一性仅限当前表；`select/multiSelect` 必须补完整 `options` |
+| `dimens-cli column create` | 创建字段 | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `custom-id`, `property`, `uiType`, `config`, `required`, `unique`, `key`, `options`, `flow-id`, `system-view`, `target-sheet-id`, `display-column-id`, `relation-mode`, `max-selection` | `relation` 必须明确单表/多表；`single` 不传限制数量，`multiple` 的 `max-selection` 为空表示不限且填写时最小为 2 |
 | `dimens-cli column update` | 更新字段定义 | `teamId`, `projectId`, `sheetId`, `fieldId` | `label`, `title`, `type`, `config`, `required`, `unique`, `app-url`, `flow-id`, `system-view` | 默认先拿当前表结构，从 `structure.columns` 找到目标字段后再合并更新；`--config` 与 `--flow-id/--system-view` 会合并字段配置 |
 | `dimens-cli richtext-field content/save` | 读取或保存富文本字段 HTML | `teamId`, `projectId`；保存还需 `sheetId`, `rowId`, `fieldId` | `document-id`, `content`, `file`, `row-version`, `title` | 富文本字段不是在线文档；正文只接受 HTML，`--content` 与 `--file` 二选一 |
 | `dimens-cli json-field content/save` | 读取 extended JSON 或保存 JSON 字段 | `teamId`, `projectId`；保存还需 `sheetId`, `rowId`, `fieldId` | `id`, `content`, `file`, `json-version`, `row-version` | JSON 禁止普通 row 写入；inline 从行读取，extended 使用内容 ID；更新 extended 时 ID 与 JSON 版本必须成对出现 |
@@ -148,7 +150,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - 当前前端真实颜色来源在多维表格字段配置与字典管理页，技能输出时不要自造颜色协议
 - 如果字段语义是“选人”，且项目本身已有用户体系、部门体系、内置角色，则这不是普通 `select`，应优先落到 `person`
 - 如果字段语义是“选部门 / 归属部门 / 所属组织”，则这不是普通 `select`，应优先落到 `department`
-- 关联字段默认要明确：目标表、展示字段、是否多选、是否双向、编辑视图字段
+- 关联字段默认要明确：目标表、展示字段、`relationMode`（单表/多表）、`maxSelection`（多表可选）和编辑视图字段；双向关联仍以服务端能力为准
 - 涉及工作流、AI 分析、审批、自动化入口时，还要同时检查系统视图字段映射
 - `workflow` 字段不是普通业务字段，它负责从行数据发起审批和展示摘要；真实审批状态以审批实例表为准，字段绑定、`sourceSnapshot` 和摘要回写规则看 `dimens-manager/references/workflow/references/field-binding.md`
 
@@ -195,6 +197,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `dimens-manager/references/report/overview.md` | 报表组件、字段映射、固定预检链 | 字段后续要进入看板、图表、统计分析时必须看 |
 | `references/field-design-patterns.md` | 字段设计模板、relation 结构 | 设计字段时必须看 |
 | `references/richtext-json-fields.md` | 富文本/JSON 字段创建、专用读写、inline/extended、双版本控制 | 处理 `richtext` 或 `json` 字段时必须看 |
+| `references/relation-mode.md` | relation 单表/多表模式、限制数量、行值结构和历史兼容 | 创建或维护 `relation` 字段时必须看 |
 | `references/field-option-colors.md` | 单选/多选/下拉选择器颜色体系、默认颜色、自定义颜色协议 | 处理选项字段时必须看 |
 | `references/row-filters.md` | `row/page` 搜索、筛选、排序与 `viewId` 继承 | 设计查询案例时必须看 |
 | `references/field-rules.md` | 字段规则和系统视图字段边界 | 处理系统字段时必须看 |

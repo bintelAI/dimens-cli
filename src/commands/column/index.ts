@@ -83,7 +83,7 @@ export function registerColumnCommands(): void {
         if (payload.type === 'relation') {
           payload.config = {
             ...(payload.config ?? {}),
-            ...buildRelationConfig(flags),
+            ...buildRelationConfig(flags, payload.config),
           };
         }
         if (payload.type === 'select' || payload.type === 'multiSelect') {
@@ -100,7 +100,7 @@ export function registerColumnCommands(): void {
       },
       {
         usage:
-          'column create [<sheetId>] --label <label> [--custom-id <suffix>] [--type <type>] [--config <json>] [--team-id <teamId>] [--project-id <projectId>] [--app-url <url>]',
+          'column create [<sheetId>] --label <label> [--custom-id <suffix>] [--type <type>] [--config <json>] [--target-sheet-id <sheetId>] [--relation-mode single|multiple] [--max-selection <n>] [--team-id <teamId>] [--project-id <projectId>] [--app-url <url>]',
         examples: [
           'column create --team-id TEAM1 --project-id PROJ1 --sheet-id SHEET1 --label 客户名称 --type text --custom-id customer_name',
           '# --custom-id 只传后缀，后端保存为 PROJ1_customer_name；字段只在当前表内校验唯一',
@@ -211,13 +211,20 @@ function resolveColumnId(column: Record<string, unknown>): string | undefined {
   return undefined;
 }
 
-function buildRelationConfig(flags: Record<string, string>): Record<string, unknown> {
-  const targetSheetId = flags['target-sheet-id'];
+function buildRelationConfig(
+  flags: Record<string, string>,
+  currentConfig?: Record<string, unknown>
+): Record<string, unknown> {
+  const currentRelationConfig = asRelationConfig(
+    currentConfig?.relationConfig ?? currentConfig
+  );
+  const targetSheetId = flags['target-sheet-id'] || stringValue(currentRelationConfig.targetSheetId);
   if (!targetSheetId) {
     throw new Error('relation 字段缺少目标表，请传入 --target-sheet-id');
   }
 
   const relationConfig: Record<string, unknown> = {
+    ...currentRelationConfig,
     targetSheetId,
   };
 
@@ -229,13 +236,68 @@ function buildRelationConfig(flags: Record<string, string>): Record<string, unkn
     relationConfig.bidirectional = parseBooleanFlag(flags.bidirectional, 'bidirectional');
   }
 
-  if (flags.multiple) {
-    relationConfig.multiple = parseBooleanFlag(flags.multiple, 'multiple');
+  const relationMode = resolveRelationModeFlag(flags, currentRelationConfig);
+  relationConfig.relationMode = relationMode;
+
+  if (flags['max-selection'] !== undefined) {
+    const maxSelection = parseRelationMaxSelection(flags['max-selection']);
+    if (relationMode === 'single') {
+      throw new Error('单表关联不能配置限制数量');
+    }
+    if (maxSelection < 2) {
+      throw new Error('--max-selection 必须是大于等于 2 的正整数；不限制时请不要传入该参数');
+    }
+    relationConfig.maxSelection = maxSelection;
   }
 
   return {
     relationConfig,
   };
+}
+
+function resolveRelationModeFlag(
+  flags: Record<string, string>,
+  currentConfig: Record<string, unknown>
+): 'single' | 'multiple' {
+  const explicitMode = flags['relation-mode'];
+  if (explicitMode !== undefined) {
+    if (explicitMode !== 'single' && explicitMode !== 'multiple') {
+      throw new Error('--relation-mode 只能是 single 或 multiple');
+    }
+    return explicitMode;
+  }
+
+  if (flags.multiple !== undefined) {
+    return parseBooleanFlag(flags.multiple, 'multiple') ? 'multiple' : 'single';
+  }
+
+  if (currentConfig.relationMode === 'single' || currentConfig.relationMode === 'multiple') {
+    return currentConfig.relationMode;
+  }
+
+  if (Number(currentConfig.maxSelection) === 1) {
+    return 'single';
+  }
+
+  return flags['max-selection'] !== undefined ? 'multiple' : 'single';
+}
+
+function parseRelationMaxSelection(value: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error('--max-selection 必须是正整数；不限制时请不要传入该参数');
+  }
+  return parsed;
+}
+
+function asRelationConfig(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function stringValue(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value : undefined;
 }
 
 function buildSelectConfig(flags: Record<string, string>): Record<string, unknown> {

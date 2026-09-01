@@ -1909,6 +1909,7 @@ describe('Sheet Column Row Commands', () => {
           targetSheetId: 'sh_target',
           displayColumnId: 'fld_name',
           bidirectional: false,
+          relationMode: 'single',
         },
       },
     });
@@ -1993,10 +1994,88 @@ describe('Sheet Column Row Commands', () => {
           targetSheetId: 'sh_contact',
           displayColumnId: 'fld_contact_name',
           bidirectional: true,
-          multiple: true,
+          relationMode: 'multiple',
         },
       },
     });
+    createSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should execute relation column create command with explicit relation mode and limit', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { ColumnSDK } = await import('../../src/sdk/column');
+    const createSpy = vi
+      .spyOn(ColumnSDK.prototype, 'create')
+      .mockImplementation((...args: unknown[]) => {
+        columnSdkSpies.create(...args);
+        return Promise.resolve({ code: 1000, message: 'success', data: { id: 'F2C' } });
+      });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createColumn = getCommandGroup('column')?.commands.find(
+      command => command.name === 'create'
+    );
+    await createColumn?.handler([
+      '--sheet-id',
+      'S1',
+      '--label',
+      '联系人列表',
+      '--type',
+      'relation',
+      '--target-sheet-id',
+      'sh_contact',
+      '--relation-mode',
+      'multiple',
+      '--max-selection',
+      '3',
+    ]);
+
+    expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      label: '联系人列表',
+      type: 'relation',
+      config: {
+        relationConfig: {
+          targetSheetId: 'sh_contact',
+          relationMode: 'multiple',
+          maxSelection: 3,
+        },
+      },
+    });
+    createSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should reject a single relation with a selection limit before calling the SDK', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { ColumnSDK } = await import('../../src/sdk/column');
+    const createSpy = vi.spyOn(ColumnSDK.prototype, 'create');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createColumn = getCommandGroup('column')?.commands.find(
+      command => command.name === 'create'
+    );
+    await createColumn?.handler([
+      '--sheet-id',
+      'S1',
+      '--label',
+      '所属客户',
+      '--type',
+      'relation',
+      '--target-sheet-id',
+      'sh_customer',
+      '--relation-mode',
+      'single',
+      '--max-selection',
+      '1',
+    ]);
+
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('单表关联不能配置限制数量'));
     createSpy.mockRestore();
     logSpy.mockRestore();
   });

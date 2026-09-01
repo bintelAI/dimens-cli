@@ -26,6 +26,13 @@ export { DimensRequestError } from './client';
 export type { ProjectInfo, ProjectPagePayload, ProjectPageResult } from './project';
 export type { TeamInfo, TeamSummary } from './team';
 export type { UserInfo } from './user';
+export type {
+  ColumnConfig,
+  ColumnInfo,
+  ColumnMutationPayload,
+  RelationConfig,
+  RelationMode,
+} from './column';
 
 export type SDKConfig = DimensClientOptions;
 

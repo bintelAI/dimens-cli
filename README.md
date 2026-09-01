@@ -324,6 +324,30 @@ node ./bin/dimens-cli.js sheet tree --project-id PROJ1
 - 创建完成后用 `sheet tree` 回查目录和资源归位
 - 如果要查看命令级帮助，直接执行 `node ./bin/dimens-cli.js help sheet`、`node ./bin/dimens-cli.js help sheet create`、`node ./bin/dimens-cli.js help sheet tree`
 
+### relation 字段：单表与多表
+
+`column create --type relation` 使用 `--relation-mode single|multiple` 明确关联模式：
+
+```bash
+# 单表：保存一个 rowId/null，不输入限制数量
+node ./bin/dimens-cli.js column create \
+  --team-id TEAM1 --project-id PROJ1 --sheet-id sh_contact \
+  --label 所属客户 --type relation \
+  --target-sheet-id sh_customer --display-column-id fld_customer_name \
+  --relation-mode single
+
+# 多表：保存 rowId[]/[]；省略 --max-selection 表示不限
+node ./bin/dimens-cli.js column create \
+  --team-id TEAM1 --project-id PROJ1 --sheet-id sh_customer \
+  --label 联系人列表 --type relation \
+  --target-sheet-id sh_contact --display-column-id fld_contact_name \
+  --relation-mode multiple --max-selection 10
+```
+
+规则：单表不能传 `--max-selection`；多表限制数量必须是大于等于 2 的整数，不传即不限。字段创建后不能切换模式。旧参数 `--multiple true|false` 仍兼容，但 CLI 会转换为正式的 `relationMode`；SDK 或 MCP 请直接在 `config.relationConfig` 中传 `relationMode`。历史字段缺少该配置时，`maxSelection=1` 按单表兼容，其余按多表兼容。
+
+完整配置结构和行值示例见 [`skills/dimens-manager/references/table/references/relation-mode.md`](./skills/dimens-manager/references/table/references/relation-mode.md)。
+
 自定义页面脚手架初始化：
 
 ```bash

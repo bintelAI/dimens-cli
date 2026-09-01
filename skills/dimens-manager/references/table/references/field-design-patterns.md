@@ -309,7 +309,8 @@ CLI 参数：
 - `--target-sheet-id <目标表ID>`
 - `--display-column-id <目标表展示字段ID>`
 - `--bidirectional true|false`
-- `--multiple true|false`
+- `--relation-mode single|multiple`
+- `--max-selection <n>`（仅多表；不传表示不限）
 
 API body 格式：
 
@@ -321,7 +322,8 @@ API body 格式：
     "relationConfig": {
       "targetSheetId": "sh_目标表ID",
       "displayColumnId": "fld_显示字段ID",
-      "bidirectional": false
+      "bidirectional": false,
+      "relationMode": "single"
     }
   }
 }
@@ -331,7 +333,12 @@ API body 格式：
 
 - `--target-sheet-id` 对应服务端真实字段 `config.relationConfig.targetSheetId`
 - `displayColumnId` 建议显式提供，否则关联值展示体验通常不稳定
+- `relationMode=single` 保存单个 `rowId/null`，不配置 `maxSelection`
+- `relationMode=multiple` 保存 `rowId[]/[]`；`maxSelection` 为空表示不限，填写时必须大于等于 2
+- 字段创建后不能修改 `relationMode`；历史缺失该配置时，`maxSelection=1` 按单表兼容，其余按多表兼容
 - 行写入 relation 值前，仍然需要先确认目标表和展示字段
+
+完整 CLI、SDK、MCP 示例见同目录 `relation-mode.md`。
 
 ### 4.3 relation 字段的常见失败点
 

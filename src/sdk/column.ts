@@ -9,13 +9,30 @@ export interface ColumnInfo {
   [key: string]: unknown;
 }
 
+export type RelationMode = 'single' | 'multiple';
+
+export interface RelationConfig {
+  targetSheetId: string;
+  displayColumnId?: string;
+  bidirectional?: boolean;
+  editViewFields?: string[];
+  relationMode?: RelationMode;
+  maxSelection?: number | null;
+  [key: string]: unknown;
+}
+
+export interface ColumnConfig {
+  relationConfig?: RelationConfig;
+  [key: string]: unknown;
+}
+
 export interface ColumnMutationPayload {
   title?: string;
   label?: string;
   customId?: string;
   type?: string;
   description?: string;
-  config?: Record<string, unknown>;
+  config?: ColumnConfig;
   [key: string]: unknown;
 }
 

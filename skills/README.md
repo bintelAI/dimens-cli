@@ -208,6 +208,7 @@ windows-utf8.md
 - 人员字段优先使用人员字段
 - 部门字段优先使用部门字段
 - 普通下拉字段如果要自定义候选项，同一个字段下每个选项 `id` 必须唯一
+- `relation` 字段必须先确定 `relationMode`：单表保存 `rowId/null`，多表保存 `rowId[]/[]`；多表限制数量为空表示不限，字段创建后不可切换
 - 从 Excel 创建普通下拉字段时，必须先从该列实际值提取候选项，再创建字段；行数据只能写入字段 `options` 中已有的值，缺少选项时先补选项再导入
 
 否则后续在权限、筛选、统计、报表映射上都容易出问题。
@@ -368,7 +369,7 @@ skills/
 | 先拆系统、再决定做哪些模块 | `dimens-system-orchestrator` |
 | 先确认团队、项目、上下文 | `dimens-manager/references/team/overview.md` |
 | 先创建项目并补齐默认公开视图 | `dimens-manager/references/project/overview.md` |
-| 先设计表、字段、关联、row/page | `dimens-manager/references/table/overview.md` |
+| 先设计表、字段、关联、row/page | `dimens-manager/references/table/overview.md` + `dimens-manager/references/table/references/relation-mode.md` |
 | 解释谁能看、谁能改、协同为什么异常 | `dimens-manager/references/permission/overview.md` |
 | 解释工作流、默认模型、AI 分析 | `dimens-manager/references/workflow/overview.md` |
 | 解释图表、看板、数据源、参数联动 | `dimens-manager/references/report/overview.md` |

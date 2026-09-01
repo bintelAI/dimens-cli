@@ -34,6 +34,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ `teamId` 是团队隔离边界，`projectId` 是项目内资源上下文，不能漏传或混传。
 - ✅ 当用户消息或当前页面携带维表 URL 时，先从 URL 解析上下文。格式 `http://localhost:3000/#/{teamId}/{projectId}/{sheetId}`；例如 `http://localhost:3000/#/TTFFEN/PM394YD/sh_lTyerp8gwW8QSVD1` 表示 `teamId=TTFFEN`、`projectId=PM394YD`、`sheetId=sh_lTyerp8gwW8QSVD1`。用户说“当前页面/当前表/这个表”时优先用这些 ID 连接维表。
 - ✅ 所有更新类接口统一按“先拿数据 -> 改数据 -> 更新数据”设计调用链。
+- ✅ relation 字段沿用 `relation` 类型，通过 `config.relationConfig.relationMode` 区分 `single`/`multiple`；单表保存标量 `rowId/null`，多表保存 `rowId[]/[]`，多表限制数量为空表示不限。创建后不可切换，详见 `references/table-examples.md` 和 `../dimens-manager/references/table/references/relation-mode.md`。
 - ✅ 先判断密钥应该放在哪里：浏览器和移动端只拿短期 token，`apiSecret` 默认只在服务端或 BFF。
 - ✅ 代码示例必须带出失败处理边界：401 刷新、403 权限不足、404 上下文或资源 ID 错误。
 - ✅ 涉及 `sdk.ai.models/generateImage/createVideo/getVideo/getVideoContent` 时，必须继续读取 `references/ai-examples.md` 和 `references/capability-status.md`；先核对当前包版本、源码签名与脱敏真实响应，再决定解包层级。

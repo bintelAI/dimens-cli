@@ -258,7 +258,7 @@ dimens-cli column create \
 - 当前 CLI 已兼容旧参数 `--title`，但推荐统一改用 `--label`，与服务端字段名保持一致
 - `select` / `multiSelect` 创建时必须同步补 `--options`，推荐直接传 JSON 数组对象，便于补齐颜色等配置
 - `--options` 规范对象至少包含 `id / label / color`，同一字段内 `id` 不重复；颜色必须符合 `field-option-colors.md` 的 12 色池或 `custom:` 协议
-- relation 字段当前复杂配置仍建议按 API 的 `relationConfig` 结构校验，不能只看 CLI 成功提示
+- relation 字段当前复杂配置仍建议按 API 的 `relationConfig` 结构校验，不能只看 CLI 成功提示；必须明确 `relationMode`，完整规则见 `references/relation-mode.md`
 
 如果目标里明确包含报表，字段设计时默认再补下面 4 个判断：
 

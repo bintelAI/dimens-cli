@@ -243,6 +243,8 @@ relation 字段配置重点：
       "targetSheetId": "sh_Zp60Au58FrE9FhVi",
       "displayColumnId": "fld_COvhKXd8iLVQ",
       "bidirectional": false,
+      "relationMode": "multiple",
+      "maxSelection": 10,
       "editViewFields": ["fld_COvhKXd8iLVQ"]
     }
   }
@@ -252,6 +254,8 @@ relation 字段配置重点：
 补充说明：
 
 - `dimens-cli column create --type relation` 当前已支持把 `--target-sheet-id` 映射为 `config.relationConfig.targetSheetId`
+- 关联模式使用 `--relation-mode single|multiple`；单表不传 `--max-selection`，多表不限制时省略该参数，设置上限时传大于等于 2 的整数
+- 旧参数 `--multiple true|false` 仍兼容，但会转换成 `relationMode`，新命令不要继续生成 `multiple` 配置键
 - 推荐同时传 `--display-column-id`，避免 relation 展示值异常
 - 如果后续仍出现“CLI 成功但字段未落库”，优先对照服务端最终入库结构核对 `config.relationConfig`
 

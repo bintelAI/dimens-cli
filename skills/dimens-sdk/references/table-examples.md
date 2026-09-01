@@ -81,6 +81,38 @@ if (!views.data.length) {
 }
 ```
 
+## 6.1 创建单表 / 多表 relation
+
+`relation` 通过 `config.relationConfig.relationMode` 区分存储形态，不新增字段类型：
+
+```ts
+await sdk.column.create('TEAM1', 'PROJ1', 'SHEET_CONTACT', {
+  label: '所属客户',
+  type: 'relation',
+  config: {
+    relationConfig: {
+      targetSheetId: 'SHEET_CUSTOMER',
+      displayColumnId: 'FIELD_CUSTOMER_NAME',
+      relationMode: 'single',
+    },
+  },
+});
+
+await sdk.column.create('TEAM1', 'PROJ1', 'SHEET_CUSTOMER', {
+  label: '联系人列表',
+  type: 'relation',
+  config: {
+    relationConfig: {
+      targetSheetId: 'SHEET_CONTACT',
+      relationMode: 'multiple',
+      maxSelection: 10,
+    },
+  },
+});
+```
+
+单表行值是一个 `rowId` 或 `null`，多表行值是 `rowId[]` 或 `[]`。多表不限制数量时省略 `maxSelection`；填写上限时最小为 2。字段创建后不允许切换模式，历史缺少 `relationMode` 的字段按 `maxSelection === 1` 推断为单表，否则按多表兼容。完整规则见 `../../dimens-manager/references/table/references/relation-mode.md`。
+
 ## 7. 分页读取行数据
 
 ```ts

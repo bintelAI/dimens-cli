@@ -33,7 +33,7 @@
 | API Key、Secret、token、第三方登录 | `dimens-manager/references/key-auth/overview.md` | Key 只是登录方式扩展，权限仍继承绑定用户 |
 | 团队、成员、部门、租户隔离、项目链接解析 | `dimens-manager/references/team/overview.md` | 所有资源操作前先稳定 `teamId / projectId` |
 | 创建项目、项目初始化、目录、文档 | `dimens-manager/references/project/overview.md` | 项目是表格、文档、报表的容器 |
-| 建表、字段、视图、行数据、关联、筛选 | `dimens-manager/references/table/overview.md` | 系统数据模型主链 |
+| 建表、字段、视图、行数据、关联、筛选 | `dimens-manager/references/table/overview.md` + `dimens-manager/references/table/references/relation-mode.md` | 系统数据模型主链；relation 需先确定单表/多表及限制数量 |
 | 角色、项目权限、表列行权限、ACL、公开访问 | `dimens-manager/references/permission/overview.md` | 涉及可见性和协同时必须前置 |
 | 审批、自动化、AI 分析、模型路由 | `dimens-manager/references/workflow/overview.md` | 区分团队工作流定义、项目挂载和运行调用 |
 | 审批工作流自动生成 | `dimens-manager/references/workflow/references/approval-generation.md` | 生成 `pluginType=approval` 草案和落地计划，不等同于画布 |
