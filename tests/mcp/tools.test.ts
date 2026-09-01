@@ -235,6 +235,20 @@ describe('MCP tools', () => {
     expect(parseToolResult(result).data).toEqual({ columns: [] });
   });
 
+  it('should call sheet create with custom ID suffix', async () => {
+    const context = createToolContext();
+    const tools = createSheetTools(context);
+    const tool = tools.find(item => item.name === 'dimens_sheet_create');
+
+    await tool?.handler({ name: '客户表', type: 'sheet', customId: 'customer' });
+
+    expect(context.createSDK().sheet.create).toHaveBeenCalledWith('PROJ1', {
+      name: '客户表',
+      type: 'sheet',
+      customId: 'customer',
+    });
+  });
+
   it('should update and delete sheet with confirmation protection', async () => {
     const context = createToolContext();
     const tools = createSheetTools(context);
@@ -263,6 +277,20 @@ describe('MCP tools', () => {
     expect(context.createSDK().column.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
       label: '客户名称',
       type: 'text',
+    });
+  });
+
+  it('should call column create with custom ID suffix', async () => {
+    const context = createToolContext();
+    const tools = createColumnTools(context);
+    const tool = tools.find(item => item.name === 'dimens_column_create');
+
+    await tool?.handler({ sheetId: 'S1', label: '客户名称', type: 'text', customId: 'customer_name' });
+
+    expect(context.createSDK().column.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      label: '客户名称',
+      type: 'text',
+      customId: 'customer_name',
     });
   });
 

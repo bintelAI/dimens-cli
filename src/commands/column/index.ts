@@ -54,7 +54,10 @@ export function registerColumnCommands(): void {
 
   registerGroupCommand(
     'column',
-    createCommand('create', '创建字段', async args => {
+    createCommand(
+      'create',
+      '创建字段（支持项目级自定义 ID 后缀）',
+      async args => {
       const flags = parseFlags(args);
       const context = getContext(flags);
 
@@ -68,6 +71,9 @@ export function registerColumnCommands(): void {
         }
         const sdk = new ColumnSDK(createClient(context));
         const payload: ColumnMutationPayload = { label };
+        if (flags['custom-id']) {
+          payload.customId = flags['custom-id'];
+        }
         if (flags.type) {
           payload.type = flags.type;
         }
@@ -91,7 +97,16 @@ export function registerColumnCommands(): void {
       } catch (error) {
         printError(context, error);
       }
-    })
+      },
+      {
+        usage:
+          'column create [<sheetId>] --label <label> [--custom-id <suffix>] [--type <type>] [--config <json>] [--team-id <teamId>] [--project-id <projectId>] [--app-url <url>]',
+        examples: [
+          'column create --team-id TEAM1 --project-id PROJ1 --sheet-id SHEET1 --label 客户名称 --type text --custom-id customer_name',
+          '# --custom-id 只传后缀，后端保存为 PROJ1_customer_name；字段只在当前表内校验唯一',
+        ],
+      }
+    )
   );
 
   registerGroupCommand(

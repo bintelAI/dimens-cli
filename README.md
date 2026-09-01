@@ -305,6 +305,7 @@ node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 项目文档 --t
 node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 经营分析 --type folder
 node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 客户表 --folder-id FOLDER_SHEET_ID
 node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 联系人表 --folder-id FOLDER_SHEET_ID
+node ./bin/dimens-cli.js sheet create --project-id PROJ1 --name 客户明细 --type sheet --custom-id customer_detail
 node ./bin/dimens-cli.js doc create --team-id TEAM1 --project-id PROJ1 --title 项目说明文档 --parent-id FOLDER_SHEET_ID --format richtext
 node ./bin/dimens-cli.js report create --project-id PROJ1 --name 销售漏斗
 node ./bin/dimens-cli.js sheet tree --project-id PROJ1
@@ -317,6 +318,8 @@ node ./bin/dimens-cli.js sheet tree --project-id PROJ1
 - 项目菜单骨架默认至少包含：目录、表格、文档、报表
 - `sheet create --type folder` 用于创建目录节点
 - `sheet create --folder-id <folderSheetId>` 用于把资源挂到目录下
+- `sheet create --custom-id <suffix>` 仅提交自定义后缀，后端按 `projectId_suffix` 生成最终 `sheetId`；不要传最终 ID，也不要使用团队 ID 作为前缀
+- 创建字段时使用 `column create --custom-id <suffix>`；字段后缀只在当前 `sheetId` 内唯一，不同表允许重复，创建后用 `column list` 回查真实 `fieldId`
 - 文档当前挂目录走 `doc create --parent-id <folderSheetId>`
 - 创建完成后用 `sheet tree` 回查目录和资源归位
 - 如果要查看命令级帮助，直接执行 `node ./bin/dimens-cli.js help sheet`、`node ./bin/dimens-cli.js help sheet create`、`node ./bin/dimens-cli.js help sheet tree`

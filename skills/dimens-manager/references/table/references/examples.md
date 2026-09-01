@@ -148,6 +148,18 @@ dimens-cli sheet info \
 | `sh_ja2IwgaBhV1jUWB4` | `数据管理` | 详情可正常返回，包含 7 个字段、3 个视图 |
 | `sh_Zp60Au58FrE9FhVi` | `工作表 2` | 详情可正常返回，包含 5 个字段、1 个视图 |
 
+### 3.3 创建自定义 ID 表格
+
+```bash
+dimens-cli sheet create \
+  --project-id PROJ1 \
+  --name 客户表 \
+  --type sheet \
+  --custom-id customer
+```
+
+请求体只包含 `customId: "customer"`，最终 `sheetId` 由服务端生成：`PROJ1_customer`。创建后使用 `sheet info` 回查，不要自行提交或拼接最终 ID。自定义 ID 需要项目高级设置已开启，非法后缀或冲突由服务端返回错误。
+
 ---
 
 ## 4. 查询字段列表
@@ -192,7 +204,21 @@ dimens-cli column list \
   --output json
 ```
 
-### 4.3 真实字段案例：`数据管理`
+### 4.3 创建自定义 ID 字段
+
+```bash
+dimens-cli column create \
+  --team-id TTFFEN \
+  --project-id PROJ1 \
+  --sheet-id SHEET1 \
+  --label 客户名称 \
+  --type text \
+  --custom-id customer_name
+```
+
+请求体只包含 `customId: "customer_name"`，最终 `fieldId` 由服务端生成：`PROJ1_customer_name`。字段唯一性限定在 `SHEET1` 内；另一张表可以再次使用 `customer_name`。创建后使用 `column list` 回查真实字段 ID，同一张表重复使用时处理 `RESOURCE_ID_CONFLICT`。
+
+### 4.4 真实字段案例：`数据管理`
 
 已实测字段：
 
@@ -229,7 +255,7 @@ relation 字段配置重点：
 - 推荐同时传 `--display-column-id`，避免 relation 展示值异常
 - 如果后续仍出现“CLI 成功但字段未落库”，优先对照服务端最终入库结构核对 `config.relationConfig`
 
-### 4.4 `select` 字段案例：`提交状态`
+### 4.5 `select` 字段案例：`提交状态`
 
 CLI 命令：
 
@@ -271,7 +297,7 @@ dimens-cli column create \
 - `--options` 规范写法是 JSON 对象数组；每个选项至少包含唯一 `id`、非空 `label`、合法 `color`
 - 同一个字段的选项 `id` 必须唯一，不能重复，否则前端下拉映射和后续统计都有概率异常
 
-### 4.5 `workflow` 字段案例：审批入口
+### 4.6 `workflow` 字段案例：审批入口
 
 CLI 创建审批入口字段：
 
@@ -318,7 +344,7 @@ dimens-cli column update \
 - 如果需要完整字段配置，可传 `--config '{"flowId":"FLOW_APPROVAL","systemView":"approval"}'`；`column update` 会在当前字段配置基础上合并。
 - 详细行数据绑定、`sourceSnapshot`、`bizData.payload` 和摘要回写规则看 `../../workflow/references/field-binding.md`。
 
-### 4.6 报表友好的字段组合案例
+### 4.7 报表友好的字段组合案例
 
 如果这张表后续还要接报表，建模时建议先按下面这种组合思路准备：
 

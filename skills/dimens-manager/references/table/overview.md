@@ -19,10 +19,12 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 - ✅ 执行任何 `project / sheet / column / row / ai` 命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`
 - ✅ 表格能力默认要先确认 `projectId`，大多数写操作还需要 `teamId`
+- ✅ 新建表格可传 `--custom-id <suffix>`，新建字段可传 `--custom-id <suffix>`；最终 ID 由后端按 `projectId_suffix` 生成，CLI 不提交最终 ID，也不能使用团队 ID 作为前缀
 - ✅ CLI 是表、字段、视图、行数据操作的首选入口；接口案例只用于解释真实契约和边界
 - ✅ 缺少 `teamId/projectId/sheetId/fieldId/rowId/viewId` 时，先用列表、详情或用户确认补齐，不要猜 ID
 - ✅ 如果用户还处在“创建项目 / 初始化项目”阶段，先路由到 `dimens-manager/references/project/overview.md`，不要在 `dimens-manager/references/table/overview.md` 里直接吞掉上游步骤
 - ✅ 字段、视图、行数据都属于工作表上下文，不能脱离 `sheetId` 单独判断
+- ✅ 字段自定义 ID 的唯一性只限定在当前 `sheetId`；不同工作表允许相同字段后缀，同表重复时处理 `RESOURCE_ID_CONFLICT`
 - ✅ 默认要优先帮助用户把“项目 -> 表 -> 字段 -> 关联 -> 示例数据 -> 查询案例”搭起来
 - ✅ 字段设计必须细到可落地，不能只写“有客户名称、状态、时间”这种抽象描述
 - ✅ 创建字段前必须先判断是否存在稳定枚举语义；如果字段天然是状态、阶段、等级、分类、来源、标签、优先级、风险级别等有限集合，优先使用 `select` 或 `multiSelect`，不要退化成普通 `text`
@@ -75,11 +77,11 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | --- | --- | --- | --- | --- |
 | `dimens-cli sheet list` | 查询项目下工作表列表 | `projectId` | `teamId` | 表入口通常先从项目进入，排查问题时建议显式补 `teamId` |
 | `dimens-cli sheet info` | 获取工作表详情 | `teamId`, `projectId`, `sheetId` | - | 表更新前默认先读当前表数据，确认结构和归属 |
-| `dimens-cli sheet create` | 创建表或目录节点 | `projectId`, `name` | `teamId`, `folder-id`, `type` | 新表落地后还要继续检查默认公开视图是否存在；要放入目录时必须显式传 `--folder-id` |
+| `dimens-cli sheet create` | 创建表或目录节点 | `projectId`, `name` | `teamId`, `folder-id`, `type`, `custom-id` | `--custom-id` 只传后缀且仅 `type=sheet` 支持，后端保存为 `projectId_suffix`；新表落地后还要检查默认公开视图 |
 | `dimens-cli sheet update` | 更新表基础信息，兼容移动菜单归属 | `projectId`, `sheetId` | `teamId`, `name`, `folder-id`, `app-url` | 默认先 `sheet info` 拿当前数据，再改字段后更新；`--folder-id` 会映射为后端 `parentId` |
 | `dimens-cli sheet move` | 把已有表格、报表、文档或画布移动到项目菜单目录 | `teamId`, `projectId`, `sheetId`, `folder-id` | `app-url` | 移动已有资源优先用这个命令；执行后必须 `sheet tree` 回查目录归位 |
 | `dimens-cli column list` | 查询字段列表 | `teamId`, `projectId`, `sheetId` | - | 用于先确认字段结构、字段类型和现有字段 ID |
-| `dimens-cli column create` | 创建字段 | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `property`, `uiType`, `config`, `required`, `unique`, `key`, `options`, `flow-id`, `system-view` | `select/multiSelect` 必须补完整 `options`；`workflow` 字段可用 `--flow-id --system-view approval` 绑定审批入口 |
+| `dimens-cli column create` | 创建字段 | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `custom-id`, `property`, `uiType`, `config`, `required`, `unique`, `key`, `options`, `flow-id`, `system-view` | `--custom-id` 只传后缀，后端保存为 `projectId_suffix`；唯一性仅限当前表；`select/multiSelect` 必须补完整 `options` |
 | `dimens-cli column update` | 更新字段定义 | `teamId`, `projectId`, `sheetId`, `fieldId` | `label`, `title`, `type`, `config`, `required`, `unique`, `app-url`, `flow-id`, `system-view` | 默认先拿当前表结构，从 `structure.columns` 找到目标字段后再合并更新；`--config` 与 `--flow-id/--system-view` 会合并字段配置 |
 | `dimens-cli richtext-field content/save` | 读取或保存富文本字段 HTML | `teamId`, `projectId`；保存还需 `sheetId`, `rowId`, `fieldId` | `document-id`, `content`, `file`, `row-version`, `title` | 富文本字段不是在线文档；正文只接受 HTML，`--content` 与 `--file` 二选一 |
 | `dimens-cli json-field content/save` | 读取 extended JSON 或保存 JSON 字段 | `teamId`, `projectId`；保存还需 `sheetId`, `rowId`, `fieldId` | `id`, `content`, `file`, `json-version`, `row-version` | JSON 禁止普通 row 写入；inline 从行读取，extended 使用内容 ID；更新 extended 时 ID 与 JSON 版本必须成对出现 |
@@ -230,6 +232,36 @@ tags: [table, sheet, row, column, view, dimens-cli]
 ```bash
 dimens-cli sheet list --project-id PROJ1
 ```
+
+### 场景 1.2：创建带自定义 ID 的表格和字段
+
+```bash
+dimens-cli sheet create \
+  --project-id PROJ1 \
+  --name 客户表 \
+  --type sheet \
+  --custom-id customer
+```
+
+服务端最终保存 `sheetId=PROJ1_customer`。创建完成后必须回查真实 ID：
+
+```bash
+dimens-cli sheet info SHEET_ID --team-id TEAM1 --project-id PROJ1
+```
+
+在指定工作表内创建字段：
+
+```bash
+dimens-cli column create \
+  --team-id TEAM1 \
+  --project-id PROJ1 \
+  --sheet-id SHEET_ID \
+  --label 客户名称 \
+  --type text \
+  --custom-id customer_name
+```
+
+服务端最终保存 `fieldId=PROJ1_customer_name`。字段后缀只在当前表内唯一；另一张表也可以使用 `customer_name`。创建后使用 `column list` 回查真实字段 ID。若同一张表重复使用后缀，服务端返回 `RESOURCE_ID_CONFLICT`，应更换后缀。
 
 建议：
 

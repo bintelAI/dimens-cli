@@ -22,6 +22,9 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 - ✅ 用户提到 `sdk.ai.*`、`response.data`、模型下拉、图片不显示、视频任务轮询、Provider 或 Vite 代理时，属于开发者接入问题；直接路由到 `dimens-sdk/references/ai-examples.md` 与 `dimens-sdk/references/capability-status.md`。
 - ✅ Windows 下生成或修改中文文件时，必须遵守 `../windows-utf8.md`：用 UTF-8 写入，禁止 `cmd echo` / 默认重定向写中文正文，写完读回确认没有 `??`。
 - ✅ 每次准备使用 `dimens-cli` 前，必须先在当前终端执行 `npm -g install @bintel/dimens-cli@latest` 升级全局 CLI；升级成功后再执行 `dimens-cli --version` 或 `dimens-cli --help` 确认可用，确保用户每次使用的都是最新版本。
+- ✅ 创建表格或字段时可用 `--custom-id <suffix>`（MCP 使用 `customId`）指定自定义 ID 后缀；最终 ID 始终由后端按 `projectId_suffix` 生成，CLI/技能不得自行拼接或提交最终 `sheetId/fieldId`。
+- ✅ 自定义字段 ID 只在当前 `sheetId` 内校验唯一；不同工作表可以使用相同字段后缀。遇到 `RESOURCE_ID_CONFLICT` 时更换后缀，不要误判为项目或团队全局冲突。
+- ✅ 自定义 ID 创建成功后，必须用 `sheet info` 或 `column list` 回查服务端返回的真实 `sheetId/fieldId`；不要把团队 ID 当作 ID 前缀。
 - ✅ 项目内查询、创建、更新、上传、验证等操作优先推荐并执行 `dimens-cli` 命令；自定义 URL 只作为上下文解析或 CLI 未覆盖时的补充路径，不作为首选解决方案。
 - ✅ 执行任何写操作前先确认认证、`teamId`、`projectId` 与资源归属。
 - ✅ 当用户消息或当前页面携带维表 URL 时，先解析 URL 上下文。格式 `http://localhost:3000/#/{teamId}/{projectId}/{sheetId}`；例如 `http://localhost:3000/#/TTFFEN/PM394YD/sh_lTyerp8gwW8QSVD1` 表示 `teamId=TTFFEN`、`projectId=PM394YD`、`sheetId=sh_lTyerp8gwW8QSVD1`。用户说“当前页面/当前表/这个表”时优先使用这些 ID。

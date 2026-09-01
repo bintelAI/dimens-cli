@@ -20,6 +20,7 @@ export function registerDimensPrompts(server: Pick<McpServer, 'registerPrompt'>)
             text: [
               '请基于维表智联能力进行多维表建模。',
               '输出项目资源、表结构、字段类型、视图、权限注意点和初始化数据建议。',
+              '创建表格或字段如需自定义 ID，只输出 customId 后缀；最终 ID 由后端按 projectId_suffix 生成，字段后缀仅在当前 sheetId 内唯一。',
               `业务需求：${requirement}`,
             ].join('\n'),
           },
@@ -47,6 +48,7 @@ export function registerDimensPrompts(server: Pick<McpServer, 'registerPrompt'>)
               '请为维表智联项目初始化生成分步执行计划。',
               '优先顺序：确认上下文 -> 创建目录/表 -> 创建字段 -> 创建视图 -> 写入示例行 -> 验证结构。',
               '所有写操作前说明目标 teamId/projectId/sheetId。',
+              '创建表格和字段时可使用 customId 后缀；不要提交最终 sheetId/fieldId，创建后分别用 sheet info/column list 回查。',
               `项目目标：${projectGoal}`,
             ].join('\n'),
           },

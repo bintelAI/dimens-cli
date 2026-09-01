@@ -12,6 +12,7 @@ export interface ColumnInfo {
 export interface ColumnMutationPayload {
   title?: string;
   label?: string;
+  customId?: string;
   type?: string;
   description?: string;
   config?: Record<string, unknown>;

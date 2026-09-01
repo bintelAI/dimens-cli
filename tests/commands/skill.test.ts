@@ -192,6 +192,21 @@ describe('Skill Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should show project-scoped custom IDs in the table skill', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const command = getCommandGroup('skill')?.commands.find(item => item.name === 'show');
+    await command?.handler(['dimens-manager']);
+
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('projectId_suffix');
+    expect(output).toContain('当前 `sheetId` 内校验唯一');
+    expect(output).toContain('--custom-id');
+    logSpy.mockRestore();
+  });
+
   it('should recommend manager and sdk for public workflow and plugin intents', async () => {
     const { registerCommands } = await import('../../src/commands');
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);

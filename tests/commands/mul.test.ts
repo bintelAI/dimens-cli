@@ -1799,6 +1799,35 @@ describe('Sheet Column Row Commands', () => {
     logSpy.mockRestore();
   });
 
+  it('should pass custom sheet ID suffix without constructing final ID', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { SheetSDK } = await import('../../src/sdk/sheet');
+    const createSpy = vi.spyOn(SheetSDK.prototype, 'create');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createSheet = getCommandGroup('sheet')?.commands.find(command => command.name === 'create');
+    await createSheet?.handler([
+      '--project-id',
+      'PROJ1',
+      '--name',
+      '客户表',
+      '--type',
+      'sheet',
+      '--custom-id',
+      'customer',
+    ]);
+
+    expect(createSpy).toHaveBeenCalledWith('PROJ1', {
+      name: '客户表',
+      type: 'sheet',
+      customId: 'customer',
+    });
+    createSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
   it('should execute sheet create command with folder parent payload', async () => {
     const { registerCommands } = await import('../../src/commands');
     const { getCommandGroup } = await import('../../src/commands/registry');
@@ -1882,6 +1911,41 @@ describe('Sheet Column Row Commands', () => {
           bidirectional: false,
         },
       },
+    });
+    createSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should pass custom column ID suffix without constructing final ID', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { ColumnSDK } = await import('../../src/sdk/column');
+    const createSpy = vi
+      .spyOn(ColumnSDK.prototype, 'create')
+      .mockResolvedValue({ code: 1000, message: 'success', data: { id: 'PROJ1_customer_name' } });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createColumn = getCommandGroup('column')?.commands.find(command => command.name === 'create');
+    await createColumn?.handler([
+      '--team-id',
+      'TEAM1',
+      '--project-id',
+      'PROJ1',
+      '--sheet-id',
+      'S1',
+      '--label',
+      '客户名称',
+      '--type',
+      'text',
+      '--custom-id',
+      'customer_name',
+    ]);
+
+    expect(createSpy).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      label: '客户名称',
+      type: 'text',
+      customId: 'customer_name',
     });
     createSpy.mockRestore();
     logSpy.mockRestore();

@@ -48,5 +48,10 @@
     "id": "manager-018",
     "prompt": "我要创建一个 extended JSON 字段，写入 2 MB 对象并随后更新，能直接 row set-cell --value-json 吗？",
     "expected": "应读取 table/references/richtext-json-fields；明确 JSON 字段不能使用 row set-cell/create/update；创建时 config.jsonConfig.storageMode=extended 且 maxSizeMb 足够，首次使用 json-field save --file 和 rowVersion，读取使用 json-field content --id，二次更新同时携带 id、jsonVersion、rowVersion；说明顶层只能是对象或数组且禁止注释、尾逗号、重复键。"
+  },
+  {
+    "id": "manager-019",
+    "prompt": "我要创建一张客户表并自定义表 ID，再给它创建一个自定义字段 ID；另一张表也要使用相同字段后缀。",
+    "expected": "应命中表格章节，使用 sheet create --custom-id 和 column create --custom-id；说明最终 ID 由后端按 projectId_suffix 生成，不使用团队 ID；字段后缀仅在当前 sheetId 内唯一，不同表允许重复；创建后分别用 sheet info 和 column list 回查真实 ID。"
   }
 ]

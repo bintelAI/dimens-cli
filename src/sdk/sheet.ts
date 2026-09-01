@@ -9,6 +9,7 @@ export interface SheetInfo {
 
 export interface SheetMutationPayload {
   name?: string;
+  customId?: string;
   icon?: string;
   type?: 'sheet' | 'folder' | 'document' | 'report' | 'canvas';
   folderId?: string;

@@ -103,6 +103,8 @@ describe('Help Command', () => {
     expect(output).toContain('--type sheet|folder|document|report|canvas');
     expect(output).toContain('客户中心 --type folder');
     expect(output).toContain('--folder-id folder_customer');
+    expect(output).toContain('--custom-id <suffix>');
+    expect(output).toContain('后端保存为 PROJ1_customer');
     expect(output).toContain('sheet tree --project-id PROJ1');
     logSpy.mockRestore();
   });
@@ -118,6 +120,18 @@ describe('Help Command', () => {
     expect(output).toContain('项目菜单与多维表资源管理');
     expect(output).toContain('create');
     expect(output).toContain('获取项目菜单树');
+    logSpy.mockRestore();
+  });
+
+  it('should print column create help with custom ID scope', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    await getCommand('help')?.handler(['column', 'create']);
+
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('命令: column create');
+    expect(output).toContain('--custom-id <suffix>');
+    expect(output).toContain('字段只在当前表内校验唯一');
     logSpy.mockRestore();
   });
 

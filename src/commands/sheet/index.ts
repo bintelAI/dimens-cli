@@ -91,9 +91,13 @@ export function registerSheetCommands(): void {
           const sdk = new SheetSDK(createClient(context));
           const payload: {
             name: string;
+            customId?: string;
             type?: 'sheet' | 'folder' | 'document' | 'report' | 'canvas';
             folderId?: string;
           } = { name };
+          if (flags['custom-id']) {
+            payload.customId = flags['custom-id'];
+          }
           if (flags.type) {
             const supportedTypes = new Set(['sheet', 'folder', 'document', 'report', 'canvas']);
             if (!supportedTypes.has(flags.type)) {
@@ -112,10 +116,11 @@ export function registerSheetCommands(): void {
       },
       {
         usage:
-          'sheet create --name <name> [--project-id <projectId>] [--type sheet|folder|document|report|canvas] [--folder-id <folderSheetId>] [--team-id <teamId>] [--app-url <url>]',
+          'sheet create --name <name> [--custom-id <suffix>] [--project-id <projectId>] [--type sheet|folder|document|report|canvas] [--folder-id <folderSheetId>] [--team-id <teamId>] [--app-url <url>]',
         examples: [
           'sheet create --project-id PROJ1 --name 客户中心 --type folder',
-          'sheet create --project-id PROJ1 --name 客户表 --folder-id folder_customer',
+          'sheet create --project-id PROJ1 --name 客户表 --custom-id customer --folder-id folder_customer',
+          '# --custom-id 只传后缀，后端保存为 PROJ1_customer；仅 type=sheet 支持',
           'sheet create --project-id PROJ1 --name 业务流程画布 --type canvas',
           'sheet tree --project-id PROJ1',
         ],

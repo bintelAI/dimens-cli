@@ -71,10 +71,11 @@ export function createSheetTools(toolContext: McpToolFactoryContext): McpToolDef
     createSimpleTool({
       name: 'dimens_sheet_create',
       title: '创建项目资源',
-      description: '创建表格、目录、文档、报表或画布资源节点。',
+      description: '创建表格、目录、文档、报表或画布资源节点。表格可传 customId 后缀，最终 ID 由服务端按 projectId_suffix 生成。',
       inputSchema: {
         ...contextSchema,
         name: z.string(),
+        customId: z.string().optional(),
         type: z.enum(sheetTypeValues).optional(),
         folderId: z.string().optional(),
       },
@@ -87,6 +88,10 @@ export function createSheetTools(toolContext: McpToolFactoryContext): McpToolDef
           throw new Error('缺少 name，请传入资源名称');
         }
         const payload: SheetMutationPayload = { name };
+        const customId = stringArg(args.customId);
+        if (customId) {
+          payload.customId = customId;
+        }
         const type = stringArg(args.type);
         if (type) {
           payload.type = type as 'sheet' | 'folder' | 'document' | 'report' | 'canvas';
