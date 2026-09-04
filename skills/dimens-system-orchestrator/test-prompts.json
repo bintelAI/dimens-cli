@@ -23,5 +23,20 @@
     "id": "orchestrator-005",
     "prompt": "基于已有 ./customer-page 自定义页面目录，新增一个客户看板页面。",
     "expected": "应复用已有目录，检查脚手架结构并进入 custom-page-scaffold 流程，不应再次执行 create --dir 覆盖目录。"
+  },
+  {
+    "id": "orchestrator-006",
+    "prompt": "把传统 CRM 数据库转换成维表：customers、contacts、customer_tags 和 customer_tag_map，联系人可没有客户，一个客户有多个联系人，标签关系表只有两个外键。",
+    "expected": "设计文档必须先输出关系映射表；contacts.customer_id 按业务语义判断为 single 且允许 null，客户与标签在连接表无独立属性时优先评估 multiple relation，先导入目标行再用真实 rowId 回填，不得机械保留连接表或把外键文本直接写入 relation。"
+  },
+  {
+    "id": "orchestrator-007",
+    "prompt": "将订单库迁移到维表，orders.customer_id 可能重复、存在已删除客户，order_items 还需要记录成交价和折扣。",
+    "expected": "应识别重复外键、软删除目标和孤儿记录并给出清洗/隔离策略；订单客户使用 single relation，order_items 作为承载独立属性的明细表保留，并按目标 rowId 回填，不能用客户名称或旧主键代替。"
+  },
+  {
+    "id": "orchestrator-008",
+    "prompt": "导入一个项目数据库，项目可关联多个成员，但最多 10 人；请直接生成字段设计和迁移步骤。",
+    "expected": "应生成 relationMode=multiple、maxSelection=10 的字段，说明行值是 rowId[]，先导入成员目标行再回填项目关联，并在 column list 与 row page 中验收；不能把多成员字段设计成 select 或 single。"
   }
 ]

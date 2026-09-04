@@ -775,6 +775,7 @@ pnpm build
 pnpm test
 pnpm typecheck
 pnpm publish:check
+npm login
 npm publish --access public
 ```
 

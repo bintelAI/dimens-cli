@@ -16,6 +16,7 @@
 - 权限设计必须覆盖菜单/资源权限、表格权限、字段级读写权限和行级权限；每个菜单资源都要说明哪些角色可见、可编辑，每张表都要说明字段可见性和只读字段，不要只写“管理员/成员”这种粗粒度角色描述。
 - 报表设计必须有数据源和样例数据支撑；设计阶段就要说明哪些字段提供维度、指标、筛选参数，执行阶段 `preview / query-widget / query` 为空时必须回到数据、参数或字段映射修正。
 - 建表后如果平台自动生成默认“名称”字段，必须在设计和执行中说明处理方式：改名复用为主展示字段，或确认无依赖后清理；不要留下无业务意义的默认字段。
+- 如果来源是传统数据库，必须在设计阶段完成关系映射：外键基数、空值和孤儿记录、目标展示字段、`relationMode`、`maxSelection`、连接表取舍、rowId 回填顺序和验收证据都不能省略。不要把旧主键、名称文本或逗号分隔值直接当作 relation 行值。
 - 角色设计只创建业务角色，不重复创建平台内置超级管理员、系统管理员、管理员、编辑者、查看者、公开角色；业务角色创建后必须配置权限并绑定用户。
 
 ## 0. 已有文档结构校验
@@ -34,7 +35,8 @@
 | 资源清单 | 项目、表格、文档、报表、画布、工作流、权限交付物 | 先补资源清单 |
 | 核心对象 | 主对象、从对象、生命周期、状态流转 | 先补对象模型 |
 | 表字段 | 每张表的字段名、字段类型、选项、人员/部门/relation 字段 | 先补字段设计 |
-| relation | 关联目标表、展示字段、创建顺序、示例数据依赖 | 先补关联设计 |
+| relation | 来源关系、业务基数、关联目标表、展示字段、`relationMode`/`maxSelection`、创建顺序、示例数据依赖 | 先补关联设计 |
+| 传统数据库转换 | 外键/连接表映射、空值与孤儿记录清洗、旧主键到 rowId 的回填策略 | 先补迁移设计 |
 | 选项/分类 | 哪些用 `select / multiSelect`，哪些才建分类表 | 先做多维表格建模判断 |
 | 示例数据 | 每张核心表样例，报表数据源样例，关联行 ID 获取顺序 | 先补样例数据计划 |
 | 报表口径 | 数据源、维度、指标、筛选参数、空数据排查 | 先补报表设计 |
@@ -298,6 +300,25 @@
 - 不要把维表内置用户、角色、权限、部门当成普通业务对象建表；除非需求明确是“外部人员 / 外部组织 / 第三方角色映射”等非平台内置对象。
 - 分类对象先判断是否能用 `select / multiSelect` 承载；简单稳定分类不应默认成为独立表。
 
+### 传统数据库关系映射（来源为 SQL/ERD/Excel 导出时必填）
+
+先判断业务关系再落字段，不要按数据库列名机械生成 relation。`relation` 只有一个字段类型，通过 `relationMode=single|multiple` 区分一个目标还是多个目标；多关联不限数量时省略 `maxSelection`，设上限时必须是 `>= 2` 的整数。
+
+```md
+| 来源表.字段 / 连接表 | 业务关系与基数 | 目标表 | 推荐维表字段 | relationMode | maxSelection | 是否保留连接表 | 空值/重复/孤儿处理 | 迁移备注 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| orders.customer_id | 多对一；订单可无客户 | 客户表 | 客户 | single | — | 否 | 无客户时写 null，非法 ID 进入隔离清单 | 先导入客户再回填订单 |
+| product_tag(product_id, tag_id) | 多对多；标签无独立属性 | 标签表 | 标签列表 | multiple | 不限 | 否 | 去重后写 rowId[] | 评估合并连接表 |
+| student_course(student_id, course_id, score) | 多对多；连接记录有成绩 | 学生/课程表 | 选课记录表 + 两个 relation | single（各自 relation） | — | 是 | 缺失两端记录不得写入 | 保留成绩和审计 |
+```
+
+关系映射完成后，必须在文档中说明：
+
+- 外键的数据库基数是否等于业务基数；一对多不能仅凭“子表有外键”就决定单关联。
+- 单关联的行值是单个 `rowId` 或 `null`；多关联的行值是 `rowId[]` 或 `[]`，不能写名称、旧主键或逗号字符串。
+- 连接表是否承载独立属性、生命周期、审计或权限；没有这些属性时优先评估 `multiple` relation。
+- 类型不一致、重复外键、缺失目标、软删除目标和孤儿记录的清洗及告警策略。
+
 ## 8. 表格与字段设计
 
 每张表都要单独设计。字段设计要写清字段类型、是否必填、是否用于筛选、是否参与报表。
@@ -342,6 +363,8 @@
 | select / multiSelect 是否都有 `id / label / color` | 是 / 否 | `color` 使用前端色池 class，不用 `blue` 简写 |
 | person / department 是否没有被误建成 select | 是 / 否 | 人员、部门必须走专用字段 |
 | relation 是否已明确目标表和展示字段 | 是 / 否 | 执行时先创建目标表并回查字段 ID |
+| relation 是否已明确单/多关联及数量限制 | 是 / 否 | `single` 不传 `maxSelection`；`multiple` 不传表示不限，限制值至少为 2 |
+| 传统数据库外键/连接表是否完成业务映射 | 是 / 否 / 不适用 | 写明基数、连接表取舍、空值和孤儿记录处理 |
 | 系统字段是否标注只读 | 是 / 否 | `createdTime / updatedTime / autoNumber` 等不要当普通可写字段 |
 | 示例数据是否能覆盖视图和报表 | 是 / 否 | 至少覆盖 2 个状态、2 个负责人或 2 个时间段 |
 | 分类字段是否避免过度建表 | 是 / 否 | 少量稳定分类优先 `select / multiSelect` |
@@ -398,10 +421,12 @@
 | 3 | 从表 / 明细表 | 关联主业务表 | 主表 rowId / fieldId | 示例数据写入时使用真实 rowId |
 
 ### relation 落地口径
-| relation 字段 | 源表 | 目标表 | 目标展示字段 | 执行前需要拿到 | 示例数据写入方式 |
-| --- | --- | --- | --- | --- | --- |
-|  |  |  |  | 目标 sheetId、目标 fieldId、目标 rowId | 不写展示文本，写接口要求的 rowId / 对象结构 |
+| relation 字段 | 源表 | 目标表 | 目标展示字段 | relationMode / maxSelection | 执行前需要拿到 | 示例数据写入方式 |
+| --- | --- | --- | --- | --- | --- | --- |
+|  |  |  |  | single / — 或 multiple / 不限或整数 | 目标 sheetId、目标 fieldId、目标 rowId | 单关联写 rowId/null，多关联写 rowId[]；不写展示文本 |
 ```
+
+迁移顺序固定为：创建目标表及主展示字段 -> 创建源表字段 -> 创建 relation -> 导入目标行 -> 用目标 `rowId` 回填源表 -> 回查 `column list` 和 `row page`。关联目标不存在、ID 类型不一致或清洗未完成时，不得进入回填步骤。
 
 ## 9. 文档资源设计
 
@@ -605,6 +630,8 @@
 | 状态筛选 | 状态 = 待处理 | 只显示待处理记录 |
 | 负责人筛选 | 负责人 = 当前用户 | 只显示相关记录 |
 | 关联查询 | 通过 relation 查看关联对象 | 能正确跳转或展示 |
+| 关联模式回查 | `column list` 检查 `relationMode / maxSelection / targetSheetId / displayColumnId` | 与关系映射表一致 |
+| 关联行值回查 | `row page` 检查 relation 行值 | `single` 为 rowId/null，`multiple` 为 rowId[]；无重复、缺失或孤儿记录 |
 | 默认名称字段回查 | `column list` 检查默认字段 | 已改名复用或已清理，无无意义“名称”字段 |
 | 报表预检 | 跑 `report preview / query-widget / query` | 每个组件都有数据或明确为空的业务原因 |
 | 权限回查 | 用不同角色验证可见范围 | 管理员、负责人、执行人看到的数据范围不同且符合设计 |
@@ -614,6 +641,7 @@
 ### 示例数据要求
 - 每张核心表至少 3 条案例数据。
 - 有 relation 的表，必须先创建基础表数据，再创建关联数据。
+- 传统数据库转换必须先完成外键/连接表清洗，再按目标行 ID 回填；旧主键和展示名称只用于映射，不直接写入 relation。
 - 报表数据要能覆盖至少 2 个状态、2 个负责人或 2 个时间段。
 
 ### 一致性检查
@@ -622,6 +650,8 @@
 | 场景归类里的表数量 = 表格设计数量 = 资源清单数量 = 验收标准数量 | 是 / 否 | 不一致时先统一数量 |
 | 菜单树里的资源都在资源清单中出现 | 是 / 否 | 补资源或从树里移除 |
 | 每个 relation 的目标表都先于源表创建 | 是 / 否 | 调整创建顺序 |
+| 每个传统数据库关系都有 single/multiple 和连接表取舍结论 | 是 / 否 / 不适用 | 补关系映射表和决策理由 |
+| relation 回填值均来自真实目标 rowId | 是 / 否 | 重新读取目标行并回填，隔离无效关联 |
 | 每个报表指标都有可查询字段支撑 | 是 / 否 | 补字段或降低指标范围 |
 | 报表数据源表有支撑样例数据 | 是 / 否 | 补覆盖维度、指标、筛选的样例数据 |
 | 权限中文规则能转成 row-policy 条件 | 是 / 否 | 补字段 ID 和条件表达式 |
@@ -642,14 +672,15 @@
 | 3 | 创建目录 | `dimens-manager/references/project/overview.md` | `sheet tree` |
 | 4 | 创建表 | `dimens-manager/references/table/overview.md` | `sheet info` |
 | 5 | 创建字段 | `dimens-manager/references/table/overview.md` | `column list` |
-| 6 | 创建视图 | `dimens-manager/references/table/overview.md` | `view list` |
-| 7 | 创建示例数据 | `dimens-manager/references/table/overview.md` | `row page` |
-| 8 | 创建文档 | `dimens-manager/references/project/overview.md` | `doc info` |
-| 9 | 创建画布 | `dimens-manager/references/canvas/overview.md` | `canvas validate / canvas info / canvas versions` |
-| 10 | 创建报表 | `dimens-manager/references/report/overview.md` | `report preview / query-widget / query` |
-| 11 | 配置权限 | `dimens-manager/references/permission/overview.md` | `role / permission / row-policy / set-resource / myPermissions` 回查 |
-| 12 | 配置工作流 | `dimens-manager/references/workflow/overview.md` | 发布、挂载、运行验证 |
-| 13 | 菜单归位 | `dimens-manager/references/project/overview.md` | `sheet tree` 确认所有资源在目标目录 |
+| 6 | 创建/配置 relation | `dimens-manager/references/table/references/relation-mode.md` | `column list` 确认模式、目标字段和数量限制 |
+| 7 | 创建视图 | `dimens-manager/references/table/overview.md` | `view list` |
+| 8 | 创建示例数据并回填 relation | `dimens-manager/references/table/overview.md` | `row page` 确认 rowId 值格式和无孤儿关联 |
+| 9 | 创建文档 | `dimens-manager/references/project/overview.md` | `doc info` |
+| 10 | 创建画布 | `dimens-manager/references/canvas/overview.md` | `canvas validate / canvas info / canvas versions` |
+| 11 | 创建报表 | `dimens-manager/references/report/overview.md` | `report preview / query-widget / query` |
+| 12 | 配置权限 | `dimens-manager/references/permission/overview.md` | `role / permission / row-policy / set-resource / myPermissions` 回查 |
+| 13 | 配置工作流 | `dimens-manager/references/workflow/overview.md` | 发布、挂载、运行验证 |
+| 14 | 菜单归位 | `dimens-manager/references/project/overview.md` | `sheet tree` 确认所有资源在目标目录 |
 ```
 
 ## 16. 验收标准
@@ -742,14 +773,20 @@
 | --- | --- | --- | --- |
 |  |  |  |  |
 
+### 关系映射摘要（有跨表引用时必填）
+| 来源字段 / 连接表 | 业务基数 | 目标表 | relationMode | maxSelection | 连接表取舍与 rowId 回填说明 |
+| --- | --- | --- | --- | --- | --- |
+|  | 一对一 / 一对多 / 多对多 |  | single / multiple | — / 不限 / 整数 |  |
+
 ## 6. 执行顺序
 1. 认证登录
 2. 创建项目和目录
 3. 创建表、字段、视图
-4. 写入示例数据
-5. 创建文档、画布、报表
-6. 配置权限和工作流
-7. 回查验收
+4. 创建/配置 relation，确认目标表、展示字段和模式
+5. 写入目标表示例数据并用 rowId 回填源表
+6. 创建文档、画布、报表
+7. 配置权限和工作流
+8. 回查验收：`column list` + `row page` 确认关联模式和行值格式
 
 ## 7. 待确认项
 | 问题 | 默认假设 |

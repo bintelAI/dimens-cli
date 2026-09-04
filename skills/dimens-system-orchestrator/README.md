@@ -48,6 +48,7 @@
 | 团队、成员、项目上下文 | `dimens-manager/references/team/overview.md` |
 | 项目创建、初始化、文档资源 | `dimens-manager/references/project/overview.md` |
 | 表、字段、视图、行数据 | `dimens-manager/references/table/overview.md` |
+| 关联字段模式与迁移 | `dimens-manager/references/table/references/relation-mode.md` |
 | 角色、权限、行级策略 | `dimens-manager/references/permission/overview.md` |
 | 工作流、AI、模型路由 | `dimens-manager/references/workflow/overview.md` |
 | 报表、组件、查询链 | `dimens-manager/references/report/overview.md` |
@@ -61,6 +62,7 @@
 - 系统搭建不要只建表，默认考虑表格、文档、报表。
 - 涉及流程或审批的系统，默认补业务场景画布；画布用于表达场景，不替代真实工作流。
 - 表格建模必须细到字段类型、关联、候选项、示例数据和视图。
+- 传统数据库转换必须先做关系映射：判断外键真实基数和空值规则，再选择 `relationMode=single` 或 `multiple`；多对多只有在连接表承载独立属性、生命周期、审计或权限时才保留连接表，否则优先评估 `multiple` relation。设计文档要写清目标展示字段、`maxSelection`、rowId 回填顺序、脏数据处理和验收证据，不能直接照搬外键或名称文本。
 - 建表后必须检查默认“名称”字段：能作为主展示字段就改名复用，不能用就按表格规则清理，不要留下无意义字段影响视图、报表和 relation 展示。
 - 权限不是最后补丁，涉及角色、公开访问、部门可见、行级控制时要前置设计。
 - 报表不要直接从 `widget-add` 开始，先确认数据源表有样例数据，再走 `report create -> preview -> widget-add -> query-widget -> query`；查询为空时必须说明并修正原因。
@@ -78,4 +80,5 @@
 - `references/skill-routing.md`
 - `references/interface-navigation.md`
 - `references/command-mapping.md`
+- `dimens-manager/references/table/references/relation-mode.md`
 - `references/examples.md`
