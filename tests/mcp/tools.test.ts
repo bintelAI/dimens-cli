@@ -6,6 +6,7 @@ import {
   createContextTools,
   createDocumentTools,
   createProjectTools,
+  createProjectDictTools,
   createReportTools,
   createPermissionTools,
   createRoleTools,
@@ -25,6 +26,13 @@ function createToolContext(): McpToolFactoryContext {
     project: {
       page: vi.fn().mockResolvedValue({ data: { list: [{ id: 'P1' }] } }),
       info: vi.fn().mockResolvedValue({ data: { id: 'P1' } }),
+    },
+    projectDict: {
+      list: vi.fn().mockResolvedValue({ data: [{ id: 1, code: 'customer_level' }] }),
+      info: vi.fn().mockResolvedValue({ data: { id: 1, code: 'customer_level', options: [] } }),
+      create: vi.fn().mockResolvedValue({ data: { id: 2, code: 'customer_level' } }),
+      update: vi.fn().mockResolvedValue({ data: { id: 1, code: 'customer_level' } }),
+      delete: vi.fn().mockResolvedValue({ data: undefined }),
     },
     sheet: {
       list: vi.fn().mockResolvedValue({ data: [{ id: 'S1' }] }),
@@ -157,6 +165,18 @@ function parseToolResult(result: Awaited<ReturnType<McpToolFactoryContext['creat
 }
 
 describe('MCP tools', () => {
+  it('should create a project dictionary with explicit codes', async () => {
+    const context = createToolContext();
+    const tool = createProjectDictTools(context).find(item => item.name === 'dimens_project_dict_create');
+    const result = await tool?.handler({
+      name: '客户等级',
+      code: 'customer_level',
+      options: [{ id: 'vip', label: 'VIP', value: 'vip' }],
+    });
+
+    expect(parseToolResult(result).data).toEqual({ id: 2, code: 'customer_level' });
+  });
+
   it('should expose sanitized current context', async () => {
     const [tool] = createContextTools(createToolContext());
 
@@ -249,6 +269,17 @@ describe('MCP tools', () => {
     });
   });
 
+  it('should reject sheet create without a custom ID before calling the backend', async () => {
+    const context = createToolContext();
+    const tools = createSheetTools(context);
+    const tool = tools.find(item => item.name === 'dimens_sheet_create');
+
+    const result = await tool?.handler({ name: '客户表', type: 'sheet' });
+
+    expect(context.createSDK().sheet.create).not.toHaveBeenCalled();
+    expect(parseToolResult(result).message).toContain('customId');
+  });
+
   it('should update and delete sheet with confirmation protection', async () => {
     const context = createToolContext();
     const tools = createSheetTools(context);
@@ -267,17 +298,15 @@ describe('MCP tools', () => {
     expect(context.createSDK().sheet.delete).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1');
   });
 
-  it('should call column create with resolved team and project context', async () => {
+  it('should reject column create without a custom ID before calling the backend', async () => {
     const context = createToolContext();
     const tools = createColumnTools(context);
     const tool = tools.find(item => item.name === 'dimens_column_create');
 
-    await tool?.handler({ sheetId: 'S1', label: '客户名称', type: 'text' });
+    const result = await tool?.handler({ sheetId: 'S1', label: '客户名称', type: 'text' });
 
-    expect(context.createSDK().column.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
-      label: '客户名称',
-      type: 'text',
-    });
+    expect(context.createSDK().column.create).not.toHaveBeenCalled();
+    expect(parseToolResult(result).message).toContain('customId');
   });
 
   it('should call column create with custom ID suffix', async () => {

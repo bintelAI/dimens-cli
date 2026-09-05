@@ -10,6 +10,7 @@
 - `dimens-manager/references/team/overview.md`
 - `dimens-manager/references/project/overview.md`
 - `dimens-manager/references/table/overview.md`
+- `dimens-manager/references/table/project-dictionary.md`
 - `dimens-manager/references/permission/overview.md`
 - `dimens-manager/references/workflow/overview.md`
 - `dimens-manager/references/report/overview.md`

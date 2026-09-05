@@ -19,7 +19,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 
 - ✅ 执行任何 `project / sheet / column / row / ai` 命令前，先完成认证；认证方式优先参考 `dimens-manager/references/key-auth/overview.md`
 - ✅ 表格能力默认要先确认 `projectId`，大多数写操作还需要 `teamId`
-- ✅ 新建表格可传 `--custom-id <suffix>`，新建字段可传 `--custom-id <suffix>`；最终 ID 由后端按 `projectId_suffix` 生成，CLI 不提交最终 ID，也不能使用团队 ID 作为前缀
+- ✅ 新建工作表和字段必须传 `--custom-id <suffix>`；缺少后缀时 CLI/MCP 必须拒绝请求，不能触发后端随机 ID。最终 ID 由后端按 `projectId_suffix` 生成，CLI 不提交最终 ID，也不能使用团队 ID 作为前缀；目录、文档、报表、画布不适用
 - ✅ CLI 是表、字段、视图、行数据操作的首选入口；接口案例只用于解释真实契约和边界
 - ✅ 缺少 `teamId/projectId/sheetId/fieldId/rowId/viewId` 时，先用列表、详情或用户确认补齐，不要猜 ID
 - ✅ 如果用户还处在“创建项目 / 初始化项目”阶段，先路由到 `dimens-manager/references/project/overview.md`，不要在 `dimens-manager/references/table/overview.md` 里直接吞掉上游步骤
@@ -79,11 +79,11 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | --- | --- | --- | --- | --- |
 | `dimens-cli sheet list` | 查询项目下工作表列表 | `projectId` | `teamId` | 表入口通常先从项目进入，排查问题时建议显式补 `teamId` |
 | `dimens-cli sheet info` | 获取工作表详情 | `teamId`, `projectId`, `sheetId` | - | 表更新前默认先读当前表数据，确认结构和归属 |
-| `dimens-cli sheet create` | 创建表或目录节点 | `projectId`, `name` | `teamId`, `folder-id`, `type`, `custom-id` | `--custom-id` 只传后缀且仅 `type=sheet` 支持，后端保存为 `projectId_suffix`；新表落地后还要检查默认公开视图 |
+| `dimens-cli sheet create` | 创建表或目录节点 | `projectId`, `name` | `teamId`, `folder-id`, `type`, `custom-id` | `type=sheet`（或未指定类型）必须传 `--custom-id`；只传后缀且由后端保存为 `projectId_suffix`；目录等非工作表资源不传；新表落地后还要检查默认公开视图 |
 | `dimens-cli sheet update` | 更新表基础信息，兼容移动菜单归属 | `projectId`, `sheetId` | `teamId`, `name`, `folder-id`, `app-url` | 默认先 `sheet info` 拿当前数据，再改字段后更新；`--folder-id` 会映射为后端 `parentId` |
 | `dimens-cli sheet move` | 把已有表格、报表、文档或画布移动到项目菜单目录 | `teamId`, `projectId`, `sheetId`, `folder-id` | `app-url` | 移动已有资源优先用这个命令；执行后必须 `sheet tree` 回查目录归位 |
 | `dimens-cli column list` | 查询字段列表 | `teamId`, `projectId`, `sheetId` | - | 用于先确认字段结构、字段类型和现有字段 ID |
-| `dimens-cli column create` | 创建字段 | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title` | `custom-id`, `property`, `uiType`, `config`, `required`, `unique`, `key`, `options`, `flow-id`, `system-view`, `target-sheet-id`, `display-column-id`, `relation-mode`, `max-selection` | `relation` 必须明确单表/多表；`single` 不传限制数量，`multiple` 的 `max-selection` 为空表示不限且填写时最小为 2 |
+| `dimens-cli column create` | 创建字段 | `teamId`, `projectId`, `sheetId`, `type`, `label` 或兼容参数 `title`, `custom-id` | `property`, `uiType`, `config`, `required`, `unique`, `key`, `options`, `flow-id`, `system-view`, `target-sheet-id`, `display-column-id`, `relation-mode`, `max-selection` | `custom-id` 必填且只传后缀；`relation` 必须明确单表/多表；`single` 不传限制数量，`multiple` 的 `max-selection` 为空表示不限且填写时最小为 2 |
 | `dimens-cli column update` | 更新字段定义 | `teamId`, `projectId`, `sheetId`, `fieldId` | `label`, `title`, `type`, `config`, `required`, `unique`, `app-url`, `flow-id`, `system-view` | 默认先拿当前表结构，从 `structure.columns` 找到目标字段后再合并更新；`--config` 与 `--flow-id/--system-view` 会合并字段配置 |
 | `dimens-cli richtext-field content/save` | 读取或保存富文本字段 HTML | `teamId`, `projectId`；保存还需 `sheetId`, `rowId`, `fieldId` | `document-id`, `content`, `file`, `row-version`, `title` | 富文本字段不是在线文档；正文只接受 HTML，`--content` 与 `--file` 二选一 |
 | `dimens-cli json-field content/save` | 读取 extended JSON 或保存 JSON 字段 | `teamId`, `projectId`；保存还需 `sheetId`, `rowId`, `fieldId` | `id`, `content`, `file`, `json-version`, `row-version` | JSON 禁止普通 row 写入；inline 从行读取，extended 使用内容 ID；更新 extended 时 ID 与 JSON 版本必须成对出现 |
@@ -199,6 +199,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `references/richtext-json-fields.md` | 富文本/JSON 字段创建、专用读写、inline/extended、双版本控制 | 处理 `richtext` 或 `json` 字段时必须看 |
 | `references/relation-mode.md` | relation 单表/多表模式、限制数量、行值结构和历史兼容 | 创建或维护 `relation` 字段时必须看 |
 | `references/field-option-colors.md` | 单选/多选/下拉选择器颜色体系、默认颜色、自定义颜色协议 | 处理选项字段时必须看 |
+| `references/project-dictionary.md` | 项目字典复用判断、字典/选项编码规则、CLI 创建与回查 | 处理跨字段复用枚举或项目字典时必须看 |
 | `references/row-filters.md` | `row/page` 搜索、筛选、排序与 `viewId` 继承 | 设计查询案例时必须看 |
 | `references/field-rules.md` | 字段规则和系统视图字段边界 | 处理系统字段时必须看 |
 | `references/build-flow.md` | 表域能力落地流程 | 从零搭表时建议看 |

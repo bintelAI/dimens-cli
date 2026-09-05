@@ -101,7 +101,7 @@ dimens-cli project create --team-id TTFFEN --name 客户管理系统
 CLI 命令：
 
 ```bash
-dimens-cli sheet create --project-id PUQUNFE --name 客户表
+dimens-cli sheet create --project-id PUQUNFE --name 客户表 --type sheet --custom-id customer
 ```
 
 创建表前建议先明确：
@@ -397,10 +397,10 @@ dimens-cli project create --team-id TTFFEN --name 客户管理系统
 ### 9.2 创建 4 张核心表
 
 ```bash
-dimens-cli sheet create --project-id PUQUNFE --name 客户表
-dimens-cli sheet create --project-id PUQUNFE --name 联系人表
-dimens-cli sheet create --project-id PUQUNFE --name 跟进记录表
-dimens-cli sheet create --project-id PUQUNFE --name 商机表
+dimens-cli sheet create --project-id PUQUNFE --name 客户表 --type sheet --custom-id customer
+dimens-cli sheet create --project-id PUQUNFE --name 联系人表 --type sheet --custom-id contact
+dimens-cli sheet create --project-id PUQUNFE --name 跟进记录表 --type sheet --custom-id follow_up
+dimens-cli sheet create --project-id PUQUNFE --name 商机表 --type sheet --custom-id opportunity
 ```
 
 ### 9.2.1 为每张核心表确认默认公开视图

@@ -63,5 +63,10 @@
     "id": "sdk-017",
     "prompt": "用 sdk.ai.createVideo/getVideo/getVideoContent 做视频生成，taskId 和状态字段在不同环境不一致，成功后有时返回 resource.url。请给一个不会无限轮询的实现原则。",
     "expected": "应先按当前源码和真实响应复核方法签名；在 SDK 边界兼容任务对象及 data/output/result 包装，使用成功/失败状态集合、可配置间隔、总超时和取消信号；成功后优先解析当前服务端 resource.url/resource.key，同时兼容直接 url/video_url；未知结构要携带脱敏响应明确失败，不能静默 mock 或无限轮询。"
+  },
+  {
+    "id": "sdk-018",
+    "prompt": "Node.js 服务端要创建一个会被多个字段复用的项目字典，怎么调用 SDK？单个字段的唯一下拉还要不要建字典？",
+    "expected": "应使用 DimensSDK.projectDict.create，显式传入小写字典 code 与选项 value，并说明 token、teamId、projectId 和错误处理；只有跨多个字段/位置复用才建项目字典，单点唯一下拉直接使用 select/multiSelect。"
   }
 ]

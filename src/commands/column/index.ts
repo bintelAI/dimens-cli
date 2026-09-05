@@ -56,7 +56,7 @@ export function registerColumnCommands(): void {
     'column',
     createCommand(
       'create',
-      '创建字段（支持项目级自定义 ID 后缀）',
+      '创建字段（必须使用项目级自定义 ID 后缀）',
       async args => {
       const flags = parseFlags(args);
       const context = getContext(flags);
@@ -69,11 +69,13 @@ export function registerColumnCommands(): void {
         if (!label) {
           throw new Error('缺少字段标题，请传入 --label 或兼容参数 --title');
         }
+        const customId = String(flags['custom-id'] || '').trim();
+        if (!customId) {
+          throw new Error('创建字段必须传入 --custom-id <suffix>，禁止使用后端随机 ID');
+        }
         const sdk = new ColumnSDK(createClient(context));
         const payload: ColumnMutationPayload = { label };
-        if (flags['custom-id']) {
-          payload.customId = flags['custom-id'];
-        }
+        payload.customId = customId;
         if (flags.type) {
           payload.type = flags.type;
         }
@@ -104,6 +106,7 @@ export function registerColumnCommands(): void {
         examples: [
           'column create --team-id TEAM1 --project-id PROJ1 --sheet-id SHEET1 --label 客户名称 --type text --custom-id customer_name',
           '# --custom-id 只传后缀，后端保存为 PROJ1_customer_name；字段只在当前表内校验唯一',
+          '# --custom-id 为必填项，缺失时 CLI 不会调用后端',
         ],
       }
     )

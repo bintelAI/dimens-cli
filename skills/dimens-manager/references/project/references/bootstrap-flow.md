@@ -87,15 +87,15 @@ dimens-cli sheet tree --project-id PROJECT_ID
 ### 2.2 创建多张核心表
 
 ```bash
-dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 客户表
-dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 联系人表
+dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 客户表 --type sheet --custom-id customer
+dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 联系人表 --type sheet --custom-id contact
 ```
 
 ### 2.3 创建多字段
 
 ```bash
-dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id CUSTOMER_SHEET_ID --label 客户名称 --type text
-dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id CUSTOMER_SHEET_ID --label 客户等级 --type select --options '[{"id":"customer_level_a","label":"A级","color":"bg-blue-100 text-blue-700"},{"id":"customer_level_b","label":"B级","color":"bg-slate-100 text-slate-700"},{"id":"customer_level_c","label":"C级","color":"bg-gray-100 text-gray-700"}]'
+dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id CUSTOMER_SHEET_ID --label 客户名称 --type text --custom-id customer_name
+dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id CUSTOMER_SHEET_ID --label 客户等级 --type select --custom-id customer_level --options '[{"id":"customer_level_a","label":"A级","color":"bg-blue-100 text-blue-700"},{"id":"customer_level_b","label":"B级","color":"bg-slate-100 text-slate-700"},{"id":"customer_level_c","label":"C级","color":"bg-gray-100 text-gray-700"}]'
 ```
 
 说明：

@@ -2,7 +2,7 @@
 name: dimens-system-orchestrator
 slug: dimens-system-orchestrator
 description: 用于维表智联系统级方案拆解与执行编排，适合“生成一个客户管理系统/平台”这类完整业务系统搭建需求。
-version: 1.0.2
+version: 2.0.0
 author: 方块智联工作室
 tags: [orchestrator, system-design, routing, planning, dimens-cli]
 ---
@@ -22,6 +22,8 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 - ✅ 项目内业务操作统一进入 `dimens-manager`。
 - ✅ SDK、HTTP、Web、BFF、Node.js、移动端接入统一进入 `dimens-sdk`。
 - ✅ 当前技能按两条主线分流：CLI 操作维表资源进入 `references/command-mapping.md` 和 `dimens-manager`；SDK 自定义页面开发进入 `references/custom-page-scaffold.md` 和 `dimens-cli/dimens-web` 脚手架。
+- ✅ 创建工作表和字段时必须显式提供自定义 ID 后缀（CLI 使用 `--custom-id`，MCP 使用 `customId`）；缺少后缀必须在调用侧拒绝，禁止触发后端随机 ID。最终 ID 仍由后端按 `projectId_suffix` 生成，CLI/技能不得自行拼接最终 ID；目录、文档、报表、画布等非工作表菜单资源不适用此要求。
+- ✅ 这是调用侧约束而非后端默认行为：后端缺少后缀时仍会生成随机 `sheetId/fieldId`，因此系统蓝图、命令编排和验收都必须把自定义后缀列为建表/建字段的必填输入。
 - ✅ 用户要新增维表自定义页面但没有指定目录时，先询问或建议是否用 `dimens-cli create --dir <目录名>` 初始化自定义页面目录，再进入页面开发。
 - ✅ 自定义页面开发默认使用独立 `/xxx` 业务路由；不要改 `/` 根页面，不要覆盖 `/custom`、`/records`、`/settings`、`/embed`、`/debug/context` 等既有示例、配置或调试页面。
 - ✅ 自定义页面进入视觉设计、布局、配色、组件体验、数据看板或图表呈现时，关联使用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）先定 UI/UX 方案，再落到 `dimens-web` 代码实现。
@@ -108,7 +110,7 @@ flowchart TD
   B2 -- "没有" --> C00["创建或规划目标目录<br/>记录待归位资源"]
 
   C0 --> C1["创建封面<br/>生成 250x150 SVG / upload file / 写回项目"]
-  C0 --> C2["创建表<br/>sheet create --folder-id"]
+  C0 --> C2["创建表<br/>sheet create --type sheet --custom-id --folder-id"]
   C0 --> C3["创建文档<br/>doc create / 按目录挂载或记录待迁移"]
 
   C00 --> C1
@@ -121,7 +123,7 @@ flowchart TD
   C3 --> D
   C3A --> D
 
-  D --> E["创建字段<br/>column create"]
+  D --> E["创建字段<br/>column create --custom-id"]
   E --> F{"验证字段是否合规？<br/>字段类型 / options / person / department / relation"}
 
   F -- "不合规" --> E1["修正字段设计<br/>回到字段创建或更新"]
@@ -151,7 +153,7 @@ flowchart TD
 3. 创建项目后必须先读取现有菜单目录，判断表、文档、画布、报表等菜单资源应该挂在哪个目录下；如果已有合适目录，创建时显式带 `--folder-id` 或对应目录参数。
 4. 如果创建时无法确定目录，先记录待归位资源，最后统一执行菜单迁移；迁移后必须用 `sheet tree` 回查，确认表、文档、画布、报表都在目标目录内。
 5. 封面和表可以并行；但封面上传后必须写回项目，表创建后必须用 `sheet tree` 验证目录归位。
-6. 字段创建后必须验证字段类型和业务语义，尤其是 `select / multiSelect / person / department / relation`；稳定枚举优先用 `select` 或 `multiSelect`，人员和部门不要误建成普通下拉。传统数据库转换时，必须额外核对外键基数、空值、孤儿记录、类型转换和连接表取舍。
+6. 字段创建后必须验证字段类型和业务语义，尤其是 `select / multiSelect / person / department / relation`；稳定且只在单一位置使用的枚举直接用 `select` 或 `multiSelect`，只有同一组选项明确跨多个表、字段或流程复用时才创建项目数据字典并绑定。人员和部门不要误建成普通下拉。传统数据库转换时，必须额外核对外键基数、空值、孤儿记录、类型转换和连接表取舍。
 7. `select / multiSelect` 必须验证 `options` 规范：JSON 对象数组、每项有唯一 `id`、非空 `label`、合法 `color`，颜色符合前端 12 色池或 `custom:` 协议；不要把逗号分隔字符串当成规范输出。
 8. 建表后必须检查默认“名称”字段；如果它就是主展示字段，改名成业务字段并复用；如果无用，按表格章节规则清理，不要让默认字段留在报表、视图或示例数据里。
 9. 案例数据必须在字段合规后再创建；批量数据优先使用 `row batch-create`，报表数据源表必须至少有能支撑维度、指标和筛选的样例数据。

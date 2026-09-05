@@ -1764,9 +1764,32 @@ describe('Sheet Column Row Commands', () => {
       'https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/',
       '--name',
       '客户表',
+      '--custom-id',
+      'customer',
     ]);
 
-    expect(createSpy).toHaveBeenCalledWith('PXWXBJQ', { name: '客户表' });
+    expect(createSpy).toHaveBeenCalledWith('PXWXBJQ', {
+      name: '客户表',
+      type: 'sheet',
+      customId: 'customer',
+    });
+    createSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('should reject sheet create without a custom ID before calling the backend', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const { SheetSDK } = await import('../../src/sdk/sheet');
+    const createSpy = vi.spyOn(SheetSDK.prototype, 'create');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const createSheet = getCommandGroup('sheet')?.commands.find(command => command.name === 'create');
+    await createSheet?.handler(['--project-id', 'PROJ1', '--name', '客户表', '--type', 'sheet']);
+
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(logSpy.mock.calls.flat().join('\n')).toContain('--custom-id');
     createSpy.mockRestore();
     logSpy.mockRestore();
   });
@@ -1844,12 +1867,18 @@ describe('Sheet Column Row Commands', () => {
       'PROJ1',
       '--name',
       '客户表',
+      '--type',
+      'sheet',
+      '--custom-id',
+      'customer',
       '--folder-id',
       'folder_customer',
     ]);
 
     expect(createSpy).toHaveBeenCalledWith('PROJ1', {
       name: '客户表',
+      type: 'sheet',
+      customId: 'customer',
       folderId: 'folder_customer',
     });
     createSpy.mockRestore();
@@ -1892,6 +1921,8 @@ describe('Sheet Column Row Commands', () => {
       '班级',
       '--type',
       'relation',
+      '--custom-id',
+      'class_relation',
       '--target-sheet-id',
       'sh_target',
       '--display-column-id',
@@ -1904,6 +1935,7 @@ describe('Sheet Column Row Commands', () => {
     expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
       label: '班级',
       type: 'relation',
+      customId: 'class_relation',
       config: {
         relationConfig: {
           targetSheetId: 'sh_target',
@@ -1975,6 +2007,8 @@ describe('Sheet Column Row Commands', () => {
       '联系人列表',
       '--type',
       'relation',
+      '--custom-id',
+      'contact_relation',
       '--target-sheet-id',
       'sh_contact',
       '--display-column-id',
@@ -1989,6 +2023,7 @@ describe('Sheet Column Row Commands', () => {
     expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
       label: '联系人列表',
       type: 'relation',
+      customId: 'contact_relation',
       config: {
         relationConfig: {
           targetSheetId: 'sh_contact',
@@ -2025,6 +2060,8 @@ describe('Sheet Column Row Commands', () => {
       '联系人列表',
       '--type',
       'relation',
+      '--custom-id',
+      'contact_relation_limited',
       '--target-sheet-id',
       'sh_contact',
       '--relation-mode',
@@ -2036,6 +2073,7 @@ describe('Sheet Column Row Commands', () => {
     expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
       label: '联系人列表',
       type: 'relation',
+      customId: 'contact_relation_limited',
       config: {
         relationConfig: {
           targetSheetId: 'sh_contact',
@@ -2066,6 +2104,8 @@ describe('Sheet Column Row Commands', () => {
       '所属客户',
       '--type',
       'relation',
+      '--custom-id',
+      'customer_relation',
       '--target-sheet-id',
       'sh_customer',
       '--relation-mode',
@@ -2103,6 +2143,8 @@ describe('Sheet Column Row Commands', () => {
       '提交状态',
       '--type',
       'select',
+      '--custom-id',
+      'submission_status',
       '--options',
       '待提交,提交中,已提交,已驳回',
     ]);
@@ -2116,6 +2158,7 @@ describe('Sheet Column Row Commands', () => {
     expect(createArgs?.[3]).toMatchObject({
       label: '提交状态',
       type: 'select',
+      customId: 'submission_status',
       config: {
         dataSourceType: 'manual',
         dictionaryId: null,
@@ -2155,6 +2198,8 @@ describe('Sheet Column Row Commands', () => {
       '费用类型',
       '--type',
       'select',
+      '--custom-id',
+      'expense_type',
       '--options',
       '[{"label":"水电费","color":"bg-slate-100 text-slate-700"},{"label":"物业费","color":"bg-blue-100 text-blue-700"}]',
     ]);
@@ -2163,6 +2208,7 @@ describe('Sheet Column Row Commands', () => {
     expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
       label: '费用类型',
       type: 'select',
+      customId: 'expense_type',
       config: {
         options: [
           {
@@ -2200,6 +2246,8 @@ describe('Sheet Column Row Commands', () => {
       '审批',
       '--type',
       'workflow',
+      '--custom-id',
+      'approval',
       '--flow-id',
       'FLOW_APPROVAL',
       '--system-view',
@@ -2210,6 +2258,7 @@ describe('Sheet Column Row Commands', () => {
     expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
       label: '审批',
       type: 'workflow',
+      customId: 'approval',
       config: {
         flowId: 'FLOW_APPROVAL',
         systemView: 'approval',
@@ -2234,6 +2283,8 @@ describe('Sheet Column Row Commands', () => {
       '审批',
       '--type',
       'workflow',
+      '--custom-id',
+      'approval_config',
       '--config',
       '{"flowId":"FLOW_FROM_CONFIG","systemView":"approval","displayMode":"summary"}',
     ]);
@@ -2242,6 +2293,7 @@ describe('Sheet Column Row Commands', () => {
     expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
       label: '审批',
       type: 'workflow',
+      customId: 'approval_config',
       config: {
         flowId: 'FLOW_FROM_CONFIG',
         systemView: 'approval',
@@ -2274,6 +2326,8 @@ describe('Sheet Column Row Commands', () => {
       '是否',
       '--type',
       'select',
+      '--custom-id',
+      'is_enabled',
       '--options',
       '[{"id":"30cdfb64-3c75-49be-b74e-90b734327e83","label":"是","color":"bg-slate-100 text-slate-700"},{"id":"30cdfb64-3c75-49be-b74e-90b734327e83","label":"否","color":"bg-slate-100 text-slate-700"}]',
     ]);
@@ -2394,6 +2448,8 @@ describe('Sheet Column Row Commands', () => {
       '状态',
       '--type',
       'select',
+      '--custom-id',
+      'status_invalid_builtin',
       '--options',
       '[{"label":"已提交","color":"bg-teal-100 text-teal-700"}]',
     ]);
@@ -2429,6 +2485,8 @@ describe('Sheet Column Row Commands', () => {
       '状态',
       '--type',
       'select',
+      '--custom-id',
+      'status_extended',
       '--options',
       '[{"label":"已提交","color":"bg-emerald-100 text-emerald-700"},{"label":"已驳回","color":"bg-rose-100 text-rose-700"},{"label":"品牌态","color":"bg-indigo-100 text-indigo-700"},{"label":"普通态","color":"bg-gray-100 text-gray-700"}]',
     ]);
@@ -2436,6 +2494,7 @@ describe('Sheet Column Row Commands', () => {
     expect(columnSdkSpies.create).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
       label: '状态',
       type: 'select',
+      customId: 'status_extended',
       config: {
         options: [
           {
@@ -2490,6 +2549,8 @@ describe('Sheet Column Row Commands', () => {
       '状态',
       '--type',
       'select',
+      '--custom-id',
+      'status_invalid_custom',
       '--options',
       '[{"label":"品牌态","color":"custom:{\\"bg\\":\\"not-a-color\\",\\"text\\":\\"#3730a3\\"}"}]',
     ]);

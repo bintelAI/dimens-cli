@@ -2,7 +2,7 @@
 name: dimens-sdk
 slug: dimens-sdk
 description: 用于维表智联开发者接入，适合 Web/H5、BFF、Node.js、移动端、HTTP API、@bintel/dimens-cli SDK、token 刷新、密钥存放、上下文传递和资源调用代码集成问题。
-version: 1.0.2
+version: 2.0.0
 author: 方块智联工作室
 tags: [sdk, http, web, mobile, integration, dimens-cli]
 ---
@@ -24,6 +24,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ 如果是维表自定义页面开发，必须把 UI/UX 设计作为前置步骤：先确认是否已安装 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`），未安装时先安装；安装或可用后，先用该技能完成页面风格、配色、布局、组件、图表和交互状态设计，再进入 `dimens-web` 脚手架编码。
 - ✅ 如果用户提到微模块页面、按钮插件、视图插件、Wujie props、`sourceLocation`、`viewState`、`actionSnapshot`、按钮弹窗或抽屉，必须继续读取 `references/micro-module-wujie-context.md`，按“页面 / 视图 / 按钮”三类上下文协议输出。
 - ✅ 每次准备使用 `dimens-cli` 前，必须先在当前终端执行 `npm -g install @bintel/dimens-cli@latest` 升级全局 CLI；升级成功后再执行 `dimens-cli --version` 或 `dimens-cli --help` 确认可用，确保用户每次使用的都是最新版本。
+- ✅ 通过 CLI/MCP 创建工作表或字段时必须传自定义 ID 后缀（`--custom-id` / `customId`）；缺少后缀的请求应在调用侧拒绝，避免服务端随机生成资源 ID。SDK 原始接口仍按后端契约保留可选 `customId`，接入层需明确是否承担该校验。
 - ✅ 新增自定义页面但没有目标目录时，先询问或建议用 `dimens-cli create --dir <目录名>` 初始化脚手架；已有目录则先检查目录结构，不要重复创建。
 - ✅ 自定义页面新增业务页默认使用 `/xxx` 独立路由；不要改 `/` 根页面，不要覆盖 `/custom`、`/records`、`/settings`、`/embed`、`/debug/context` 等既有示例、配置或调试页面。
 - ✅ 自定义页面不等用户显式要求“好看”才做设计；所有新增或改造业务页面都先使用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）产出 UI/UX 方案，再基于 `dimens-web` 脚手架实现。
@@ -34,6 +35,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ `teamId` 是团队隔离边界，`projectId` 是项目内资源上下文，不能漏传或混传。
 - ✅ 当用户消息或当前页面携带维表 URL 时，先从 URL 解析上下文。格式 `http://localhost:3000/#/{teamId}/{projectId}/{sheetId}`；例如 `http://localhost:3000/#/TTFFEN/PM394YD/sh_lTyerp8gwW8QSVD1` 表示 `teamId=TTFFEN`、`projectId=PM394YD`、`sheetId=sh_lTyerp8gwW8QSVD1`。用户说“当前页面/当前表/这个表”时优先用这些 ID 连接维表。
 - ✅ 所有更新类接口统一按“先拿数据 -> 改数据 -> 更新数据”设计调用链。
+- ✅ 项目字典通过 `DimensSDK.projectDict` 调用既有 `list/info/create/update/delete` 接口；创建时必须显式提供字典 `code` 与选项 `value`，不要在 SDK 边界静默生成编码。只有跨多个字段/位置复用的枚举才建议使用项目字典，单点枚举直接配置 `select` / `multiSelect`。
 - ✅ relation 字段沿用 `relation` 类型，通过 `config.relationConfig.relationMode` 区分 `single`/`multiple`；单表保存标量 `rowId/null`，多表保存 `rowId[]/[]`，多表限制数量为空表示不限。创建后不可切换，详见 `references/table-examples.md` 和 `../dimens-manager/references/table/references/relation-mode.md`。
 - ✅ 先判断密钥应该放在哪里：浏览器和移动端只拿短期 token，`apiSecret` 默认只在服务端或 BFF。
 - ✅ 代码示例必须带出失败处理边界：401 刷新、403 权限不足、404 上下文或资源 ID 错误。

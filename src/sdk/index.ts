@@ -8,6 +8,7 @@ import { JsonFieldSDK } from './json-field';
 import { PermissionSDK } from './permission';
 import { PluginPublicSDK } from './plugin-public';
 import { ProjectSDK } from './project';
+import { ProjectDictSDK } from './project-dict';
 import { ReportSDK } from './report';
 import { RichTextFieldSDK } from './richtext-field';
 import { RoleSDK } from './role';
@@ -24,6 +25,13 @@ import { WorkflowPublicSDK } from './workflow-public';
 export type { APIResponse, DimensClientOptions };
 export { DimensRequestError } from './client';
 export type { ProjectInfo, ProjectPagePayload, ProjectPageResult } from './project';
+export type {
+  ProjectDict,
+  ProjectDictCreatePayload,
+  ProjectDictListParams,
+  ProjectDictOption,
+  ProjectDictUpdatePayload,
+} from './project-dict';
 export type { TeamInfo, TeamSummary } from './team';
 export type { UserInfo } from './user';
 export type {
@@ -40,6 +48,7 @@ export class DimensSDK {
   readonly client: DimensClient;
   readonly auth: AuthSDK;
   readonly project: ProjectSDK;
+  readonly projectDict: ProjectDictSDK;
   readonly report: ReportSDK;
   readonly canvas: CanvasSDK;
   readonly role: RoleSDK;
@@ -64,6 +73,7 @@ export class DimensSDK {
     this.client = new DimensClient(config);
     this.auth = new AuthSDK(this.client);
     this.project = new ProjectSDK(this.client);
+    this.projectDict = new ProjectDictSDK(this.client);
     this.report = new ReportSDK(this.client);
     this.canvas = new CanvasSDK(this.client);
     this.role = new RoleSDK(this.client);
@@ -94,6 +104,7 @@ export { DimensClient } from './client';
 export { AuthSDK } from './auth';
 export { CanvasSDK } from './canvas';
 export { ProjectSDK } from './project';
+export { ProjectDictSDK } from './project-dict';
 export { ReportSDK } from './report';
 export { RichTextFieldSDK } from './richtext-field';
 export { RoleSDK } from './role';

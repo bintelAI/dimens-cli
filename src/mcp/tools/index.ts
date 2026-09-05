@@ -5,6 +5,7 @@ export { createContextTools } from './context';
 export { createDocumentTools } from './document';
 export { createPermissionTools } from './permission';
 export { createProjectTools } from './project';
+export { createProjectDictTools } from './project-dict';
 export { createReportTools } from './report';
 export { createRoleTools } from './role';
 export { createRowAclTools } from './row-acl';
@@ -24,6 +25,7 @@ import { createContextTools } from './context';
 import { createDocumentTools } from './document';
 import { createPermissionTools } from './permission';
 import { createProjectTools } from './project';
+import { createProjectDictTools } from './project-dict';
 import { createReportTools } from './report';
 import { createRoleTools } from './role';
 import { createRowAclTools } from './row-acl';
@@ -42,6 +44,7 @@ export function createAllMcpTools(context: McpToolFactoryContext): McpToolDefini
     ...createAuthTools(context),
     ...createContextTools(context),
     ...createProjectTools(context),
+    ...createProjectDictTools(context),
     ...createSheetTools(context),
     ...createColumnTools(context),
     ...createViewTools(context),

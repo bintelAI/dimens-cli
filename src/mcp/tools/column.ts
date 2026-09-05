@@ -23,12 +23,12 @@ export function createColumnTools(toolContext: McpToolFactoryContext): McpToolDe
     createSimpleTool({
       name: 'dimens_column_create',
       title: '创建字段',
-      description: '在指定维表中创建字段。可传 customId 后缀，最终 fieldId 由服务端按 projectId_suffix 生成且只在当前 sheetId 内校验唯一。',
+      description: '在指定维表中创建字段。必须传 customId 后缀，最终 fieldId 由服务端按 projectId_suffix 生成且只在当前 sheetId 内校验唯一。',
       inputSchema: {
         ...contextSchema,
         sheetId: z.string(),
         label: z.string(),
-        customId: z.string().optional(),
+        customId: z.string().trim().min(1, 'customId 为必填项').describe('自定义字段 ID 后缀'),
         type: z.string().optional(),
         config: z.record(z.unknown()).optional(),
       },
@@ -39,11 +39,12 @@ export function createColumnTools(toolContext: McpToolFactoryContext): McpToolDe
         if (!label) {
           throw new Error('缺少 label，请传入字段名称');
         }
-        const payload: ColumnMutationPayload = { label };
         const customId = stringArg(args.customId);
-        if (customId) {
-          payload.customId = customId;
+        if (!customId) {
+          throw new Error('创建字段必须传入 customId 后缀，禁止使用后端随机 ID');
         }
+        const payload: ColumnMutationPayload = { label };
+        payload.customId = customId;
         const type = stringArg(args.type);
         if (type) {
           payload.type = type;

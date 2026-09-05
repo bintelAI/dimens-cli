@@ -29,6 +29,7 @@ import { registerJsonFieldCommands } from './json-field/index';
 import { registerPermissionCommands } from './permission/index';
 import { registerPluginPublicCommands } from './plugin-public/index';
 import { registerProjectCommands } from './project/index';
+import { registerProjectDictCommands } from './project-dict/index';
 import { createCommandGroup } from './registry';
 import { registerReportCommands } from './report/index';
 import { registerRichTextFieldCommands } from './richtext-field/index';
@@ -62,6 +63,7 @@ export function registerCommands(): void {
   registerJsonFieldCommands();
   registerRichTextFieldCommands();
   registerProjectCommands();
+  registerProjectDictCommands();
   registerDocCommands();
   registerCanvasCommands();
   registerReportCommands();

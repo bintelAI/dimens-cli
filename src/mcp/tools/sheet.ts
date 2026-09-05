@@ -71,11 +71,11 @@ export function createSheetTools(toolContext: McpToolFactoryContext): McpToolDef
     createSimpleTool({
       name: 'dimens_sheet_create',
       title: '创建项目资源',
-      description: '创建表格、目录、文档、报表或画布资源节点。表格可传 customId 后缀，最终 ID 由服务端按 projectId_suffix 生成。',
+      description: '创建表格、目录、文档、报表或画布资源节点。工作表必须传 customId 后缀，最终 ID 由服务端按 projectId_suffix 生成；目录等非工作表资源不使用 customId。',
       inputSchema: {
         ...contextSchema,
         name: z.string(),
-        customId: z.string().optional(),
+        customId: z.string().trim().min(1).optional().describe('工作表必填的自定义 ID 后缀'),
         type: z.enum(sheetTypeValues).optional(),
         folderId: z.string().optional(),
       },
@@ -89,12 +89,18 @@ export function createSheetTools(toolContext: McpToolFactoryContext): McpToolDef
         }
         const payload: SheetMutationPayload = { name };
         const customId = stringArg(args.customId);
+        const type = stringArg(args.type);
+        const resolvedType = type || 'sheet';
+        if (resolvedType === 'sheet' && !customId) {
+          throw new Error('创建工作表必须传入 customId 后缀，禁止使用后端随机 ID');
+        }
         if (customId) {
           payload.customId = customId;
         }
-        const type = stringArg(args.type);
         if (type) {
           payload.type = type as 'sheet' | 'folder' | 'document' | 'report' | 'canvas';
+        } else {
+          payload.type = 'sheet';
         }
         const folderId = stringArg(args.folderId);
         if (folderId) {

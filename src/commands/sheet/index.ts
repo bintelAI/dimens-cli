@@ -77,7 +77,7 @@ export function registerSheetCommands(): void {
     'sheet',
     createCommand(
       'create',
-      '创建表、目录或项目菜单资源节点',
+      '创建表、目录或项目菜单资源节点（工作表必须使用自定义 ID）',
       async args => {
         const flags = parseFlags(args);
         const context = getContext(flags);
@@ -88,6 +88,11 @@ export function registerSheetCommands(): void {
           if (!name) {
             throw new Error('缺少表名称，请传入 --name');
           }
+          const type = flags.type || 'sheet';
+          const customId = String(flags['custom-id'] || '').trim();
+          if (type === 'sheet' && !customId) {
+            throw new Error('创建工作表必须传入 --custom-id <suffix>，禁止使用后端随机 ID');
+          }
           const sdk = new SheetSDK(createClient(context));
           const payload: {
             name: string;
@@ -95,15 +100,15 @@ export function registerSheetCommands(): void {
             type?: 'sheet' | 'folder' | 'document' | 'report' | 'canvas';
             folderId?: string;
           } = { name };
-          if (flags['custom-id']) {
-            payload.customId = flags['custom-id'];
+          if (customId) {
+            payload.customId = customId;
           }
-          if (flags.type) {
+          if (flags.type || type === 'sheet') {
             const supportedTypes = new Set(['sheet', 'folder', 'document', 'report', 'canvas']);
-            if (!supportedTypes.has(flags.type)) {
+            if (!supportedTypes.has(type)) {
               throw new Error('sheet create 的 --type 仅支持 sheet、folder、document、report、canvas');
             }
-            payload.type = flags.type as 'sheet' | 'folder' | 'document' | 'report' | 'canvas';
+            payload.type = type as 'sheet' | 'folder' | 'document' | 'report' | 'canvas';
           }
           if (flags['folder-id']) {
             payload.folderId = flags['folder-id'];
@@ -121,6 +126,7 @@ export function registerSheetCommands(): void {
           'sheet create --project-id PROJ1 --name 客户中心 --type folder',
           'sheet create --project-id PROJ1 --name 客户表 --custom-id customer --folder-id folder_customer',
           '# --custom-id 只传后缀，后端保存为 PROJ1_customer；仅 type=sheet 支持',
+          '# type=sheet（或未指定 type）必须传 --custom-id，否则 CLI 拒绝请求',
           'sheet create --project-id PROJ1 --name 业务流程画布 --type canvas',
           'sheet tree --project-id PROJ1',
         ],

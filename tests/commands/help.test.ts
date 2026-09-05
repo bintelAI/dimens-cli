@@ -135,6 +135,18 @@ describe('Help Command', () => {
     logSpy.mockRestore();
   });
 
+  it('should print project dictionary command help', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    await getCommand('help')?.handler(['project-dict', 'create']);
+
+    const output = logSpy.mock.calls.flat().join('\n');
+    expect(output).toContain('命令: project-dict create');
+    expect(output).toContain('--code <code>');
+    expect(output).toContain('--options <json>|--options-file <path>');
+    logSpy.mockRestore();
+  });
+
   it('should print sheet tree help with menu lookup examples', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 

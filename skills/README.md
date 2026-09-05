@@ -93,7 +93,7 @@ windows-utf8.md
 | `dimens-manager/references/key-auth/overview.md` | `dimens-cli auth api-key-login`、`api_key_*` | 负责 Key 登录、token 复用、第三方接入边界 | 这是认证入口，不是资源更新入口；登录成功不代表自动有资源权限 |
 | `dimens-manager/references/team/overview.md` | `auth me`、`user me`、`team info/users`、`project list/info`、上下文切换 | 负责当前用户、团队、成员、项目、租户、默认上下文判断 | 很多问题先确认 `userId/teamId/projectId`，上下文不对，后面所有结论都不稳 |
 | `dimens-manager/references/project/overview.md` | `project *`、`upload file`、`doc *`、`report *` 起始链路 | 负责项目创建、项目初始化、三驾马车入口 | 资源类更新默认先上传拿 `url`，项目和文档更新默认先读当前数据再提交；素材库上传带 `--source material --team-id` 时优先 CDN |
-| `dimens-manager/references/table/overview.md` | `sheet *`、`column *`、`view *`、`row *` | 负责工作表、字段、视图、行数据建模与更新 | `sheet/column/row` 的更新都走“先读再改再更”，字段设计还要考虑后续报表映射 |
+| `dimens-manager/references/table/overview.md`、`project-dictionary.md` | `sheet *`、`column *`、`view *`、`row *`、`project-dict *` | 负责工作表、字段、项目字典、视图、行数据建模与更新 | 先判断枚举是否跨位置复用；单点用 `select`，复用才建字典；更新仍走“先读再改再更” |
 | `dimens-manager/references/permission/overview.md` | `role *`、`permission *`、`row-policy *`、`row-acl *` | 负责角色、项目权限、行级策略、单行 ACL | 权限类更新也走“先拿当前记录再更新”，CLI 成功不等于权限快照已全部收敛 |
 | `dimens-manager/references/workflow/overview.md` | `flow_*`、`dimens-cli ai *` | 负责工作流定义、项目挂载、运行调用、模型边界 | 先分清团队定义、项目挂载、运行调用三层，不要混用结论 |
 | `dimens-manager/references/market/overview.md` | `plugin-public *` | 负责公开插件发布、公开插件市场列表、安装、升级与卸载 | 团队插件发布到公开市场后沉淀为 `flow_plugin`，安装落地为目标团队工作流实例 |
@@ -103,6 +103,8 @@ windows-utf8.md
 
 ### 3.3 强调细节
 
+- 创建工作表必须传 `--custom-id <suffix>`，创建字段必须传 `--custom-id <suffix>`；CLI/MCP 缺少后缀时本地拒绝，不允许请求落到后端随机 ID。后端最终按 `projectId_suffix` 生成真实 `sheetId/fieldId`，创建后必须用 `sheet info` / `column list` 回查。
+- 项目字典创建使用 `project-dict create --name --code --options`；字典 `code` 与选项 `value` 必须是小写英文/数字/下划线/连字符。Skill 可生成 `customer_level` 这类可编辑建议并处理冲突后缀，但写入前必须确认；单一位置使用的枚举不要创建项目字典。
 - 所有 `update`、`widget-update`、`row update`、`column update`、`sheet update`、`permission update`、`role update`、`row-policy update` 一律不要直接盲传局部 patch。
 - 项目封面、图标、文档图片、文档附件、其他文件资源，一律先 `dimens-cli upload file` 拿到 `url`，再把 `url` 写回当前业务数据；如果要同步进入素材库，必须显式传 `--source material --team-id <TEAM_ID>`，该链路优先直传 CDN，CDN 未启用或配置不完整时回退本地上传。
 - 文档更新默认先 `doc info` 拿当前内容和 `version`，再改内容后 `doc update`。

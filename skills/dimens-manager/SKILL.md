@@ -2,7 +2,7 @@
 name: dimens-manager
 slug: dimens-manager
 description: 用于维表智联项目内业务资源创建、配置、维护和排查，适合处理 Key、团队、项目、表格、富文本字段、JSON 字段、权限、工作流、报表、画布等落地问题。
-version: 1.0.3
+version: 2.0.0
 author: 方块智联工作室
 tags: [manager, project, table, richtext, json, permission, workflow, report, canvas, auth, dimens-cli]
 ---
@@ -22,7 +22,9 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 - ✅ 用户提到 `sdk.ai.*`、`response.data`、模型下拉、图片不显示、视频任务轮询、Provider 或 Vite 代理时，属于开发者接入问题；直接路由到 `dimens-sdk/references/ai-examples.md` 与 `dimens-sdk/references/capability-status.md`。
 - ✅ Windows 下生成或修改中文文件时，必须遵守 `../windows-utf8.md`：用 UTF-8 写入，禁止 `cmd echo` / 默认重定向写中文正文，写完读回确认没有 `??`。
 - ✅ 每次准备使用 `dimens-cli` 前，必须先在当前终端执行 `npm -g install @bintel/dimens-cli@latest` 升级全局 CLI；升级成功后再执行 `dimens-cli --version` 或 `dimens-cli --help` 确认可用，确保用户每次使用的都是最新版本。
-- ✅ 创建表格或字段时可用 `--custom-id <suffix>`（MCP 使用 `customId`）指定自定义 ID 后缀；最终 ID 始终由后端按 `projectId_suffix` 生成，CLI/技能不得自行拼接或提交最终 `sheetId/fieldId`。
+- ✅ 创建工作表和字段时必须使用 `--custom-id <suffix>`（MCP 使用 `customId`）指定自定义 ID 后缀；缺少后缀时 CLI/MCP 必须在本地拒绝请求，不得让后端回退随机 ID。最终 ID 始终由后端按 `projectId_suffix` 生成，CLI/技能不得自行拼接或提交最终 `sheetId/fieldId`。
+- ✅ `sheet create` 的目录、文档、报表、画布等非工作表资源不使用 `customId`；只有 `type=sheet`（或未指定类型而按工作表处理）强制要求后缀。
+- ✅ 当前后端在缺少 `customId` 时仍会调用随机 ID 生成器（工作表 `generateId('sheet')`、字段 `generateId('field')`）；这是后端兼容默认，不是 CLI 期望路径，调用侧必须先拦截。
 - ✅ 自定义字段 ID 只在当前 `sheetId` 内校验唯一；不同工作表可以使用相同字段后缀。遇到 `RESOURCE_ID_CONFLICT` 时更换后缀，不要误判为项目或团队全局冲突。
 - ✅ 自定义 ID 创建成功后，必须用 `sheet info` 或 `column list` 回查服务端返回的真实 `sheetId/fieldId`；不要把团队 ID 当作 ID 前缀。
 - ✅ 项目内查询、创建、更新、上传、验证等操作优先推荐并执行 `dimens-cli` 命令；自定义 URL 只作为上下文解析或 CLI 未覆盖时的补充路径，不作为首选解决方案。
@@ -34,6 +36,7 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 - ✅ 用户只给自然语言目标时，先把目标归类到业务域，再给 CLI 步骤；不要直接编造不存在的命令或字段。
 - ✅ 如果上下文、权限或资源 ID 缺失，先列出缺口和最小补齐命令，再继续执行或给方案。
 - ✅ 用户涉及 `richtext` 富文本字段或 `json` 字段时，必须读取 `references/table/references/richtext-json-fields.md`；这两类字段必须走专用命令，不能按普通文档或普通单元格处理。
+- ✅ 设计 `select` / `multiSelect` 时，先判断选项是否会跨多个表、字段或流程复用；单一位置即使要求唯一也直接使用普通下拉，只有明确复用才创建项目数据字典。字典编码规则与命令详见 `references/table/project-dictionary.md`。
 
 ## 职责边界
 
@@ -137,6 +140,7 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 - `references/team/overview.md`
 - `references/project/overview.md`
 - `references/table/overview.md`
+- `references/table/project-dictionary.md`
 - `references/table/references/richtext-json-fields.md`
 - `references/permission/overview.md`
 - `references/workflow/overview.md`

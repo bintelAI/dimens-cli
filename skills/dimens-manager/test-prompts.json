@@ -52,6 +52,11 @@
   {
     "id": "manager-019",
     "prompt": "我要创建一张客户表并自定义表 ID，再给它创建一个自定义字段 ID；另一张表也要使用相同字段后缀。",
-    "expected": "应命中表格章节，使用 sheet create --custom-id 和 column create --custom-id；说明最终 ID 由后端按 projectId_suffix 生成，不使用团队 ID；字段后缀仅在当前 sheetId 内唯一，不同表允许重复；创建后分别用 sheet info 和 column list 回查真实 ID。"
+    "expected": "应命中表格章节，强制使用 sheet create --custom-id 和 column create --custom-id；缺少后缀时 CLI/MCP 必须拒绝，不能触发后端随机 ID；说明最终 ID 由后端按 projectId_suffix 生成，不使用团队 ID；字段后缀仅在当前 sheetId 内唯一，不同表允许重复；创建后分别用 sheet info 和 column list 回查真实 ID。"
+  },
+  {
+    "id": "manager-020",
+    "prompt": "客户等级会被客户表、订单表和审批流程共同使用，请设计并创建选项编码。另一个只在客户表使用的客户来源也需要唯一。",
+    "expected": "应判断客户等级跨多个位置复用，创建项目字典并使用 project-dict create，生成 customer_level 等可编辑的小写编码建议并在写入前确认；客户来源只在单一位置使用，即使要求唯一也直接创建 select，不创建字典。"
   }
 ]

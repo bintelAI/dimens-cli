@@ -67,7 +67,7 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 查看项目详情 | `dimens-cli project info --team-id TEAM_ID --project-id PROJECT_ID` | 校验上下文是否正确 |
 | 上传 SVG 封面/图标 | `dimens-cli upload file --path ./project-cover.svg --team-id TEAM_ID --scene project-cover` | SVG 默认 `250x150px`、淡色背景、轻量动态效果；文件名必须保留 `.svg`，CLI 会按 `image/svg+xml` 上传，上传后再把 URL 写回项目或文档；如果希望同时进入素材管理，再补 `--source material` |
 | 创建目录 | `dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 目录名 --type folder` | 只创建目录节点，不会自动移动其他菜单 |
-| 创建工作表 | `dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 表名 [--folder-id FOLDER_SHEET_ID]` | 新系统一般先建核心表；要进入目录必须显式带 `--folder-id` |
+| 创建工作表 | `dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 表名 --type sheet --custom-id 表后缀 [--folder-id FOLDER_SHEET_ID]` | 工作表必须显式传 `--custom-id`；最终 ID 由后端按 `projectId_suffix` 生成；要进入目录必须显式带 `--folder-id` |
 | 查看字段列表 | `dimens-cli column list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 建表后立刻检查字段，尤其是自动生成的默认“名称”字段 |
 | 移动已有菜单资源到目录 | `dimens-cli sheet move SHEET_OR_REPORT_ID --team-id TEAM_ID --project-id PROJECT_ID --folder-id FOLDER_SHEET_ID` | 已创建的表格/报表等资源不会因目录创建自动归位，必须单独移动；CLI 参数 `--folder-id` 会提交为后端 `parentId` |
 | 创建在线文档 | `dimens-cli doc create --team-id TEAM_ID --project-id PROJECT_ID --title 文档名 [--content <html>] [--format richtext]` | 在线文档走 TipTap 富文本链路 |
@@ -84,7 +84,7 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 查看视图列表 | `dimens-cli view list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 建表后先确认默认视图是否已存在 |
 | 创建公开默认视图 | `dimens-cli view create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --name 默认视图 --type grid --is-public true --config '{"filters":[],"filterMatchType":"and","sortRule":null,"groupBy":[],"hiddenColumnIds":[],"rowHeight":"medium"}'` | 技能建表链路默认要求至少补一个公开默认视图 |
 | 查看字段列表 | `dimens-cli column list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID` | 写入行数据前必须先取字段；如果有无用默认“名称”字段，先改名复用或清理 |
-| 创建字段 | `dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 字段名 --type text` | 推荐统一使用 `--label`；`select/multiSelect` 必须同步传 `--options`；如果语义是选人或选部门，优先改配 `person` / `department`，不要误落成普通下拉 |
+| 创建字段 | `dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 字段名 --type text --custom-id 字段后缀` | `--custom-id` 为必填；最终 fieldId 由后端按 `projectId_suffix` 生成；`select/multiSelect` 必须同步传 `--options`；如果语义是选人或选部门，优先改配 `person` / `department` |
 | 创建行 | `dimens-cli row create --sheet-id SHEET_ID --values '{\"fld_xxx\":\"值\"}'` | CLI 会映射到服务端 `data` |
 | 批量创建行 | `dimens-cli row batch-create --sheet-id SHEET_ID --file ./rows.json [--batch-size 200]` | 系统初始化、迁移、批量补数据优先用这个命令；后端单批最高 1000 行，但真实导入默认按 200 行稳定分片 |
 | 更新行 | `dimens-cli row update --sheet-id SHEET_ID --row-id ROW_ID --version 1 --values '{\"fld_xxx\":\"新值\"}'` | 更新前要拿到版本号 |
@@ -150,7 +150,7 @@ dimens-cli project info --team-id TEAM_ID --project-id PROJECT_ID
 ```bash
 dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 客户中心 --type folder
 
-dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 客户表 --folder-id FOLDER_CUSTOMER_ID
+dimens-cli sheet create --team-id TEAM_ID --project-id PROJECT_ID --name 客户表 --type sheet --custom-id customer --folder-id FOLDER_CUSTOMER_ID
 
 dimens-cli sheet tree --team-id TEAM_ID --project-id PROJECT_ID
 dimens-cli column list --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID
@@ -179,7 +179,8 @@ dimens-cli column create \
   --project-id PROJECT_ID \
   --sheet-id SHEET_ID \
   --label 客户名称 \
-  --type text
+  --type text \
+  --custom-id customer_name
 ```
 
 ```bash
@@ -189,6 +190,7 @@ dimens-cli column create \
   --sheet-id SHEET_ID \
   --label 客户等级 \
   --type select \
+  --custom-id customer_level \
   --options '[{"id":"customer_level_a","label":"A 级客户","color":"bg-blue-100 text-blue-700"},{"id":"customer_level_b","label":"B 级客户","color":"bg-slate-100 text-slate-700"},{"id":"customer_level_c","label":"C 级客户","color":"bg-gray-100 text-gray-700"}]'
 ```
 

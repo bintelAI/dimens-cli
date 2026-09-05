@@ -297,7 +297,7 @@ dimens-cli doc append-image \
 ## 6. 继续进入建表主链
 
 ```bash
-dimens-cli sheet create --team-id TTFFEN --project-id PROJECT_ID --name 客户表
+dimens-cli sheet create --team-id TTFFEN --project-id PROJECT_ID --name 客户表 --type sheet --custom-id customer
 dimens-cli view list --team-id TTFFEN --project-id PROJECT_ID --sheet-id SHEET_ID
 ```
 
