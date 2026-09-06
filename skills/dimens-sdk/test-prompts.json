@@ -68,5 +68,10 @@
     "id": "sdk-018",
     "prompt": "Node.js 服务端要创建一个会被多个字段复用的项目字典，怎么调用 SDK？单个字段的唯一下拉还要不要建字典？",
     "expected": "应使用 DimensSDK.projectDict.create，显式传入小写字典 code 与选项 value，并说明 token、teamId、projectId 和错误处理；只有跨多个字段/位置复用才建项目字典，单点唯一下拉直接使用 select/multiSelect。"
+  },
+  {
+    "id": "sdk-019",
+    "prompt": "请用 Node.js SDK 或 Python 帮我创建一张包含复杂字段配置的客户表，并批量写入初始化数据。",
+    "expected": "应说明实际资源创建和写入必须回到 dimens-cli；先生成并校验表/字段/行数据 JSON 契约，再使用 sheet/column/row CLI 命令提交，最后用 CLI 回查。不得根据 CLI 源码生成 SDK、Python、Node.js 或 HTTP 写入脚本。"
   }
 ]

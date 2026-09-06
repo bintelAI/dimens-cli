@@ -38,5 +38,30 @@
     "id": "orchestrator-008",
     "prompt": "导入一个项目数据库，项目可关联多个成员，但最多 10 人；请直接生成字段设计和迁移步骤。",
     "expected": "应生成 relationMode=multiple、maxSelection=10 的字段，说明行值是 rowId[]，先导入成员目标行再回填项目关联，并在 column list 与 row page 中验收；不能把多成员字段设计成 select 或 single。"
+  },
+  {
+    "id": "orchestrator-009",
+    "prompt": "请根据 dimens-cli 源码写 Python 脚本创建客户表、字段和数据，数据结构比较复杂。",
+    "expected": "应明确所有实际资源操作强制使用 dimens-cli；复杂结构先生成和校验 JSON，再通过 sheet/column/row 的 CLI 文件或 JSON 参数执行，最后用 CLI 回查，不能生成 Python/Node/HTTP 写入脚本。"
+  },
+  {
+    "id": "orchestrator-010",
+    "prompt": "我有一个 CMDB 资产管理 Excel，里面有表清单、字段明细、数据字典和表关系，想据此生成一个项目。",
+    "expected": "应建议先只读解析 Excel 并按 excel-planning.md 校验表编码、字段类型、字典引用和关系基数；按维表能力裁剪内部唯一 ID、软删除、租户/项目上下文、创建人、创建时间、更新人、更新时间等非业务字段；select/multiSelect 选项 id 与项目字典 value 优先使用 active、maintenance 等英文语义编码，不使用 1/2/3 纯数字编码；将结果归一化成设计文档与 JSON 契约，区分单点 select 字段选项和跨位置复用的项目自定义数据字典，确认后再用 dimens-cli 创建表/字段/字典/视图并回查，不能直接从 Excel 生成 Python 或 HTTP 写入脚本。"
+  },
+  {
+    "id": "orchestrator-011",
+    "prompt": "项目高级设置没有开启自定义资源 ID，但我要按系统蓝图创建工作表和字段。",
+    "expected": "应说明前端开关不影响后端合法 customId 的接口处理；本技能仍强制为每张新表和每个新业务字段提供 customId 后缀，先写入 JSON 契约再执行 dimens-cli sheet/column create；不能因开关关闭而改用随机 ID，也不能提交最终 sheetId/fieldId。"
+  },
+  {
+    "id": "orchestrator-012",
+    "prompt": "请打开维表网页，帮我点击创建客户表、填写字段，再用页面确认是否成功。",
+    "expected": "应拒绝使用浏览器页面、浏览器自动化或开发者工具执行维表操作；改为先输出并校验 JSON，再使用 dimens-cli 创建表和字段，并用 dimens-cli 查询回查结果。浏览器只能在用户明确要求时做视觉检查，不能作为写入或验收证据。"
+  },
+  {
+    "id": "orchestrator-013",
+    "prompt": "项目建好后请生成一些 demo 数据，方便我马上测试列表、筛选和报表。",
+    "expected": "应在字段合规并完成表结构后生成 demo/示例数据，默认每张核心表准备 5-10 条并覆盖状态、负责人、时间等关键维度；优先先写 JSON 再用 dimens-cli row batch-create 导入并用 row page 回查。用户明确指定数量时遵循用户要求，不能把 demo 数量规则误用于生产批量导入。"
   }
 ]

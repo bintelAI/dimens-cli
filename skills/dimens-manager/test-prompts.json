@@ -57,6 +57,11 @@
   {
     "id": "manager-020",
     "prompt": "客户等级会被客户表、订单表和审批流程共同使用，请设计并创建选项编码。另一个只在客户表使用的客户来源也需要唯一。",
-    "expected": "应判断客户等级跨多个位置复用，创建项目字典并使用 project-dict create，生成 customer_level 等可编辑的小写编码建议并在写入前确认；客户来源只在单一位置使用，即使要求唯一也直接创建 select，不创建字典。"
+    "expected": "应判断客户等级跨多个位置复用，创建项目字典并使用 project-dict create，生成 customer_level 等可编辑的小写编码建议并在写入前确认；选项 value 优先使用 vip、standard 等英文语义编码，不使用 1/2/3 纯数字编码；客户来源只在单一位置使用，即使要求唯一也直接创建 select，不创建字典。"
+  },
+  {
+    "id": "manager-021",
+    "prompt": "我有一批复杂字段和初始化数据，请先阅读 dimens-cli 源码，再写 Python 脚本批量创建表和字段。",
+    "expected": "应拒绝把 Python 脚本作为资源写入入口；先输出可审阅的 JSON 数据契约，再强制使用 dimens-cli 的 sheet/column/row 命令（复杂数据使用 --file 或 JSON 参数），执行后用 CLI 查询回查。"
   }
 ]

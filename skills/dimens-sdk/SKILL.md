@@ -2,7 +2,7 @@
 name: dimens-sdk
 slug: dimens-sdk
 description: 用于维表智联开发者接入，适合 Web/H5、BFF、Node.js、移动端、HTTP API、@bintel/dimens-cli SDK、token 刷新、密钥存放、上下文传递和资源调用代码集成问题。
-version: 2.0.0
+version: 2.0.3
 author: 方块智联工作室
 tags: [sdk, http, web, mobile, integration, dimens-cli]
 ---
@@ -31,6 +31,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ Windows 下生成中文示例代码、Markdown、JSON 或脚本文件时，必须遵守 `../windows-utf8.md`：统一 UTF-8 写入，写完读回检查，避免中文变成 `??`。
 - ✅ 浏览器端和移动端不要明文保存 `apiSecret`；涉及 API Secret 默认放服务端或 BFF 换 token。
 - ✅ 调试、验证、资源管理优先给 `dimens-cli` 命令行路径；只有在用户明确要做端侧集成、CLI 未覆盖能力或需要说明代码调用时，再补充 SDK / HTTP / 自定义 URL 方案。
+- ✅ 只要任务是实际创建或修改维表资源，强制回到 `dimens-cli` 执行；复杂请求先生成 JSON 文件，再用 CLI 参数提交。SDK/HTTP/Python 示例只能用于明确的开发者接入或外部数据预处理，不能替代资源操作命令，也不能根据 CLI 源码生成写入脚本。
 - ✅ API Key 登录返回的是现有用户 token，不是独立开放平台权限体系。
 - ✅ `teamId` 是团队隔离边界，`projectId` 是项目内资源上下文，不能漏传或混传。
 - ✅ 当用户消息或当前页面携带维表 URL 时，先从 URL 解析上下文。格式 `http://localhost:3000/#/{teamId}/{projectId}/{sheetId}`；例如 `http://localhost:3000/#/TTFFEN/PM394YD/sh_lTyerp8gwW8QSVD1` 表示 `teamId=TTFFEN`、`projectId=PM394YD`、`sheetId=sh_lTyerp8gwW8QSVD1`。用户说“当前页面/当前表/这个表”时优先用这些 ID 连接维表。

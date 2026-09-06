@@ -158,7 +158,7 @@ dimens-cli sheet create \
   --custom-id customer
 ```
 
-请求体只包含 `customId: "customer"`，最终 `sheetId` 由服务端生成：`PROJ1_customer`。创建后使用 `sheet info` 回查，不要自行提交或拼接最终 ID。自定义 ID 需要项目高级设置已开启，非法后缀或冲突由服务端返回错误。
+请求体只包含 `customId: "customer"`，最终 `sheetId` 由服务端生成：`PROJ1_customer`。创建后使用 `sheet info` 回查，不要自行提交或拼接最终 ID。项目高级设置开关只控制前端是否展示/允许填写自定义 ID，不影响后端接口处理 `customId`；非法后缀或冲突由服务端返回错误。
 
 ---
 

@@ -2,7 +2,7 @@
 name: dimens-manager
 slug: dimens-manager
 description: 用于维表智联项目内业务资源创建、配置、维护和排查，适合处理 Key、团队、项目、表格、富文本字段、JSON 字段、权限、工作流、报表、画布等落地问题。
-version: 2.0.0
+version: 2.0.3
 author: 方块智联工作室
 tags: [manager, project, table, richtext, json, permission, workflow, report, canvas, auth, dimens-cli]
 ---
@@ -28,6 +28,7 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 - ✅ 自定义字段 ID 只在当前 `sheetId` 内校验唯一；不同工作表可以使用相同字段后缀。遇到 `RESOURCE_ID_CONFLICT` 时更换后缀，不要误判为项目或团队全局冲突。
 - ✅ 自定义 ID 创建成功后，必须用 `sheet info` 或 `column list` 回查服务端返回的真实 `sheetId/fieldId`；不要把团队 ID 当作 ID 前缀。
 - ✅ 项目内查询、创建、更新、上传、验证等操作优先推荐并执行 `dimens-cli` 命令；自定义 URL 只作为上下文解析或 CLI 未覆盖时的补充路径，不作为首选解决方案。
+- ✅ 表、字段、视图、行、字典等资源操作强制通过 `dimens-cli` 完成。复杂字段配置、选项树和批量数据先生成并校验 JSON，再使用 `--options`、`--config`、`--values` 或 `--file` 提交；禁止阅读 CLI 源码后生成 Python/Node/HTTP 脚本替代命令。Python 仅可用于明确授权的外部数据清洗，不能直接写入维表。
 - ✅ 执行任何写操作前先确认认证、`teamId`、`projectId` 与资源归属。
 - ✅ 当用户消息或当前页面携带维表 URL 时，先解析 URL 上下文。格式 `http://localhost:3000/#/{teamId}/{projectId}/{sheetId}`；例如 `http://localhost:3000/#/TTFFEN/PM394YD/sh_lTyerp8gwW8QSVD1` 表示 `teamId=TTFFEN`、`projectId=PM394YD`、`sheetId=sh_lTyerp8gwW8QSVD1`。用户说“当前页面/当前表/这个表”时优先使用这些 ID。
 - ✅ 更新类操作统一遵循“先读取当前数据 -> 修改目标字段 -> 再提交更新”。
@@ -37,6 +38,7 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 - ✅ 如果上下文、权限或资源 ID 缺失，先列出缺口和最小补齐命令，再继续执行或给方案。
 - ✅ 用户涉及 `richtext` 富文本字段或 `json` 字段时，必须读取 `references/table/references/richtext-json-fields.md`；这两类字段必须走专用命令，不能按普通文档或普通单元格处理。
 - ✅ 设计 `select` / `multiSelect` 时，先判断选项是否会跨多个表、字段或流程复用；单一位置即使要求唯一也直接使用普通下拉，只有明确复用才创建项目数据字典。字典编码规则与命令详见 `references/table/project-dictionary.md`。
+- ✅ 字段内置选项 `id` 和项目字典选项 `value` 优先使用选项名称对应的英文语义编码（如 `active`、`maintenance`、`offline`），不要默认生成 `1`、`2`、`3` 这类纯数字编码；创建字段时跳过维表自带的创建人、创建时间、更新人、更新时间系统字段，不重复生成同名业务字段。
 
 ## 职责边界
 
@@ -79,6 +81,7 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 9. 统计分析和看板问题看 `references/report/overview.md`。
 10. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
 11. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
+12. 任何创建表或字段的方案都必须先给出 JSON 数据契约，再给出对应 `dimens-cli` 命令和回查命令；不能把脚本执行当作资源创建步骤。
 
 ## 输出契约
 

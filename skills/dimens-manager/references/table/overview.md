@@ -21,6 +21,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 表格能力默认要先确认 `projectId`，大多数写操作还需要 `teamId`
 - ✅ 新建工作表和字段必须传 `--custom-id <suffix>`；缺少后缀时 CLI/MCP 必须拒绝请求，不能触发后端随机 ID。最终 ID 由后端按 `projectId_suffix` 生成，CLI 不提交最终 ID，也不能使用团队 ID 作为前缀；目录、文档、报表、画布不适用
 - ✅ CLI 是表、字段、视图、行数据操作的首选入口；接口案例只用于解释真实契约和边界
+- ✅ 表、字段、视图、行数据的实际创建、更新、删除、验证强制使用 `dimens-cli`；复杂配置先生成并检查 JSON，再通过 CLI 的 `--options`、`--config`、`--values` 或 `--file` 提交。禁止阅读 CLI 源码后生成 Python/Node/HTTP 脚本替代命令。
 - ✅ 缺少 `teamId/projectId/sheetId/fieldId/rowId/viewId` 时，先用列表、详情或用户确认补齐，不要猜 ID
 - ✅ 如果用户还处在“创建项目 / 初始化项目”阶段，先路由到 `dimens-manager/references/project/overview.md`，不要在 `dimens-manager/references/table/overview.md` 里直接吞掉上游步骤
 - ✅ 字段、视图、行数据都属于工作表上下文，不能脱离 `sheetId` 单独判断
@@ -33,6 +34,8 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ `relationMode` 只能在创建字段时决定，编辑已有字段不得切换单表/多表；完整配置、兼容规则和 CLI/SDK/MCP 示例见 `references/relation-mode.md`
 - ✅ `select` / `multiSelect` 字段在技能创建时必须同时给出完整候选项，不能只定义字段名和类型
 - ✅ `select` / `multiSelect` / 下拉选择类配置在技能输出时必须同时给出规范 `options`：每个选项至少包含唯一 `id`、非空 `label`、合法 `color`；不要只给字符串数组或只给 `label`
+- ✅ 字段选项 `id` 和项目字典选项 `value` 优先使用选项名称对应的英文语义编码（如 `active`、`maintenance`、`offline`），不要使用 `1`、`2`、`3` 这类纯数字编码；除非业务名称本身就是数字
+- ✅ 创建字段时不要重复创建维表自带的创建人、创建时间、更新人、更新时间系统字段；它们不进入业务字段清单，也不执行 `column create`，需要筛选/排序时直接引用系统字段
 - ✅ `options` 推荐始终使用 JSON 对象数组传给 `--options`；逗号分隔字符串只是 CLI 兼容能力，不作为技能生成规范
 - ✅ 用户上传 Excel 并要求创建选择器字段时，必须先从 Excel 表头和样本值提取候选项，用 `column create --options` 创建完整下拉；行数据写入必须映射到这些候选项，不能把不存在的下拉值直接写入
 - ✅ 选项颜色字符串要与前端真实实现对齐：内置颜色使用 `bg-xxx-100 text-xxx-700`，自定义颜色使用 `custom:{\"bg\":\"#xxxxxx\",\"text\":\"#xxxxxx\"}`
@@ -49,6 +52,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - ✅ 表格接口能读取不代表一定可写，行级、列级、协同权限可能继续收敛
 - ✅ 如果后续要做报表，这一步就要提前考虑字段能否直接进入 `report preview / query-widget / dataMapping`，不要等到报表阶段再返工
 - ✅ Windows 下保存含中文的导入文件、字段配置、JSON 或命令说明时，必须使用 UTF-8 并读回确认
+- ✅ Python 只能在明确授权的外部数据清洗/格式转换阶段使用，不能直接请求后端、模拟 CLI 或作为表字段资源操作的最终交付物。
 
 ## 高风险跑偏点
 
@@ -65,6 +69,8 @@ tags: [table, sheet, row, column, view, dimens-cli]
 9. 只关心表能录数据，不关心字段是否可用于 `preview` 和报表映射
 10. 用 `doc update` 写富文本字段，混淆在线文档和单元格关联文档
 11. 用 `row set-cell --value-json` 写 JSON 字段，绕过专用存储和版本控制
+12. 阅读 `dimens-cli` 源码后另写 Python/Node/HTTP 脚本创建表或字段
+13. 复杂配置没有先形成 JSON 数据契约，直接在脚本里拼接或循环请求
 
 对应提醒：
 
@@ -72,6 +78,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - 报表数值字段必须是数字或可稳定转数字
 - 如果字段后续要进入报表，尽量在建表阶段就明确“谁做维度、谁做指标”
 - 不要等到 `dimens-manager/references/report/overview.md` 阶段才发现字段类型不适合出图
+- 表和字段创建必须遵循“JSON 数据契约 -> `dimens-cli` 执行 -> CLI 查询回查”，任何替代脚本都不属于标准操作链路
 
 ## 命令维护表
 
@@ -238,6 +245,30 @@ dimens-cli sheet list --project-id PROJ1
 ```
 
 ### 场景 1.2：创建带自定义 ID 的表格和字段
+
+复杂建模先保存一份可审阅的 JSON 契约，再按契约执行 CLI。契约只描述目标结构，不承担写入逻辑，也不能被改写成 Python/Node/HTTP 资源写入脚本：
+
+```json
+{
+  "sheet": { "name": "客户表", "type": "sheet", "customId": "customer" },
+  "columns": [
+    { "label": "客户名称", "type": "text", "customId": "customer_name" },
+    {
+      "label": "客户等级",
+      "type": "select",
+      "customId": "customer_level",
+      "config": {
+        "options": [
+          { "id": "vip", "label": "VIP", "color": "bg-purple-100 text-purple-700" },
+          { "id": "standard", "label": "标准", "color": "bg-blue-100 text-blue-700" }
+        ]
+      }
+    }
+  ]
+}
+```
+
+先用 JSON 解析器检查契约合法、`customId` 唯一、字段类型与选项完整，再执行下面的 `sheet create`、`column create` 命令；每一步完成后都要用 `sheet info` / `column list` 回查，不能以 JSON 文件存在或脚本退出码为成功依据。
 
 ```bash
 dimens-cli sheet create \

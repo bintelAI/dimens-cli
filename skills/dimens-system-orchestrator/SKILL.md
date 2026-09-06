@@ -2,7 +2,7 @@
 name: dimens-system-orchestrator
 slug: dimens-system-orchestrator
 description: 用于维表智联系统级方案拆解与执行编排，适合“生成一个客户管理系统/平台”这类完整业务系统搭建需求。
-version: 2.0.0
+version: 2.0.3
 author: 方块智联工作室
 tags: [orchestrator, system-design, routing, planning, dimens-cli]
 ---
@@ -19,11 +19,18 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 
 - ✅ 当前技能只负责系统级拆解、执行顺序、章节路由和风险提示。
 - ✅ `dimens-cli` 或 SDK 包完整名称是 `@bintel/dimens-cli`；每次准备使用 `dimens-cli` 前，必须先在当前终端执行 `npm -g install @bintel/dimens-cli@latest` 升级全局 CLI，再执行 `dimens-cli --version` 或 `dimens-cli --help` 确认可用，确保用户每次使用的都是最新版本。
+- ✅ 系统落地涉及项目、表、字段、行、字典、视图、报表、权限或画布时，所有实际操作强制使用 `dimens-cli`。复杂结构先输出并校验 JSON，再通过 CLI 的 `--file`、`--config`、`--options` 或 `--values` 提交；禁止阅读 CLI 源码后生成 Python/Node/HTTP 脚本绕过 CLI。Python 只能用于明确授权的外部数据清洗，不能直接写入后端。
+- 🚫 维表资源的查询、创建、更新、删除、移动、权限配置和结果验收严禁调用浏览器（包括打开页面手工操作、浏览器自动化、浏览器开发者工具或模拟点击）；只允许使用 `dimens-cli` 命令及其查询回查完成。浏览器只能用于用户明确要求的页面视觉检查，检查结果不得替代 CLI 写入或验收证据。
 - ✅ 项目内业务操作统一进入 `dimens-manager`。
 - ✅ SDK、HTTP、Web、BFF、Node.js、移动端接入统一进入 `dimens-sdk`。
 - ✅ 当前技能按两条主线分流：CLI 操作维表资源进入 `references/command-mapping.md` 和 `dimens-manager`；SDK 自定义页面开发进入 `references/custom-page-scaffold.md` 和 `dimens-cli/dimens-web` 脚手架。
+- ✅ 新建项目包含多张表、复杂字段、字典或关系时，可以建议用户先用 Excel 作为规划和评审载体；Excel 先按 `references/excel-planning.md` 做只读解析与一致性校验，再归一化成 JSON，实际创建仍强制使用 `dimens-cli`。
+- ✅ Excel 字段不能逐列照搬为维表字段：唯一 ID、软删除、租户/项目上下文、数据库索引和冗余审计列默认裁剪，只有明确业务用途才保留；`sheet/column customId` 是资源元数据，不额外生成“唯一 ID”业务列。
+- ✅ Excel 的“数据字典”必须先按业务复用范围拆成两种：单一位置使用的枚举直接放入 `select/multiSelect` 字段选项；只有多个表、字段或流程复用时才创建项目自定义数据字典并绑定业务字段。不要因为 Excel 存在字典工作表就全部创建项目字典。
+- ✅ `select/multiSelect` 的选项 `id` 与项目自定义字典选项 `value` 优先使用选项名称的英文语义编码（如 `active`、`maintenance`、`offline`），不要使用 `1`、`2`、`3` 这类纯数字编码；创建字段时跳过维表自带的创建人、创建时间、更新人、更新时间，不生成同名业务字段。
 - ✅ 创建工作表和字段时必须显式提供自定义 ID 后缀（CLI 使用 `--custom-id`，MCP 使用 `customId`）；缺少后缀必须在调用侧拒绝，禁止触发后端随机 ID。最终 ID 仍由后端按 `projectId_suffix` 生成，CLI/技能不得自行拼接最终 ID；目录、文档、报表、画布等非工作表菜单资源不适用此要求。
-- ✅ 这是调用侧约束而非后端默认行为：后端缺少后缀时仍会生成随机 `sheetId/fieldId`，因此系统蓝图、命令编排和验收都必须把自定义后缀列为建表/建字段的必填输入。
+- ✅ 这是本技能的强制建模策略，与项目高级设置开关无关：系统蓝图、JSON 契约、`sheet create` 和 `column create` 必须为每张新工作表、每个新业务字段提供稳定且可读的自定义 ID 后缀；缺少后缀时停止创建链路并要求补齐，不能为了继续执行而省略。
+- ✅ 后端在未传 `customId` 时保留随机 `sheetId/fieldId` 的兼容回退，但该回退不属于本技能的标准交付；技能不得依赖或主动触发随机 ID。后端开关只影响前端是否展示/允许填写入口，不影响合法 `customId` 的接口处理。
 - ✅ 用户要新增维表自定义页面但没有指定目录时，先询问或建议是否用 `dimens-cli create --dir <目录名>` 初始化自定义页面目录，再进入页面开发。
 - ✅ 自定义页面开发默认使用独立 `/xxx` 业务路由；不要改 `/` 根页面，不要覆盖 `/custom`、`/records`、`/settings`、`/embed`、`/debug/context` 等既有示例、配置或调试页面。
 - ✅ 自定义页面进入视觉设计、布局、配色、组件体验、数据看板或图表呈现时，关联使用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）先定 UI/UX 方案，再落到 `dimens-web` 代码实现。
@@ -34,11 +41,12 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 - ✅ 项目资源默认按“四类交付物”理解：表格、文档、报表、业务场景画布。
 - ✅ 涉及流程、审批、自动化或多角色协作的系统，默认补业务场景画布；审批场景额外补审批工作流画布。
 - ✅ 更新类操作统一遵循“先读取当前数据 -> 分析并修改目标字段 -> 再提交更新”。
+- ✅ 创建表和字段时先生成 JSON 数据契约，再生成 `dimens-cli` 命令；命令执行后必须用 CLI 查询回查，不得以脚本运行成功替代服务端验收。
 - ✅ 用户要“直接创建系统”时，也要先给出可执行的最小系统蓝图；蓝图缺少角色、对象、权限边界时不要直接进入创建命令。
 - ✅ 新建项目场景下，如果用户提供了已有需求文档，必须先检查文档结构是否基本符合 `references/new-project-design-template.md`；不符合时先按模板重写或补全成维表设计文档，再进入项目创建和 CLI 执行。
 - ✅ 如果用户只给一句话、散乱笔记、PRD、Word/Markdown 文档或截图文字，也必须先归一化为 `references/new-project-design-template.md` 对应的维表设计文档；没有结构化设计文档时，不允许直接创建项目。
 - ✅ 只做路由时必须给出下一步具体 Skill 和章节路径，不要只写“交给 manager/sdk”。
-- ✅ 报表创建前必须先保证数据源表已有可查询示例数据，报表组件的维度、指标、筛选参数都能对应真实字段；如果 `report preview / query-widget / query` 返回空，要先判断是数据源无数据、筛选参数过窄、字段映射错误还是组件配置错误，不能把空报表当成完成。
+- ✅ 生成 demo/示例数据时，默认每张核心业务表准备 5–10 条，覆盖状态、负责人、时间等关键维度；用户明确指定数量时遵循用户要求，生产批量导入不受此条限制。报表创建前必须保证数据源表已有可查询示例数据，报表组件的维度、指标、筛选参数都能对应真实字段；如果 `report preview / query-widget / query` 返回空，要先判断是数据源无数据、筛选参数过窄、字段映射错误还是组件配置错误，不能把空报表当成完成。
 - ✅ 创建表后要检查是否自动生成默认“名称”字段；如果该字段不能作为主展示字段，先改名复用为真实主展示字段，确实无业务价值时再按表格章节的删除/清理规则处理，不要留下无意义的“名称”字段污染模型和报表。
 - ✅ 维表已有内置超级管理员、系统管理员、管理员、编辑者、查看者、公开角色等基础角色；系统搭建时只创建业务角色，例如销售主管、客服人员、财务审核、项目成员，不要重复创建内置管理角色。
 - ✅ 创建业务角色后必须继续配置权限：项目/表权限、菜单/资源权限、字段可见/只读权限、行级策略，并按需绑定用户；只执行 `role create` 不算完成。
@@ -78,16 +86,17 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 4. 如果是 SDK 自定义页面开发，直接进入 `references/custom-page-scaffold.md`；先判断是否已有页面目录，未指定目录时推荐 `dimens-cli create --dir <目录名>` 初始化，资源初始化或验收命令再回到 `references/command-mapping.md`。
 5. 判断只是方案输出，还是要真实执行查询、创建或修改。
 6. 如果是新建项目场景，先检查用户输入或已有文档是否符合 `references/new-project-design-template.md` 的结构；不符合则先新建或重写维表设计文档。
-7. 如果要真实执行，先按 `references/auth-prerequisite.md` 完成 `auth api-key-login`，不要用 URL 替代 token。
-8. 识别系统定位：系统名称、核心目标、主要使用者。
-9. 归一化上下文：解析或确认 `teamId / projectId / baseUrl`。
-10. 设计项目容器：项目名称、目录结构、菜单入口、文档、报表与业务场景画布。
-11. 拆核心对象：主对象、从对象、生命周期状态、对象关系。
-12. 设计多表模型：表、字段类型、候选项、relation（先完成传统数据库关系映射，再确定 `relationMode` 与 `maxSelection`）、默认视图、示例数据。
-13. 设计查询与视图：常用筛选、列表视图、统计口径、报表数据源。
-14. 如存在流程、审批、自动化或多角色协作，补业务场景画布；审批系统额外补审批工作流画布。
-15. 按需补权限、工作流、报表、画布和外部对接。
-16. 最后给出下一步进入 `dimens-manager` 的具体章节路径；如果是页面开发，给出 `references/custom-page-scaffold.md` 和脚手架文件路径。
+7. 如果需求来自 Excel 或适合用 Excel 梳理，先读取 `references/excel-planning.md`，检查工作表、表头、字段、字典和关系的一致性，并将结果归一化成设计文档与 JSON 契约；不要边读 Excel 边写资源接口。
+8. 如果要真实执行，先按 `references/auth-prerequisite.md` 完成 `auth api-key-login`，不要用 URL 替代 token。
+9. 识别系统定位：系统名称、核心目标、主要使用者。
+10. 归一化上下文：解析或确认 `teamId / projectId / baseUrl`。
+11. 设计项目容器：项目名称、目录结构、菜单入口、文档、报表与业务场景画布。
+12. 拆核心对象：主对象、从对象、生命周期状态、对象关系。
+13. 设计多表模型：表、字段类型、候选项、relation（先完成传统数据库关系映射，再确定 `relationMode` 与 `maxSelection`）、默认视图、示例数据。
+14. 设计查询与视图：常用筛选、列表视图、统计口径、报表数据源。
+15. 如存在流程、审批、自动化或多角色协作，补业务场景画布；审批系统额外补审批工作流画布。
+16. 按需补权限、工作流、报表、画布和外部对接。
+17. 最后给出下一步进入 `dimens-manager` 的具体章节路径；如果是页面开发，给出 `references/custom-page-scaffold.md` 和脚手架文件路径。
 
 ## 创建项目业务流程图
 
@@ -156,7 +165,7 @@ flowchart TD
 6. 字段创建后必须验证字段类型和业务语义，尤其是 `select / multiSelect / person / department / relation`；稳定且只在单一位置使用的枚举直接用 `select` 或 `multiSelect`，只有同一组选项明确跨多个表、字段或流程复用时才创建项目数据字典并绑定。人员和部门不要误建成普通下拉。传统数据库转换时，必须额外核对外键基数、空值、孤儿记录、类型转换和连接表取舍。
 7. `select / multiSelect` 必须验证 `options` 规范：JSON 对象数组、每项有唯一 `id`、非空 `label`、合法 `color`，颜色符合前端 12 色池或 `custom:` 协议；不要把逗号分隔字符串当成规范输出。
 8. 建表后必须检查默认“名称”字段；如果它就是主展示字段，改名成业务字段并复用；如果无用，按表格章节规则清理，不要让默认字段留在报表、视图或示例数据里。
-9. 案例数据必须在字段合规后再创建；批量数据优先使用 `row batch-create`，报表数据源表必须至少有能支撑维度、指标和筛选的样例数据。
+9. 案例数据必须在字段合规后再创建；demo/示例数据默认每张核心表准备 5–10 条并覆盖关键维度，用户指定数量时以用户要求为准；批量数据优先使用 `row batch-create`，报表数据源表必须有能支撑维度、指标和筛选的样例数据。
 10. 报表和画布依赖基础数据，可以在案例数据完成后并行；报表必须先 `preview`，再创建组件并 `query-widget`，最后跑 `query`，空结果必须说明原因并修正数据/映射/参数。
 11. 角色只创建业务角色，跳过平台内置角色；除非用户明确要求，不要新建“超级管理员 / 系统管理员 / 管理员 / 编辑者 / 查看者 / 公开角色”这类已内置角色。
 12. 权限配置必须覆盖角色绑定、项目/表权限、字段权限、资源权限，必要时补行级策略；不要把权限作为最后一句“可选扩展”，也不要只创建角色不配权限。
@@ -172,6 +181,8 @@ flowchart TD
 4. `执行顺序`：先认证和上下文，再项目容器，再建模、权限、报表、画布。
 5. `路由目标`：需要落地时给到 `dimens-manager` 的具体章节；需要代码接入时给到 `dimens-sdk` 的具体章节。
 6. `验收标准`：资源 ID、菜单归位、relation 模式/目标字段/行值格式、报表预检、画布保存、权限回查等证据。
+
+当输入来自 Excel 时，额外输出工作表识别结果、结构一致性问题、被裁剪的非业务技术字段、关系映射、两类字典的业务决策和 JSON 契约；Excel 本身不能作为资源写入成功的证据。
 
 如果输入只是“帮我调 SDK / 接一个 Web 页面”，不要强行做系统蓝图。通用 SDK 接入路由到 `dimens-sdk`；基于 `dimens-web` 的自定义页面开发路由到 `references/custom-page-scaffold.md`。
 
@@ -296,6 +307,7 @@ PPT 或复杂展示场景必须优先考虑 `INFOGRAPHIC` 信息图节点。凡�
 - `references/skill-routing.md`
 - `references/interface-navigation.md`
 - `references/command-mapping.md`
+- `references/excel-planning.md`
 - `dimens-manager/references/table/references/relation-mode.md`
 - `references/custom-page-scaffold.md`
 - `references/examples.md`

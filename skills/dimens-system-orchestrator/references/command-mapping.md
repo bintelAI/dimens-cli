@@ -21,6 +21,10 @@ dimens-cli auth api-key-login \
 
 登录成功后，本地 profile 会保存 token，后续 `project/sheet/row/doc/report/canvas/permission/workflow` 命令才有认证上下文。
 
+## 2.1 资源执行协议：JSON 先行，CLI 唯一写入口
+
+系统编排输出必须把“数据准备”和“资源写入”分开：先生成可审阅的 JSON 数据契约（字段配置、选项、字典、批量行或报表配置），再使用本表中的 `dimens-cli` 命令提交并回查。禁止阅读 CLI 源码后生成 Python、Node.js 或 HTTP 写入脚本，也不能以脚本成功作为资源落地证据。Python 仅在明确授权的外部数据清洗阶段使用，清洗结果仍须交给 `dimens-cli`。
+
 如果还不清楚认证边界，先进入 `dimens-manager/references/key-auth/overview.md`，再看：
 
 - `dimens-manager/references/key-auth/references/login-flow.md`

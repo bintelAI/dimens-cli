@@ -756,7 +756,7 @@ AI智能周报
 
 ### 示例数据要求
 
-- 每张核心表至少 3 条案例数据
+- 每张核心表默认 5-10 条案例数据；用户明确指定数量时以用户要求为准
 - 有 relation 的表，必须先创建群组配置表数据，再创建周报数据表，最后创建评论/点赞记录表
 - 报表数据要能覆盖至少 2 个状态、3 个提交人、2 个群组、2 个部门、2 个提交周
 
@@ -806,7 +806,7 @@ AI智能周报
 | 项目容器 | `project info` | 名称"AI智能周报"、描述、封面 URL 正确 |
 | 菜单目录 | `sheet tree` | 5个业务目录 + 11个资源全部归位 |
 | 表结构（6张表） | `sheet info / column list / view list` | 字段类型、视图、关联关系正确 |
-| 示例数据 | `row page` | 每张核心表至少3条数据，relation 字段有效 |
+| 示例数据 | `row page` | 每张核心表默认 5-10 条数据，relation 字段有效 |
 | 文档（3篇） | `doc info` | 文档存在，内容大纲正确 |
 | 画布 | `canvas validate / canvas info / canvas versions` | 可渲染、已保存、版本可查 |
 | 报表 | `report preview / report query-widget / report query` | 5个组件有数据，筛选可用 |
