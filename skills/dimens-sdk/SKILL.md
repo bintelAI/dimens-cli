@@ -2,7 +2,7 @@
 name: dimens-sdk
 slug: dimens-sdk
 description: 用于维表智联开发者接入，适合 Web/H5、BFF、Node.js、移动端、HTTP API、@bintel/dimens-cli SDK、token 刷新、密钥存放、上下文传递和资源调用代码集成问题。
-version: 2.0.3
+version: 2.0.5
 author: 方块智联工作室
 tags: [sdk, http, web, mobile, integration, dimens-cli]
 ---
@@ -23,6 +23,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ 如果是维表自定义页面、Wujie 嵌入页面或明确基于 `dimens-web` 脚手架开发，前端方案必须优先读取 `references/dimens-web-scaffold.md`，不要重新生成一套通用 auth/storage/sdk/retry 分层。
 - ✅ 如果是维表自定义页面开发，必须把 UI/UX 设计作为前置步骤：先确认是否已安装 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`），未安装时先安装；安装或可用后，先用该技能完成页面风格、配色、布局、组件、图表和交互状态设计，再进入 `dimens-web` 脚手架编码。
 - ✅ 如果用户提到微模块页面、按钮插件、视图插件、Wujie props、`sourceLocation`、`viewState`、`actionSnapshot`、按钮弹窗或抽屉，必须继续读取 `references/micro-module-wujie-context.md`，按“页面 / 视图 / 按钮”三类上下文协议输出。
+- ✅ 如果用户要开发可在任意项目复用的自定义页面，或提到“初始化表和字段”“项目 ID + 字段”“项目级业务表”“导入页面后初始化”“页面首次安装/初始化”，必须继续读取 `references/custom-page-project-schema.md`。资源后缀由具体业务定义，示例后缀不能当作固定名称。
 - ✅ 每次准备使用 `dimens-cli` 前，必须先在当前终端执行 `npm -g install @bintel/dimens-cli@latest` 升级全局 CLI；升级成功后再执行 `dimens-cli --version` 或 `dimens-cli --help` 确认可用，确保用户每次使用的都是最新版本。
 - ✅ 通过 CLI/MCP 创建工作表或字段时必须传自定义 ID 后缀（`--custom-id` / `customId`）；缺少后缀的请求应在调用侧拒绝，避免服务端随机生成资源 ID。SDK 原始接口仍按后端契约保留可选 `customId`，接入层需明确是否承担该校验。
 - ✅ 新增自定义页面但没有目标目录时，先询问或建议用 `dimens-cli create --dir <目录名>` 初始化脚手架；已有目录则先检查目录结构，不要重复创建。
@@ -58,6 +59,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 | --- | --- | --- |
 | 维表自定义页面 / Wujie / `dimens-web` | `references/dimens-web-scaffold.md` | 基于脚手架已有运行上下文、SDK、token retry 和宿主事件开发 |
 | 页面 / 视图 / 按钮三类微模块 | `references/micro-module-wujie-context.md` | 统一 `usageScene/mountLocation/sourceLocation`、`viewState`、`actionSnapshot`、弹窗/抽屉传参 |
+| 项目级自定义页面初始化表和字段，并复用于任意项目 | `references/custom-page-project-schema.md` | 用 `projectId + 业务后缀` 推导资源 ID，按幂等流程创建并回查 |
 | 前端 / Web / H5 | `references/frontend/overview.md` | 登录态、token、refresh、HTTP 直连、React/Vue 代码组织 |
 | BFF / 服务端代理 | `references/bff/overview.md` | 服务端代管密钥、换 token、代理资源调用 |
 | Node.js SDK | `references/node/overview.md` | `@bintel/dimens-cli` SDK、脚本、服务端任务 |
@@ -74,6 +76,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 2. 只要后续会执行或给出 `dimens-cli` 命令，先执行 `npm -g install @bintel/dimens-cli@latest`，再用 `dimens-cli --version` 或 `dimens-cli --help` 验证。
 3. 如果是 `dimens-web` 自定义页面，先确认/安装并调用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）完成页面设计口径，再读 `references/dimens-web-scaffold.md`，判断目标目录是否已存在；没有目录时使用 `dimens-cli create --dir <目录名>` 初始化，再基于脚手架已有 `useDimens / runtimeStore / appSdk / retry` 输出方案。
 4. 如果是页面、视图、按钮三类微模块或 Wujie 宿主传参问题，继续读 `references/micro-module-wujie-context.md`，先区分定义级 `usageScene/mountLocation` 和运行时 `sourceLocation`，再输出 demo props。
+   - 如果页面还要初始化或访问项目级业务表，继续读 `references/custom-page-project-schema.md`；先确定业务表和字段后缀，再按当前 `projectId` 推导资源 ID。不得把任一案例的后缀复制成所有页面的固定约束。
 5. 再判断认证方式：用户登录 token、API Key 换 token、服务端代管 token。
 6. 明确 `baseUrl / teamId / projectId` 的来源和传递方式。
    - 如果有 `/#/{teamId}/{projectId}/{sheetId}` 页面 URL，直接说明并复用 URL 中的上下文；只在缺段或冲突时追问。
@@ -95,6 +98,8 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 
 自定义页面开发还要输出 UI/UX 前置结果和目录决策：先说明已确认/安装并使用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）完成页面设计口径，再说明使用已有目录、需要新建目录，或建议执行 `dimens-cli create --dir <目录名>`；同时说明新增业务页应使用 `/xxx` 独立路由，不改根页和既有示例/测试页；如果用户说明项目已热加载运行，不要重复建议启动新的 `pnpm run dev`。
 
+涉及项目级业务表的自定义页面还要输出业务生命周期和资源契约：模块导入当前项目后，首次进入页面执行一次幂等初始化；初始化完成后，页面只使用当前 `projectId` 推导出的 `sheetId/fieldId` 读写业务数据。还应说明业务表后缀、字段后缀、初始化权限边界，以及在第二个项目复用时的验证方式。`knowledge` 等后缀只能作为说明案例，不能默认写入新页面。
+
 如果用户的问题本质是项目内资源管理，转交 `dimens-manager`；如果是完整系统搭建，转交 `dimens-system-orchestrator`。
 
 ## 高风险跑偏点
@@ -105,6 +110,9 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - 不要在没有确认目标目录时开始新增页面；没有目录先建议 `dimens-cli create --dir <目录名>`，已有脚手架则直接改现有工程。
 - 不要为了新增业务页改 `/` 根路由或覆盖 `/custom`、`/records`、`/settings`、`/embed`、`/debug/context`；使用 `/xxx` 独立路由直达。
 - 不要把页面、视图、按钮三类微模块混成一份入参；页面用 `PROJECT_MENU`，视图用 `SHEET_VIEW + viewState`，按钮用 `ROW_BUTTON_MODAL/CELL_BUTTON_MODAL + actionSnapshot`。
+- 不要把项目菜单资源的 `sheetId`、当前激活表或本地缓存 ID 当作项目级业务表；页面应以运行时 `projectId + 业务后缀` 推导业务资源 ID，并在初始化后回查真实结构。
+- 不要每次进入页面都盲目创建表或全量重建字段；必须先查表、再查字段，只创建缺失字段，绝不删除或静默修改已有字段的类型、配置和数据。
+- 不要把 `teamId` 拼进项目资源 ID，也不要让用户可编辑输入直接决定资源后缀；团队隔离由上下文和后端权限控制，后缀应由页面的受控业务契约定义。
 - 不要把 `viewState.displayRows` 或 `actionSnapshot.rowSnapshot` 当成权威数据；它们只是轻量快照，完整/最新数据必须走 SDK/API 拉取。
 - 不要只依赖后端 `keyword` 搜索按钮微模块；字段配置保存 `pluginId = code` 时，运行器需要按 `moduleCode/code/id/name` 做前端精确匹配或兜底列表查询。
 - 不要在自定义页面没有设计口径时直接堆 UI；先确认/安装并使用 `ui-ux-pro-max-plus` 确定风格、配色、排版、图表和 UX 模式。
@@ -142,6 +150,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - BFF 代管 API Secret 并给前端 token。
 - React / Web 端处理 token 刷新和资源上下文。
 - Node.js 服务端读取表格、文档、报表或 AI 能力。
+- 项目菜单自定义页面在两个项目中按 `projectId + 业务后缀` 初始化独立表和字段，重复初始化只补字段且不修改既有数据。
 
 ## 参考文档
 
@@ -150,6 +159,7 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - `references/capability-status.md`
 - `references/dimens-web-scaffold.md`
 - `references/micro-module-wujie-context.md`
+- `references/custom-page-project-schema.md`
 - `references/examples.md`
 - `references/frontend-quickstart.md`
 - `references/frontend/overview.md`
