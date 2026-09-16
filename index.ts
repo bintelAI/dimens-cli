@@ -87,6 +87,8 @@ export {
   type ColumnMutationPayload,
   type RelationConfig,
   type RelationMode,
+  type RowBatchUpdateByMatchPayload,
+  type RowBatchUpdateByMatchResult,
   type TeamInfo,
   type TeamSummary,
   type UserInfo,

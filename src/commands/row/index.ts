@@ -42,6 +42,18 @@ function parseArrayJsonFlag(value: string, fieldName: string): unknown[] {
   return parsed;
 }
 
+function parseSingleFieldObject(value: string, fieldName: string): Record<string, unknown> {
+  const parsed = parseJsonFlag(value, fieldName);
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(`${fieldName} 必须是 JSON 对象`);
+  }
+  const object = parsed as Record<string, unknown>;
+  if (Object.keys(object).length !== 1) {
+    throw new Error(`${fieldName} 必须且只能包含一个字段`);
+  }
+  return object;
+}
+
 function buildRowPagePayload(flags: Record<string, string>): RowPagePayload {
   const payload: RowPagePayload = {
     page: Number(flags.page || '1'),
@@ -256,6 +268,32 @@ export function registerRowCommands(): void {
         delete (mergedValues as { id?: unknown }).id;
         const result = await sdk.update(sheetId, rowId, mergedValues, version);
         printSuccess(context, '行更新成功', result.data);
+      } catch (error) {
+        printError(context, error);
+      }
+    })
+  );
+
+  registerGroupCommand(
+    'row',
+    createCommand('batch-update', '按字段匹配批量更新', async args => {
+      const flags = parseFlags(args);
+      const context = getContext(flags);
+
+      try {
+        const teamId = requireTeamId(context, flags);
+        const projectId = requireProjectId(context, flags);
+        const sheetId = requireSheetId(flags, args);
+        if (flags.match === undefined || flags.values === undefined) {
+          throw new Error('请通过 --match 和 --values 传入匹配字段与更新字段 JSON');
+        }
+        const payload = {
+          match: parseSingleFieldObject(flags.match, 'match'),
+          data: parseSingleFieldObject(flags.values, 'values'),
+        };
+        const sdk = new RowSDK(createClient(context));
+        const result = await sdk.batchUpdateByMatch(teamId, projectId, sheetId, payload);
+        printSuccess(context, '批量更新成功', result.data);
       } catch (error) {
         printError(context, error);
       }

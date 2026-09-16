@@ -91,6 +91,7 @@ https://dimens.bintelai.com/#/TTFFEN/PXWXBJQ/
 | 创建字段 | `dimens-cli column create --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --label 字段名 --type text --custom-id 字段后缀` | `--custom-id` 为必填；最终 fieldId 由后端按 `projectId_suffix` 生成；`select/multiSelect` 必须同步传 `--options`；如果语义是选人或选部门，优先改配 `person` / `department` |
 | 创建行 | `dimens-cli row create --sheet-id SHEET_ID --values '{\"fld_xxx\":\"值\"}'` | CLI 会映射到服务端 `data` |
 | 批量创建行 | `dimens-cli row batch-create --sheet-id SHEET_ID --file ./rows.json [--batch-size 200]` | 系统初始化、迁移、批量补数据优先用这个命令；后端单批最高 1000 行，但真实导入默认按 200 行稳定分片 |
+| 按字段批量更新行 | `dimens-cli row batch-update --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --match '{\"fld_source\":\"legacy\"}' --values '{\"fld_status\":\"done\"}'` | 只适用于一个真实 `fieldId` 精确匹配并更新一个真实 `fieldId`；最多 200 行、无匹配返回计数 0，不传 `rowId/version` |
 | 更新行 | `dimens-cli row update --sheet-id SHEET_ID --row-id ROW_ID --version 1 --values '{\"fld_xxx\":\"新值\"}'` | 更新前要拿到版本号 |
 | 更新单元格 | `dimens-cli row set-cell --sheet-id SHEET_ID --row-id ROW_ID --field-id FIELD_ID --value 新值 --version 1` | 推荐用 `fieldId`，不要用中文字段名 |
 | 查询行数据 | `dimens-cli row page --team-id TEAM_ID --project-id PROJECT_ID --sheet-id SHEET_ID --page 1 --size 20` | 验证表是否可用 |

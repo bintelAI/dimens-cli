@@ -114,7 +114,7 @@ windows-utf8.md
 
 - 创建工作表必须传 `--custom-id <suffix>`，创建字段必须传 `--custom-id <suffix>`；CLI/MCP 缺少后缀时本地拒绝，不允许请求落到后端随机 ID。后端最终按 `projectId_suffix` 生成真实 `sheetId/fieldId`，创建后必须用 `sheet info` / `column list` 回查。
 - 项目字典创建使用 `project-dict create --name --code --options`；字典 `code` 与选项 `value` 必须是小写英文/数字/下划线/连字符。Skill 可生成 `customer_level` 这类可编辑建议并处理冲突后缀，但写入前必须确认；单一位置使用的枚举不要创建项目字典。
-- 所有 `update`、`widget-update`、`row update`、`column update`、`sheet update`、`permission update`、`role update`、`row-policy update` 一律不要直接盲传局部 patch。
+- 所有 `update`、`widget-update`、`row update`、`column update`、`sheet update`、`permission update`、`role update`、`row-policy update` 一律不要直接盲传局部 patch。唯一的行级例外是目标明确的 `row batch-update`：它以一个真实 `fieldId` 精确匹配并更新一个真实 `fieldId`，最多 200 行，无匹配返回两个计数为 0；不传 `rowId/version`。
 - 项目封面、图标、文档图片、文档附件、其他文件资源，一律先 `dimens-cli upload file` 拿到 `url`，再把 `url` 写回当前业务数据；如果要同步进入素材库，必须显式传 `--source material --team-id <TEAM_ID>`，该链路优先直传 CDN，CDN 未启用或配置不完整时回退本地上传。
 - 文档更新默认先 `doc info` 拿当前内容和 `version`，再改内容后 `doc update`。
 - 报表更新默认先 `report info`；报表组件更新默认先拿当前报表和当前组件，再合并变更。

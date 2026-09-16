@@ -2,7 +2,7 @@
 name: dimens-manager
 slug: dimens-manager
 description: 用于维表智联项目内业务资源创建、配置、维护和排查，适合处理 Key、团队、项目、表格、富文本字段、JSON 字段、权限、工作流、报表、画布等落地问题。
-version: 2.0.3
+version: 2.0.4
 author: 方块智联工作室
 tags: [manager, project, table, richtext, json, permission, workflow, report, canvas, auth, dimens-cli]
 ---
@@ -31,7 +31,7 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 - ✅ 表、字段、视图、行、字典等资源操作强制通过 `dimens-cli` 完成。复杂字段配置、选项树和批量数据先生成并校验 JSON，再使用 `--options`、`--config`、`--values` 或 `--file` 提交；禁止阅读 CLI 源码后生成 Python/Node/HTTP 脚本替代命令。Python 仅可用于明确授权的外部数据清洗，不能直接写入维表。
 - ✅ 执行任何写操作前先确认认证、`teamId`、`projectId` 与资源归属。
 - ✅ 当用户消息或当前页面携带维表 URL 时，先解析 URL 上下文。格式 `http://localhost:3000/#/{teamId}/{projectId}/{sheetId}`；例如 `http://localhost:3000/#/TTFFEN/PM394YD/sh_lTyerp8gwW8QSVD1` 表示 `teamId=TTFFEN`、`projectId=PM394YD`、`sheetId=sh_lTyerp8gwW8QSVD1`。用户说“当前页面/当前表/这个表”时优先使用这些 ID。
-- ✅ 更新类操作统一遵循“先读取当前数据 -> 修改目标字段 -> 再提交更新”。
+- ✅ 更新类操作统一遵循“先读取当前数据 -> 修改目标字段 -> 再提交更新”。唯一例外是目标明确的按字段批量更新：使用 `dimens-cli row batch-update --team-id <teamId> --project-id <projectId> --sheet-id <sheetId> --match '{...}' --values '{...}'`；`match` 与 `values` 各只能有一个真实 `fieldId`，最多更新 200 行，无匹配返回两个计数为 `0`，不传 `rowId/version`。按 ID 单行更新仍使用 `row update --version`。
 - ✅ 项目资源默认按“三驾马车”理解：表格、文档、报表。
 - ✅ 报表创建当前走项目菜单 `sheet/create type=report`；返回的 `reportId` 等于 `sheetId`。
 - ✅ 用户只给自然语言目标时，先把目标归类到业务域，再给 CLI 步骤；不要直接编造不存在的命令或字段。

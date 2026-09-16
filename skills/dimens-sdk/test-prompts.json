@@ -77,6 +77,11 @@
   {
     "id": "sdk-020",
     "prompt": "我要做一个项目菜单自定义页面。页面首次进入时要在当前项目初始化一张业务表和字段，同一个页面安装到另一个项目时也要自动使用那个项目自己的表。请不要把 knowledge 当成固定名字。",
-    "expected": "应读取 custom-page-project-schema.md 和 micro-module-wujie-context.md，把它说明为业务页面的生命周期：模块导入当前项目后，首次进入按 projectId + tableSuffix/fieldSuffix 幂等初始化；成功后页面只调用当前项目的业务表。实际资源创建使用 dimens-cli，初始化采用查表、查字段、只补缺失项、创建后回查。页面从 PROJECT_MENU 上下文获取 teamId/projectId/instanceId，不使用当前激活表或菜单资源 sheetId 作为业务表；说明初始化与写入均受现有后端权限校验，且需要用两个项目验证资源隔离。"
+    "expected": "应读取 custom-page-project-schema.md 和 micro-module-wujie-context.md，把它说明为业务页面的生命周期：模块导入当前项目后，首次进入按 projectId + tableSuffix 幂等初始化，字段由受控 fieldSuffix 创建后再回查真实 fieldId；成功后页面只调用当前项目的业务表。实际资源创建使用 dimens-cli，初始化采用查表、合并 sheet structure/column list、只补确认缺失项、创建后回查。页面从 PROJECT_MENU 上下文获取 teamId/projectId/instanceId，不使用当前激活表或菜单资源 sheetId 作为业务表；说明初始化与写入均受现有后端权限校验，且需要用两个项目验证资源隔离。"
+  },
+  {
+    "id": "sdk-021",
+    "prompt": "我的项目菜单页面要同步外部工单：每个项目初始化自己的工单表，用 source + externalId 去重；项目里已有一张同名表但 ID 不对，而且 column list 暂时读失败。能否自动修好后继续导入？",
+    "expected": "应读取 custom-page-project-schema.md 与 micro-module-wujie-context.md，要求先使用受控资源契约检查 projectId + tableSuffix 的精确表 ID。同名但 ID 不同应返回 id_mismatch；column list 不可读应返回 unreadable，均不得自动改名、删除、创建副本或写入。说明当前字段必须从 sheet structure/column list 回查真实 fieldId，不能假设 projectId + fieldKey；仅全部 ready 后，才按 source + externalId 查询，新增走 row create，更新先 row info 取得 version 再 row update。"
   }
 ]

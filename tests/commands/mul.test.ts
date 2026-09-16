@@ -220,6 +220,11 @@ const rowSdkSpies = {
     message: 'success',
     data: payload.rows.map((_row, index) => ({ id: `R${index + 1}` })),
   })),
+  batchUpdateByMatch: vi.fn(async () => ({
+    code: 1000,
+    message: 'success',
+    data: { success: true, matchedCount: 2, updatedCount: 2 },
+  })),
   update: vi.fn(async () => ({ code: 1000, message: 'success', data: { id: 'R1' } })),
   updateCell: vi.fn(async () => ({ code: 1000, message: 'success', data: true })),
 };
@@ -452,6 +457,9 @@ vi.mock('../../src/sdk/row', () => {
       }
       async batchCreate(...args: unknown[]) {
         return rowSdkSpies.batchCreate(...args);
+      }
+      async batchUpdateByMatch(...args: unknown[]) {
+        return rowSdkSpies.batchUpdateByMatch(...args);
       }
       async update(...args: unknown[]) {
         return rowSdkSpies.update(...args);
@@ -2819,6 +2827,45 @@ describe('Sheet Column Row Commands', () => {
       fld_customer: '华东智造',
       fld_status: '待跟进',
     }, 3);
+    logSpy.mockRestore();
+  });
+
+  it('should execute row batch-update command with one match and one update field', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const batchUpdateRow = getCommandGroup('row')?.commands.find(command => command.name === 'batch-update');
+    await batchUpdateRow?.handler([
+      '--sheet-id', 'S1',
+      '--match', '{"fld_external_id":"ABC-123"}',
+      '--values', '{"fld_status":"done"}',
+    ]);
+
+    expect(rowSdkSpies.batchUpdateByMatch).toHaveBeenCalledWith('TEAM1', 'PROJ1', 'S1', {
+      match: { fld_external_id: 'ABC-123' },
+      data: { fld_status: 'done' },
+    });
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('批量更新成功'));
+    logSpy.mockRestore();
+  });
+
+  it('should reject row batch-update with multiple match fields before calling the SDK', async () => {
+    const { registerCommands } = await import('../../src/commands');
+    const { getCommandGroup } = await import('../../src/commands/registry');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    registerCommands();
+    const batchUpdateRow = getCommandGroup('row')?.commands.find(command => command.name === 'batch-update');
+    await batchUpdateRow?.handler([
+      '--sheet-id', 'S1',
+      '--match', '{"fld_external_id":"ABC-123","fld_source":"legacy"}',
+      '--values', '{"fld_status":"done"}',
+    ]);
+
+    expect(rowSdkSpies.batchUpdateByMatch).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('match 必须且只能包含一个字段'));
     logSpy.mockRestore();
   });
 

@@ -86,5 +86,9 @@ export type {
 } from './sdk/json-field';
 export type { APIResponse, DimensClientOptions } from './sdk/client';
 export type { ProjectInfo, ProjectPagePayload, ProjectPageResult } from './sdk/project';
+export type {
+  RowBatchUpdateByMatchPayload,
+  RowBatchUpdateByMatchResult,
+} from './sdk/row';
 export type { TeamInfo, TeamSummary } from './sdk/team';
 export type { UserInfo } from './sdk/user';

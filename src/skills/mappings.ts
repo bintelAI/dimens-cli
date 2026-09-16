@@ -72,6 +72,7 @@ const MANAGER_COMMANDS = [
   'row open-info',
   'row create',
   'row batch-create',
+  'row batch-update',
   'row update',
   'row delete',
   'row set-cell',
@@ -168,7 +169,7 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
     toolNames: ['system_decomposition', 'skill_routing'],
   },
   'dimens-manager': {
-    version: '2.0.3',
+    version: '2.0.4',
     tags: [
       'manager',
       'auth',
@@ -250,6 +251,7 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
       'view_create',
       'row_info',
       'open_row_info',
+      'row_batch_update',
       'row_update',
       'document_update',
       'file_upload',
@@ -270,7 +272,7 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
     ],
   },
   'dimens-sdk': {
-    version: '2.0.3',
+    version: '2.0.7',
     tags: ['sdk', 'http', 'web', 'mobile', 'bff', 'node', 'integration'],
     commandGroups: [
       'auth',
@@ -321,6 +323,7 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
       'row page',
       'row info',
       'row open-info',
+      'row batch-update',
       'doc info',
       'doc update',
       'json-field content',
@@ -386,6 +389,7 @@ export const SKILL_MAPPINGS: Record<string, SkillMapping> = {
       'public_plugin_market_api',
       'row_info',
       'open_row_info',
+      'row_batch_update',
       'file_upload',
     ],
   },

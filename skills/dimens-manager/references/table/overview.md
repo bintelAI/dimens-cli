@@ -99,6 +99,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 | `dimens-cli row page` | 分页查询行数据，也是后续数据分析的核心取数入口 | `teamId`, `projectId`, `sheetId` | `viewId`, `page`, `size`, `keyword`, `search-field-ids`, `filters`, `filter-match-type`, `sort-rule` | 使用前必须先 `column list` 获取真实字段 ID，再按字段设计搜索、筛选、排序；行读取链路会同时受字段筛选、视图配置和权限影响 |
 | `dimens-cli row create` | 新增单行数据 | `sheetId`, `values` | - | 写入前必须先通过 `column list` 确认真实 `fieldId`，CLI 会把 `--values` 映射成服务端 `data` |
 | `dimens-cli row batch-create` | 批量新增行数据 | `sheetId`, `file` 或 `values` | `batch-size` | 推荐大批量初始化、迁移和补数据使用；CLI 默认按 200 行稳定分片，后端单批硬限制 1000 行且单批事务原子 |
+| `dimens-cli row batch-update` | 按字段精确匹配批量更新 | `teamId`, `projectId`, `sheetId`, `match`, `values` | 无 | `match` 与 `values` 都只能含一个真实 `fieldId`；当前数据最多命中 200 行，全部在同一事务中更新；无匹配返回两个计数为 0，不传 `rowId/version` |
 | `dimens-cli row update` | 更新整行数据 | `teamId`, `projectId`, `sheetId`, `rowId` | `data`, `version`, `app-url` | 默认先读当前行数据，再修改目标字段，再 update；不要只凭局部字段直接覆盖 |
 | `dimens-cli row set-cell` | 更新普通单个单元格 | `sheetId`, `rowId`, `fieldId`, `value` 或 `value-json` | `version`, `columnId` | 服务端真实契约以 `fieldId` 为准；`json` 字段禁止使用本命令，`workflow` 审批摘要通常也应由后端托管回写 |
 
@@ -108,6 +109,7 @@ tags: [table, sheet, row, column, view, dimens-cli]
 - `sheet update` / `sheet move` 前默认先 `sheet info`；移动目录时 CLI 的 `--folder-id` 会提交为后端真实字段 `parentId`；`column update` 前默认先取当前 `structure.columns`；`row update` 前默认先读取当前行数据。
 - 涉及搜索、筛选、排序、统计分析、报表预检时，不能直接盲猜字段名调用 `row page`；必须先 `column list` 拿到字段 ID、字段类型、选项值，再组装 `search-field-ids`、`filters`、`sort-rule`。
 - 初始化、迁移、补数据这类多行写入优先用 `row batch-create --file`，不要让技能循环调用 `row create` 逐条写入；CLI 默认按 200 行稳定分片，后端只保证每个分片事务原子。
+- 仅需按一个字段值批量修正另一个字段时，使用 `row batch-update --match '{"fld_source":"legacy"}' --values '{"fld_status":"done"}'`。不要为这个场景循环 `row update`，也不要传多个匹配/更新字段、`rowId` 或 `version`；字段不存在、不可见/不可写、值不合法或实际匹配超过 200 行时由服务端拒绝，不能拆成无边界的循环请求。
 - 如果字段后续要进入报表，建模阶段就要把字段类型、选项、数值字段和维度字段设计清楚，不要拖到报表阶段返工。
 - 新建表后默认检查公开默认视图，不要只建表不补视图。
 - 行写入和字段更新除了结构正确，还要同步考虑权限、协同链路和版本字段。

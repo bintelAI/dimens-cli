@@ -438,6 +438,19 @@ node ./bin/dimens-cli.js row batch-create \
 - 可通过 `--batch-size 200` 显式指定稳定分片大小；如临时调大，不能超过 1000
 - 系统初始化、迁移、批量补数据时优先用 `row batch-create`，不要循环调用 `row create`
 
+按一个字段精确匹配并批量更新一个字段：
+
+```bash
+node ./bin/dimens-cli.js row batch-update \
+  --team-id TEAM1 \
+  --project-id PROJ1 \
+  --sheet-id SHEET1 \
+  --match '{"fld_external_id":"ABC-123"}' \
+  --values '{"fld_status":"done"}'
+```
+
+`--match` 和 `--values` 各只能有一个真实 `fieldId`。接口最多更新 200 行，无匹配返回成功和 `matchedCount: 0, updatedCount: 0`；不传 `rowId` 或 `version`，按 ID 更新继续使用 `row update`。
+
 ## 权限命令快速示例
 
 权限链路建议按“角色 -> 项目/表权限 -> 行级策略 -> 单行 ACL”理解和使用，这也与仓库内权限设计文档的分层保持一致。

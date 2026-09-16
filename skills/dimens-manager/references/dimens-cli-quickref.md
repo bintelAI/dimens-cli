@@ -102,11 +102,14 @@ dimens-cli help <group> <command>  # 查看具体命令的用法和示例
 | `row open-info --team-id <teamId> --project-id <projectId> --sheet-id <id> --row-id <rid> [--include relations,richtext]` | 公开行详情；仍受公开角色、表级、行级、列级权限控制 |
 | `row create --sheet-id <id> [--values <json>]` | 创建行 |
 | `row batch-create --sheet-id <id> --file <path>` | **批量创建行**（JSON 文件，默认 200 行一批） |
+| `row batch-update --team-id <teamId> --project-id <projectId> --sheet-id <id> --match <json> --values <json>` | **按字段批量更新**；两个 JSON 对象各只能有一个真实 `fieldId` |
 | `row update --sheet-id <id> --row-id <rid> --version <v> [--values <json>]` | 更新行 |
 | `row delete --sheet-id <id> --row-id <rid>` | 删除行 |
 | `row set-cell --sheet-id <id> --row-id <rid> --field-id <fid> --value <v>` | 更新单元格 |
 
 > `row batch-create` 后端单批上限 1000 行，CLI 默认按 200 行分片稳定写入。
+>
+> `row batch-update` 在执行时按 `match` 的一个字段精确匹配，事务性更新 `values` 的一个字段，最多 200 行；未匹配到行时返回 `matchedCount: 0, updatedCount: 0`。它不接收 `rowId` 或 `version`，按 ID 修改仍使用 `row update`。
 
 ## 📝 文档管理 (doc)
 

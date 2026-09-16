@@ -23,6 +23,14 @@ function rowIdArg(args: Record<string, unknown>): string {
   return rowId;
 }
 
+function singleFieldObject(value: unknown, fieldName: string): Record<string, unknown> {
+  const object = asObject(value, fieldName);
+  if (Object.keys(object).length !== 1) {
+    throw new Error(`${fieldName} 必须且只能包含一个字段`);
+  }
+  return object;
+}
+
 export function createRowTools(toolContext: McpToolFactoryContext): McpToolDefinition[] {
   return [
     createSimpleTool({
@@ -173,6 +181,31 @@ export function createRowTools(toolContext: McpToolFactoryContext): McpToolDefin
           version
         );
         return { message: '行更新成功', data: result.data };
+      },
+    }),
+    createSimpleTool({
+      name: 'dimens_row_batch_update',
+      title: '按字段匹配批量更新行',
+      description: '按一个真实字段值精确匹配行，并在同一事务中更新另一个字段，最多 200 行。',
+      inputSchema: {
+        ...contextSchema,
+        sheetId: z.string(),
+        match: z.record(z.unknown()),
+        data: z.record(z.unknown()),
+      },
+      annotations: writeAnnotations,
+      async run(args) {
+        const { context, teamId, projectId, sheetId } = getTeamProjectSheet(toolContext, args);
+        const result = await toolContext.createSDK(context).row.batchUpdateByMatch(
+          teamId,
+          projectId,
+          sheetId,
+          {
+            match: singleFieldObject(args.match, 'match'),
+            data: singleFieldObject(args.data, 'data'),
+          }
+        );
+        return { message: '批量更新成功', data: result.data };
       },
     }),
     createSimpleTool({

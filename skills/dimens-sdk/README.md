@@ -20,14 +20,14 @@
 | `references/media/overview.md` | 上传图片、附件、封面、素材后的业务写入链路 |
 | `references/integration-paths.md` | SDK / HTTP / BFF 接入路径选择 |
 | `references/capability-status.md` | 当前 SDK 已封装能力和使用边界 |
-| `references/custom-page-project-schema.md` | 项目级自定义页面的表/字段初始化、`projectId + 后缀` 资源 ID 契约与跨项目复用流程 |
+| `references/custom-page-project-schema.md` | 项目级自定义页面的受控资源契约、表/字段幂等初始化、结构诊断、带版本入库与跨项目复用流程 |
 | `references` 下的 `*-examples.md` | 具体代码案例 |
 
 ## 阅读顺序
 
 1. 先看命中的 `overview.md`，确认接入位置和安全边界。
 2. 如果是维表自定义页面或 `dimens-web` 脚手架开发，先确认/安装并使用 `ui-ux-pro-max-plus`（技能名 `ui-ux-pro-max`）完成 UI/UX 设计，再进入 `references/dimens-web-scaffold.md`。
-3. 如果页面需要在每个项目创建或访问独立业务表，继续读取 `references/custom-page-project-schema.md`；后缀由页面业务定义，不能把示例值视为平台保留名称。
+3. 如果页面需要在每个项目创建或访问独立业务表，继续读取 `references/custom-page-project-schema.md`；先定义受控契约，随后校验并回查资源。后缀由页面业务定义，不能把示例值视为平台保留名称，也不能把字段 ID 当作可直接推导的字符串。
 4. 再看 `integration-paths.md` 与 `capability-status.md`，确认 SDK / HTTP / BFF 选型。
 5. 最后进入对应 `*-examples.md`，只读取当前任务需要的案例。
 

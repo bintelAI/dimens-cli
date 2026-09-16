@@ -166,6 +166,26 @@ await sdk.row.update(
 );
 ```
 
+## 10.1 按字段精确匹配并批量更新一个字段
+
+使用 `RowSDK.batchUpdateByMatch()` 调用项目级接口。它只适用于“一个字段匹配，更新一个字段”；`match` 与 `data` 的键都必须是当前表真实 `fieldId`，不是字段中文名。
+
+```ts
+const result = await sdk.row.batchUpdateByMatch(
+  teamId,
+  projectId,
+  sheetId,
+  {
+    match: { fld_external_id: 'ABC-123' },
+    data: { fld_status: 'done' },
+  }
+);
+```
+
+成功数据为 `{ success: true, matchedCount, updatedCount }`；没有匹配时两个数量都为 `0`。单次最多匹配 200 行，超过上限、字段不存在、匹配字段不可见、更新字段只读，或更新值不符合字段配置时请求会被拒绝。该接口在服务端对全部命中行使用同一事务，任一行无编辑权限或写入失败时不会部分更新。
+
+不要给该接口传多个匹配字段、多个更新字段、`rowId` 或 `version`。CLI 场景优先使用 `dimens-cli row batch-update --match <json> --values <json>`；需要按 ID 更新单行时，继续使用 `sdk.row.update()` 或 `sdk.row.updateCell()` 并提交当前版本。
+
 ## 11. Web 前端读取表格行数据
 
 适用前提：

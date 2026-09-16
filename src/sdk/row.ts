@@ -34,6 +34,17 @@ export interface RowBatchCreatePayload {
   rows: Array<{ data: Record<string, unknown> }>;
 }
 
+export interface RowBatchUpdateByMatchPayload {
+  match: Record<string, unknown>;
+  data: Record<string, unknown>;
+}
+
+export interface RowBatchUpdateByMatchResult {
+  success: boolean;
+  matchedCount: number;
+  updatedCount: number;
+}
+
 export interface RowCellPayload {
   rowId: string;
   fieldId: string;
@@ -93,6 +104,18 @@ export class RowSDK {
   ): Promise<APIResponse<RowInfo[]>> {
     return this.client.post<RowInfo[]>(
       `/app/mul/sheet/${sheetId}/row/batch-create`,
+      payload
+    );
+  }
+
+  batchUpdateByMatch(
+    teamId: string,
+    projectId: string,
+    sheetId: string,
+    payload: RowBatchUpdateByMatchPayload
+  ): Promise<APIResponse<RowBatchUpdateByMatchResult>> {
+    return this.client.post<RowBatchUpdateByMatchResult>(
+      `/app/mul/${teamId}/${projectId}/sheet/${sheetId}/row/batch-update`,
       payload
     );
   }

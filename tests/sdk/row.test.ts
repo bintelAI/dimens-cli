@@ -188,6 +188,37 @@ describe('RowSDK', () => {
     );
   });
 
+  it('should request project-scoped row batch update by match', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 1000,
+        message: 'success',
+        data: { success: true, matchedCount: 2, updatedCount: 2 },
+      }),
+    });
+
+    const sdk = new RowSDK(
+      new DimensClient({ baseUrl: 'https://api.example.com' })
+    );
+
+    await sdk.batchUpdateByMatch('TEAM1', 'PROJ1', 'S1', {
+      match: { fld_external_id: 'ABC-123' },
+      data: { fld_status: 'done' },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/app/mul/TEAM1/PROJ1/sheet/S1/row/batch-update',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          match: { fld_external_id: 'ABC-123' },
+          data: { fld_status: 'done' },
+        }),
+      })
+    );
+  });
+
   it('should request row cell update with fieldId and version', async () => {
     fetchMock.mockResolvedValue({
       ok: true,

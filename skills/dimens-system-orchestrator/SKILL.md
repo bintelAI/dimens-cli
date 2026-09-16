@@ -2,7 +2,7 @@
 name: dimens-system-orchestrator
 slug: dimens-system-orchestrator
 description: 用于维表智联系统级方案拆解与执行编排，适合“生成一个客户管理系统/平台”这类完整业务系统搭建需求。
-version: 2.0.3
+version: 2.0.4
 author: 方块智联工作室
 tags: [orchestrator, system-design, routing, planning, dimens-cli]
 ---
@@ -40,7 +40,7 @@ tags: [orchestrator, system-design, routing, planning, dimens-cli]
 - ✅ 默认节奏是“先方案，后执行”；系统边界没拆清前不要直接给创建命令。
 - ✅ 项目资源默认按“四类交付物”理解：表格、文档、报表、业务场景画布。
 - ✅ 涉及流程、审批、自动化或多角色协作的系统，默认补业务场景画布；审批场景额外补审批工作流画布。
-- ✅ 更新类操作统一遵循“先读取当前数据 -> 分析并修改目标字段 -> 再提交更新”。
+- ✅ 更新类操作统一遵循“先读取当前数据 -> 分析并修改目标字段 -> 再提交更新”。已明确“按一个字段精确匹配并统一修改另一个字段”时，使用 `dimens-cli row batch-update`，不要循环逐行 `row update`；`--match` 和 `--values` 都只能包含一个真实 `fieldId`，最多影响 200 行，不传 `rowId/version`，无匹配成功且两个计数为 `0`。按 ID 单行更新仍使用 `row update --version`。
 - ✅ 创建表和字段时先生成 JSON 数据契约，再生成 `dimens-cli` 命令；命令执行后必须用 CLI 查询回查，不得以脚本运行成功替代服务端验收。
 - ✅ 用户要“直接创建系统”时，也要先给出可执行的最小系统蓝图；蓝图缺少角色、对象、权限边界时不要直接进入创建命令。
 - ✅ 新建项目场景下，如果用户提供了已有需求文档，必须先检查文档结构是否基本符合 `references/new-project-design-template.md`；不符合时先按模板重写或补全成维表设计文档，再进入项目创建和 CLI 执行。

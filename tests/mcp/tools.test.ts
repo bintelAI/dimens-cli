@@ -96,6 +96,7 @@ function createToolContext(): McpToolFactoryContext {
       openInfo: vi.fn().mockResolvedValue({ data: { id: 'R1', included: {} } }),
       create: vi.fn().mockResolvedValue({ data: { id: 'R2' } }),
       batchCreate: vi.fn().mockResolvedValue({ data: [{ id: 'R3' }] }),
+      batchUpdateByMatch: vi.fn().mockResolvedValue({ data: { success: true, matchedCount: 1, updatedCount: 1 } }),
       update: vi.fn().mockResolvedValue({ data: { id: 'R1', version: 2 } }),
       updateCell: vi.fn().mockResolvedValue({ data: true }),
       delete: vi.fn().mockResolvedValue({ data: true }),
@@ -402,6 +403,39 @@ describe('MCP tools', () => {
     expect(context.createSDK().row.batchCreate).toHaveBeenCalledWith('S1', {
       rows: [{ data: { F1: 'B' } }],
     });
+  });
+
+  it('should call row batch update by match with project context', async () => {
+    const context = createToolContext();
+    const tools = createRowTools(context);
+    const tool = tools.find(item => item.name === 'dimens_row_batch_update');
+
+    await tool?.handler({
+      sheetId: 'S1',
+      match: { F_SOURCE: 'jira' },
+      data: { F_STATUS: 'done' },
+    });
+
+    expect(context.createSDK().row.batchUpdateByMatch).toHaveBeenCalledWith(
+      'TEAM1', 'PROJ1', 'S1',
+      { match: { F_SOURCE: 'jira' }, data: { F_STATUS: 'done' } }
+    );
+  });
+
+  it('should reject row batch update with multiple update fields before calling the SDK', async () => {
+    const context = createToolContext();
+    const tools = createRowTools(context);
+    const tool = tools.find(item => item.name === 'dimens_row_batch_update');
+
+    const result = await tool?.handler({
+      sheetId: 'S1',
+      match: { F_SOURCE: 'jira' },
+      data: { F_STATUS: 'done', F_PRIORITY: 'high' },
+    });
+
+    expect(parseToolResult(result).success).toBe(false);
+    expect(parseToolResult(result).message).toContain('data 必须且只能包含一个字段');
+    expect(context.createSDK().row.batchUpdateByMatch).not.toHaveBeenCalled();
   });
 
   it('should require version before updating a row', async () => {

@@ -41,6 +41,10 @@ export type {
   RelationConfig,
   RelationMode,
 } from './column';
+export type {
+  RowBatchUpdateByMatchPayload,
+  RowBatchUpdateByMatchResult,
+} from './row';
 
 export type SDKConfig = DimensClientOptions;
 
