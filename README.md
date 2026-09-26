@@ -37,6 +37,7 @@ https://dimens.bintelai.com/api
 - `plugin-public`
 - `skill`
 - `system`
+- `book`
 
 对应 SDK 业务域有：
 
@@ -55,6 +56,7 @@ https://dimens.bintelai.com/api
 - `sdk.rowAcl`
 - `sdk.ai`
 - `sdk.workflowPublic`
+- `sdk.book`
 - `sdk.pluginPublic`
 
 ## 安装
@@ -142,6 +144,7 @@ node ./bin/dimens-cli.js help ai
 node ./bin/dimens-cli.js help workflow-public
 node ./bin/dimens-cli.js help plugin-public
 node ./bin/dimens-cli.js help skill
+node ./bin/dimens-cli.js help book
 ```
 
 查看技能列表：
@@ -743,6 +746,42 @@ console.log(projects.data);
 console.log(chat.data);
 console.log(image.data);
 console.log(videoStatus.data);
+```
+
+### 电子书（book）SDK 与 CLI
+
+`book` 专门封装 `server/src/modules/e_magazine` 的项目和页面接口，不复用普通项目/文档接口。
+页面删除对应服务端的软删除 `document/archive`，页面更新必须携带 `baseRevision`。
+由于后端页面存储在项目 document 的 `draftSnapshot.pages` 中，`book.page.list()` / `book page list` 会读取 document 后返回全部页面、场景和原始 document。
+
+```ts
+const book = businessSdk.book;
+const project = await book.project.create('TEAM1', {
+  name: '产品画册',
+  projectType: 'magazine',
+});
+const page = await book.page.create('TEAM1', project.data.id, {
+  projectType: 'magazine',
+  title: '首页',
+  draftSnapshot: { pages: [], scenes: {} },
+});
+await book.page.update('TEAM1', project.data.id, {
+  documentId: page.data.id || page.data.documentId || '',
+  baseRevision: 0,
+  draftSnapshot: { pages: [], scenes: { home: {} } },
+});
+```
+
+对应命令：
+
+```bash
+node ./bin/dimens-cli.js book project create --team-id TEAM1 --name 产品画册 --project-type magazine
+node ./bin/dimens-cli.js book project update --team-id TEAM1 --project-id BOOK1 --name 新名称
+node ./bin/dimens-cli.js book page info --team-id TEAM1 --project-id BOOK1
+node ./bin/dimens-cli.js book page list --team-id TEAM1 --project-id BOOK1
+node ./bin/dimens-cli.js book page create --team-id TEAM1 --project-id BOOK1 --title 首页 --draft-snapshot '{"pages":[],"scenes":{}}'
+node ./bin/dimens-cli.js book page update --team-id TEAM1 --project-id BOOK1 --page-id PAGE1 --base-revision 0 --draft-snapshot '{"pages":[],"scenes":{}}'
+node ./bin/dimens-cli.js book page delete --team-id TEAM1 --project-id BOOK1 --page-id PAGE1
 ```
 
 ## 仓库内一键 Smoke Test

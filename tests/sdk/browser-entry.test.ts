@@ -8,6 +8,7 @@ describe('browser SDK entry', () => {
     expect(sdk.auth).toBeDefined();
     expect(sdk.user).toBeDefined();
     expect(sdk.project).toBeDefined();
+    expect(sdk.book).toBeDefined();
     expect(sdk.row).toBeDefined();
     expect('upload' in sdk).toBe(false);
     expect(DimensRequestError).toBeDefined();
