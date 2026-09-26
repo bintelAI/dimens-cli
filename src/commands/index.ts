@@ -20,6 +20,7 @@ export { registerVersionCommand } from './version';
 import { logger } from '../core/logger';
 import { registerAICommands } from './ai/index';
 import { registerAuthCommands } from './auth/index';
+import { registerBookCommands } from './book/index';
 import { registerCanvasCommands } from './canvas/index';
 import { registerColumnCommands } from './column/index';
 import { registerCreateCommands } from './create/index';
@@ -66,6 +67,7 @@ export function registerCommands(): void {
   registerProjectDictCommands();
   registerDocCommands();
   registerCanvasCommands();
+  registerBookCommands();
   registerReportCommands();
   registerRoleCommands();
   registerPermissionCommands();

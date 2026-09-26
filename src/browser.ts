@@ -1,4 +1,5 @@
 import { AuthSDK } from './sdk/auth';
+import { BookSDK } from './sdk/book';
 import { CanvasSDK } from './sdk/canvas';
 import { DimensClient, type DimensClientOptions } from './sdk/client';
 import { ColumnSDK } from './sdk/column';
@@ -28,6 +29,7 @@ export class DimensSDK {
   readonly project: ProjectSDK;
   readonly report: ReportSDK;
   readonly canvas: CanvasSDK;
+  readonly book: BookSDK;
   readonly role: RoleSDK;
   readonly permission: PermissionSDK;
   readonly pluginPublic: PluginPublicSDK;
@@ -51,6 +53,7 @@ export class DimensSDK {
     this.project = new ProjectSDK(this.client);
     this.report = new ReportSDK(this.client);
     this.canvas = new CanvasSDK(this.client);
+    this.book = new BookSDK(this.client);
     this.role = new RoleSDK(this.client);
     this.permission = new PermissionSDK(this.client);
     this.pluginPublic = new PluginPublicSDK(this.client);
@@ -75,6 +78,18 @@ export function createSDK(config: SDKConfig): DimensSDK {
 }
 
 export { DimensClient, DimensRequestError } from './sdk/client';
+export { BookSDK, BookPageSDK, BookProjectSDK } from './sdk/book';
+export type {
+  BookPage,
+  BookPageCreatePayload,
+  BookPageUpdatePayload,
+  BookPageListResult,
+  BookProject,
+  BookProjectCreatePayload,
+  BookProjectPageQuery,
+  BookProjectPageResult,
+  BookProjectUpdatePayload,
+} from './sdk/book';
 export { JsonFieldSDK } from './sdk/json-field';
 export type {
   ExtendedJsonFieldReference,

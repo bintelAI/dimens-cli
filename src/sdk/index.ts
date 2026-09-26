@@ -1,4 +1,5 @@
 import { AuthSDK } from './auth';
+import { BookSDK } from './book';
 import { CanvasSDK } from './canvas';
 import { DimensClient, type APIResponse, type DimensClientOptions } from './client';
 import { ColumnSDK } from './column';
@@ -23,6 +24,17 @@ import { ViewSDK } from './view';
 import { WorkflowPublicSDK } from './workflow-public';
 
 export type { APIResponse, DimensClientOptions };
+export type {
+  BookPage,
+  BookPageCreatePayload,
+  BookPageUpdatePayload,
+  BookPageListResult,
+  BookProject,
+  BookProjectCreatePayload,
+  BookProjectPageQuery,
+  BookProjectPageResult,
+  BookProjectUpdatePayload,
+} from './book';
 export { DimensRequestError } from './client';
 export type { ProjectInfo, ProjectPagePayload, ProjectPageResult } from './project';
 export type {
@@ -55,6 +67,7 @@ export class DimensSDK {
   readonly projectDict: ProjectDictSDK;
   readonly report: ReportSDK;
   readonly canvas: CanvasSDK;
+  readonly book: BookSDK;
   readonly role: RoleSDK;
   readonly permission: PermissionSDK;
   readonly pluginPublic: PluginPublicSDK;
@@ -80,6 +93,7 @@ export class DimensSDK {
     this.projectDict = new ProjectDictSDK(this.client);
     this.report = new ReportSDK(this.client);
     this.canvas = new CanvasSDK(this.client);
+    this.book = new BookSDK(this.client);
     this.role = new RoleSDK(this.client);
     this.permission = new PermissionSDK(this.client);
     this.pluginPublic = new PluginPublicSDK(this.client);
@@ -107,6 +121,7 @@ export function createSDK(config: SDKConfig): DimensSDK {
 export { DimensClient } from './client';
 export { AuthSDK } from './auth';
 export { CanvasSDK } from './canvas';
+export { BookSDK, BookPageSDK, BookProjectSDK } from './book';
 export { ProjectSDK } from './project';
 export { ProjectDictSDK } from './project-dict';
 export { ReportSDK } from './report';
