@@ -63,5 +63,20 @@
     "id": "manager-021",
     "prompt": "我有一批复杂字段和初始化数据，请先阅读 dimens-cli 源码，再写 Python 脚本批量创建表和字段。",
     "expected": "应拒绝把 Python 脚本作为资源写入入口；先输出可审阅的 JSON 数据契约，再强制使用 dimens-cli 的 sheet/column/row 命令（复杂数据使用 --file 或 JSON 参数），执行后用 CLI 查询回查。"
+  },
+  {
+    "id": "manager-book-001",
+    "prompt": "帮我创建一个维表设计的电子书项目，并创建首页页面。",
+    "expected": "应命中 references/book/overview.md；先确认 teamId 和认证，再使用 book project create 与 book page create；页面创建通常不要求重复传 --project-type，并说明页面快照必须是合法 JSON。"
+  },
+  {
+    "id": "manager-book-002",
+    "prompt": "怎么获取一个 book 项目内所有页面和场景数据？",
+    "expected": "应使用 book page list；说明服务端没有独立 page list 接口，页面来自 document.draftSnapshot.pages，场景来自 draftSnapshot.scenes；如果项目有多个 projectType，需要分别查询。"
+  },
+  {
+    "id": "manager-book-003",
+    "prompt": "帮我修改维表设计页面，保存时报版本冲突怎么办？",
+    "expected": "应先读取 book page info 或 book page list，使用当前 draftRevision 作为 baseRevision，合并后重试 book page update；说明 book page delete 是 document/archive 软删除，不涉及 Yjs 或权限改造。"
   }
 ]

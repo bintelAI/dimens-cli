@@ -9,6 +9,7 @@
 - `dimens-manager/references/key-auth/overview.md`
 - `dimens-manager/references/team/overview.md`
 - `dimens-manager/references/project/overview.md`
+- `dimens-manager/references/book/overview.md`
 - `dimens-manager/references/table/overview.md`
 - `dimens-manager/references/table/project-dictionary.md`
 - `dimens-manager/references/permission/overview.md`
@@ -25,6 +26,7 @@
 | `references/key-auth/` | `dimens-manager/references/key-auth/overview.md` | Key 鉴权、第三方接入、登录 token 边界 |
 | `references/team/` | `dimens-manager/references/team/overview.md` | 团队、成员、项目上下文与租户隔离 |
 | `references/project/` | `dimens-manager/references/project/overview.md` | 项目创建、初始化、菜单与文档主链 |
+| `references/book/` | `dimens-manager/references/book/overview.md` | 维表设计项目、电子书页面快照、页面列表和页面维护 |
 | `references/table/` | `dimens-manager/references/table/overview.md` | 表、字段、视图、行、relation 和筛选 |
 | `references/permission/` | `dimens-manager/references/permission/overview.md` | 角色、项目权限、资源权限、行级策略 |
 | `references/workflow/` | `dimens-manager/references/workflow/overview.md` | 工作流定义、项目挂载、运行与模型边界 |

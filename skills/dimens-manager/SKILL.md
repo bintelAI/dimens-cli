@@ -1,10 +1,10 @@
 ---
 name: dimens-manager
 slug: dimens-manager
-description: 用于维表智联项目内业务资源创建、配置、维护和排查，适合处理 Key、团队、项目、表格、富文本字段、JSON 字段、权限、工作流、报表、画布等落地问题。
-version: 2.0.4
+description: 用于维表智联项目内业务资源创建、配置、维护和排查，适合处理 Key、团队、项目、维表设计 book、表格、富文本字段、JSON 字段、权限、工作流、报表、画布等落地问题。用户提到电子书、画册、海报、H5、页面快照或 book 项目时必须使用本技能的 book 章节。
+version: 2.1.0
 author: 方块智联工作室
-tags: [manager, project, table, richtext, json, permission, workflow, report, canvas, auth, dimens-cli]
+tags: [manager, project, book, design, e-magazine, page, table, richtext, json, permission, workflow, report, canvas, auth, dimens-cli]
 ---
 
 # 维表智联业务管理技能（dimens-manager）
@@ -37,6 +37,10 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 - ✅ 用户只给自然语言目标时，先把目标归类到业务域，再给 CLI 步骤；不要直接编造不存在的命令或字段。
 - ✅ 如果上下文、权限或资源 ID 缺失，先列出缺口和最小补齐命令，再继续执行或给方案。
 - ✅ 用户涉及 `richtext` 富文本字段或 `json` 字段时，必须读取 `references/table/references/richtext-json-fields.md`；这两类字段必须走专用命令，不能按普通文档或普通单元格处理。
+- ✅ 用户提到电子书、画册、海报、H5、演示稿、页面快照、`e_magazine` 或 `book` 时，必须读取 `references/book/overview.md`，并按 `book project` / `book page` 命令处理，不要混用普通 `project` / `doc` 命令。
+- ✅ 维表设计项目的页面数据保存在 document 的 `draftSnapshot.pages` 和 `draftSnapshot.scenes`；获取项目内全部页面必须使用 `book page list`，不能编造独立的 `/page/list` 接口。
+- ✅ `book page list/info/create` 默认从项目详情推断 `projectType`，通常不要求用户重复传 `--project-type`；只有需要指定其他类型或减少一次详情请求时才显式传入。
+- ✅ `book page update` 必须先读取当前 `draftRevision` 并作为 `--base-revision`；`book page delete` 实际是 document 软删除，不是从页面数组物理删除单页。
 - ✅ 设计 `select` / `multiSelect` 时，先判断选项是否会跨多个表、字段或流程复用；单一位置即使要求唯一也直接使用普通下拉，只有明确复用才创建项目数据字典。字典编码规则与命令详见 `references/table/project-dictionary.md`。
 - ✅ 字段内置选项 `id` 和项目字典选项 `value` 优先使用选项名称对应的英文语义编码（如 `active`、`maintenance`、`offline`），不要默认生成 `1`、`2`、`3` 这类纯数字编码；创建字段时跳过维表自带的创建人、创建时间、更新人、更新时间系统字段，不重复生成同名业务字段。
 
@@ -55,6 +59,7 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 | Key 鉴权 | `references/key-auth/overview.md` | API Key / Secret 换 token、第三方接入、密钥边界排查 |
 | 团队上下文 | `references/team/overview.md` | 确认 `teamId/projectId`、成员、租户隔离、资源归属 |
 | 项目初始化 | `references/project/overview.md` | 创建项目、项目菜单、文档资源、初始化主链 |
+| 维表设计（book） | `references/book/overview.md` | 电子书/画册项目、页面快照、页面列表、页面创建保存和软删除 |
 | 多维表格 | `references/table/overview.md` | 表、字段、视图、行数据、relation、筛选查询 |
 | 富文本 / JSON 字段 | `references/table/references/richtext-json-fields.md` | 专用字段创建、读写、存储模式、版本控制与排错 |
 | 权限管理 | `references/permission/overview.md` | 角色、项目权限、表/列/行权限、ACL、公开访问 |
@@ -71,17 +76,18 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 4. 再看 `references/team/overview.md`，明确 `teamId / projectId / baseUrl`。
    - 如果用户给了 `/#/{teamId}/{projectId}/{sheetId}` 页面 URL，直接从 URL 得到 `teamId/projectId/sheetId`，只补查缺失或需要校验的部分。
 5. 项目容器问题看 `references/project/overview.md`。
-6. 数据模型问题看 `references/table/overview.md`。
+6. 维表设计、电子书或页面快照问题看 `references/book/overview.md`，并按需继续看 `references/book/references/design-model.md`、`command-mapping.md`、`examples.md`。
+7. 数据模型问题看 `references/table/overview.md`。
    - 涉及 `richtext` 或 `json` 字段时继续读取 `references/table/references/richtext-json-fields.md`。
-7. 访问控制问题看 `references/permission/overview.md`。
-8. 自动化和 AI 流程问题看 `references/workflow/overview.md`。
+8. 访问控制问题看 `references/permission/overview.md`。
+9. 自动化和 AI 流程问题看 `references/workflow/overview.md`。
    - 审批工作流 AI 自动生成必须继续看 `references/workflow/references/approval-generation.md`。
    - 审批工作流节点类型必须继续对照 `references/workflow/references/approval-existing-cases.md`，不能生成不存在的节点。
    - 审批工作流节点参数必须继续看 `references/workflow/references/approval-node-parameters.md`，不能只输出空节点。
-9. 统计分析和看板问题看 `references/report/overview.md`。
-10. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
-11. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
-12. 任何创建表或字段的方案都必须先给出 JSON 数据契约，再给出对应 `dimens-cli` 命令和回查命令；不能把脚本执行当作资源创建步骤。
+10. 统计分析和看板问题看 `references/report/overview.md`。
+11. 画布、白板、流程图、PPT 画布和 AI 一键生成画布看 `references/canvas/overview.md`。
+12. 输出前按“CLI 已升级、命令链、必要参数、验证命令、风险点”检查一遍。
+13. 任何创建表或字段的方案都必须先给出 JSON 数据契约，再给出对应 `dimens-cli` 命令和回查命令；不能把脚本执行当作资源创建步骤。
 
 ## 输出契约
 
@@ -142,6 +148,11 @@ tags: [manager, project, table, richtext, json, permission, workflow, report, ca
 - `references/key-auth/overview.md`
 - `references/team/overview.md`
 - `references/project/overview.md`
+- `references/book/README.md`
+- `references/book/overview.md`
+- `references/book/references/design-model.md`
+- `references/book/references/command-mapping.md`
+- `references/book/references/examples.md`
 - `references/table/overview.md`
 - `references/table/project-dictionary.md`
 - `references/table/references/richtext-json-fields.md`
