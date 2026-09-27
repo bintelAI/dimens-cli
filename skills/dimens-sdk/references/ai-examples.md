@@ -278,7 +278,7 @@ await sdk.ai.completions('TEAM1', {
 - 当前是聊天兼容入口
 - 不等于完整工作流管理接口
 
-## 6. Web 前端直连 AI 接口
+## 6. Web 前端调用 AI 接口（必须同源，浏览器不能直连）
 
 适用前提：
 
@@ -286,8 +286,24 @@ await sdk.ai.completions('TEAM1', {
 - `teamId` 来自当前团队上下文
 - 不在浏览器保存 `apiSecret`
 
+⚠️ **浏览器不能直连 `https://dimens.bintelai.com`**：该域名不返回 `Access-Control-Allow-Origin`，OPTIONS 预检拿到的是 `401 登录失效`，跨域 `fetch` 会被 CORS 拦截。`curl` 能通不代表浏览器能通，排查时用带 `Origin` 请求头的 `curl -i` 核对响应头里有没有 `access-control-allow-origin`。
+
+前端走**同源前缀** `baseUrl`，由开发代理或 BFF 转发：
+
 ```ts
-await fetch(`https://dimens.bintelai.com/api/app/flow/${teamId}/v1/chat/completions`, {
+// vite.config.ts：/api 前缀交给代理，rewrite 去掉前缀
+proxy: {
+  '/api': {
+    target: 'https://dimens.bintelai.com',
+    changeOrigin: true,
+    rewrite: path => path.replace(/^\/api/, ''),
+  },
+}
+```
+
+```ts
+// baseUrl 只写同源前缀（如 '/api'），不要写绝对跨域地址
+await fetch(`/api/app/flow/${teamId}/v1/chat/completions`, {
   method: 'POST',
   headers: {
     Authorization: `Bearer ${token}`,
@@ -303,6 +319,60 @@ await fetch(`https://dimens.bintelai.com/api/app/flow/${teamId}/v1/chat/completi
     ],
   }),
 });
+```
+
+服务端同时接受 `/app/flow/...` 与 `/api/app/flow/...` 两种路径，按代理是否剥前缀选一个即可。
+
+## 6.1 流式输出（SSE）
+
+同一接口传 `stream: true` 即返回 `text/event-stream`（已实测远端与本机后端均支持，字段名以真实响应为准）：
+
+| 事项 | 实测结论 |
+| --- | --- |
+| 响应头 | `content-type: text/event-stream`，`cache-control: no-cache` |
+| 分块格式 | OpenAI 兼容：`data: {...}`，最后以 `data: [DONE]` 结束 |
+| 正文位置 | `choices[0].delta.content`，逐字增量（不是累计值） |
+| 思维链 | 部分模型（如 `deepseek-flash`）**先输出一大段 `choices[0].delta.reasoning_content`**，正文要等思维链结束才开始；不能把它当正文展示，要单独做「思考中」态 |
+| 人设 | `system` 角色生效，人设直接放 `messages[0]` |
+| `Accept` | SDK 的 `buildHeaders` 会把 `Accept` 固定成 `application/json`，不影响服务端返回 SSE |
+| 网关退化 | 个别代理会忽略 `stream` 返回整包 JSON，前端要按 `content-type` 兜底解析一次 |
+
+前端解析要点：
+
+- **必须做增量缓冲**：SSE 事件会跨 chunk 被切断（`data: {"a"` + `:1}\n\n`），不能 `response.text()` 一次性读；
+- 只认 `data:` 行，忽略 `:` 注释、`event:`、`id:` 行；多行 `data:` 按 SSE 规范用 `\n` 拼接；
+- 累加正文与思维链到两个变量，`onDelta` 只回传增量，页面自己累加。
+
+`@bintel/dimens-cli@2.0.3` 的 `ai.completions` 走 `client.post`，**不支持流式**（payload 里的 `stream` 不会被消费）。SDK 补齐前，前端自建流式层时**复用 SDK 客户端已有的 URL / header 规则**，不要重抄一遍 baseUrl / token：
+
+```ts
+// sdk.client 的 buildUrl / buildHeaders 在 .d.ts 里是 private，运行时存在
+const client = sdk.client as unknown as {
+  buildUrl: (path: string) => string;
+  buildHeaders: (headers?: HeadersInit, json?: boolean) => Record<string, string>;
+};
+const url = client.buildUrl(`/app/flow/${teamId}/v1/chat/completions`);
+const headers = { ...client.buildHeaders(undefined, true), Accept: 'text/event-stream' };
+```
+
+错误处理边界：
+
+- 非 2xx 时先读完响应体，再抛 `new DimensRequestError(message, { status, code })`（该构造器是 public），这样 401 仍能命中既有的 `withDimensRetry` 刷新重试；
+- **非 2xx 时不要触发任何 `onDelta`**，否则重试会把已输出的内容再吐一遍；
+- `AbortSignal` 中止要映射成独立的取消错误（不是失败），UI 保留已收到的部分文本并标注「已停止生成」。
+
+最小验证：
+
+```bash
+curl -N -X POST "$BASE/app/flow/$TEAM_ID/v1/chat/completions" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"model":"team-default","stream":true,"messages":[{"role":"user","content":"数到5"}]}'
+```
+
+判断是否**真的**在流式（而不是被代理整体缓冲）：边写文件边看字节数增长。
+
+```bash
+curl -sN ... -o /tmp/sse.txt & sleep 2; wc -c < /tmp/sse.txt; sleep 2; wc -c < /tmp/sse.txt; wait
 ```
 
 ## 7. BFF 封装一个摘要接口
@@ -357,6 +427,9 @@ await sdk.ai.completions('TEAM1', {
 ## 10. AI 接入高风险误区
 
 - 不要把 `chat/completions` 当成工作流发布、挂载、调试全能力
+- 不要在浏览器里直连 `dimens.bintelai.com` 等跨域域名（无 CORS 响应头，预检 401）；走同源代理或 BFF
+- 不要把 `delta.reasoning_content` 当正文展示，也不要只等 `delta.content` 而不给「思考中」反馈
+- 不要用 `response.text()` 读 SSE，也不要在非 2xx 时先吐增量再抛错（重试会重复输出）
 - 不要忽略 `teamId`
 - 不要把模型选择逻辑写死成单一值而不考虑团队默认模型
 - 不要把 401 以外的错误都当成登录失效；403 常见于团队或模型权限不足
