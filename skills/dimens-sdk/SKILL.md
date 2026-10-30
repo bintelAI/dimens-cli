@@ -2,7 +2,7 @@
 name: dimens-sdk
 slug: dimens-sdk
 description: 用于维表智联开发者接入，适合 Web/H5、BFF、Node.js、移动端、HTTP API、@bintel/dimens-cli SDK、token 刷新、密钥存放、上下文传递和资源调用代码集成问题。
-version: 2.0.7
+version: 2.0.8
 author: 方块智联工作室
 tags: [sdk, http, web, mobile, integration, dimens-cli]
 ---
@@ -37,6 +37,8 @@ tags: [sdk, http, web, mobile, integration, dimens-cli]
 - ✅ `teamId` 是团队隔离边界，`projectId` 是项目内资源上下文，不能漏传或混传。
 - ✅ 当用户消息或当前页面携带维表 URL 时，先从 URL 解析上下文。格式 `http://localhost:3000/#/{teamId}/{projectId}/{sheetId}`；例如 `http://localhost:3000/#/TTFFEN/PM394YD/sh_lTyerp8gwW8QSVD1` 表示 `teamId=TTFFEN`、`projectId=PM394YD`、`sheetId=sh_lTyerp8gwW8QSVD1`。用户说“当前页面/当前表/这个表”时优先用这些 ID 连接维表。
 - ✅ 所有更新类接口统一按“先拿数据 -> 改数据 -> 更新数据”设计调用链。
+- ✅ `sdk.row.updateCell()` / `row.update()` / `row.delete()` 必须**显式携带 `teamId` / `projectId`**。这三个方法在 SDK 里是原样透传 payload 的，而 `row.page` / `row.info` 会自动把上下文写进 body / query；漏传时服务端直接返回 `403 缺少权限校验上下文`（不是权限问题，不要往角色授权方向排查）。同一个坑也存在于 `dimens-cli row set-cell` / `row update` / `row delete` 等写命令。
+- ✅ 行写入的失败**不一定体现在 HTTP 状态码上**：版本冲突返回 `HTTP 200 + data.success:false`（`message: 版本冲突，请刷新后重试`，并附带 `currentVersion`）。只 catch 异常会把冲突当成功，出现“界面提示已回写、数据其实没变”的静默丢数据。读路径取 `data.list` / `data.columns`，写路径必须判 `data.success`。
 - ✅ 按字段批量更新仅使用项目级 `POST /app/mul/:teamId/:projectId/sheet/:sheetId/row/batch-update`；继续阅读 `references/table-examples.md`。该接口的 `match` 和 `data` 各只能含一个真实 `fieldId`，精确匹配最多 200 行，不带 `version`，且不是单行 `rowId` 更新的替代品。
 - ✅ 项目字典通过 `DimensSDK.projectDict` 调用既有 `list/info/create/update/delete` 接口；创建时必须显式提供字典 `code` 与选项 `value`，不要在 SDK 边界静默生成编码。只有跨多个字段/位置复用的枚举才建议使用项目字典，单点枚举直接配置 `select` / `multiSelect`。
 - ✅ relation 字段沿用 `relation` 类型，通过 `config.relationConfig.relationMode` 区分 `single`/`multiple`；单表保存标量 `rowId/null`，多表保存 `rowId[]/[]`，多表限制数量为空表示不限。创建后不可切换，详见 `references/table-examples.md` 和 `../dimens-manager/references/table/references/relation-mode.md`。

@@ -354,6 +354,9 @@ const rows = await withDimensRetry(() =>
 
 ### 9.4 更新单元格
 
+> ⚠️ `teamId` / `projectId` 必须在封装层合并进请求体（SDK 不自动补），
+> 同时用 `data.success` 判断业务成败 —— 版本冲突是 `HTTP 200 + data.success:false`。
+
 ```ts
 const dimens = createDimensAppSdk({
   teamId,
@@ -361,14 +364,20 @@ const dimens = createDimensAppSdk({
 });
 const rowInfo = await dimens.row.info(sheetId, rowId);
 
-await withDimensRetry(() =>
+const res = await withDimensRetry(() =>
   createAuthedSdk({ teamId, projectId }).row.updateCell(sheetId, {
     rowId,
     fieldId,
     value,
     version: Number(rowInfo.data.version),
+    teamId,
+    projectId,
   })
 );
+
+if (!res?.data?.success) {
+  throw new Error(res?.data?.message || '写入被服务端拒绝');
+}
 ```
 
 ## 10. 前端推荐文件拆分

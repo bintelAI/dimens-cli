@@ -151,6 +151,10 @@ export async function getSheetRows(
 
 ## 8. BFF 更新单元格并处理版本冲突
 
+> ⚠️ `updateCell` 必须显式带上 `teamId` / `projectId`（SDK 原样透传 payload），
+> 漏传会返回 `403 缺少权限校验上下文`。另外版本冲突是 `HTTP 200 + data.success:false`，
+> 不能只看异常。
+
 ```ts
 export async function updateStatus(
   token: string,
@@ -164,12 +168,19 @@ export async function updateStatus(
   const sdk = createDimensService(token);
   const rowInfo = await sdk.row.info(teamId, projectId, sheetId, rowId);
 
-  return sdk.row.updateCell(sheetId, {
+  const res = await sdk.row.updateCell(sheetId, {
     rowId,
     fieldId,
     value,
     version: Number(rowInfo.data.version),
+    teamId,
+    projectId,
   });
+
+  if (!res?.data?.success) {
+    throw new Error(res?.data?.message || '写入被服务端拒绝');
+  }
+  return res;
 }
 ```
 

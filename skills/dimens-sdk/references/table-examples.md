@@ -141,6 +141,10 @@ await sdk.row.create('SHEET1', {
 
 ## 9. 查询一行详情后更新单元格
 
+> ⚠️ **必须自己补 `teamId` / `projectId`。** `RowSDK.updateCell()` 是把 payload 原样发出去的，
+> 不会像 `row.page` / `row.info` 那样自动带上上下文。漏传时服务端返回
+> `403 缺少权限校验上下文`（实测已验证；这不是角色权限问题）。
+
 ```ts
 const rowInfo = await sdk.row.info('TEAM1', 'PROJ1', 'SHEET1', 'ROW1');
 
@@ -149,10 +153,28 @@ await sdk.row.updateCell('SHEET1', {
   fieldId: 'field_status',
   value: 'doing',
   version: Number(rowInfo.data.version),
+  // ↓ 不能省：SDK 不会替你补上下文
+  teamId: 'TEAM1',
+  projectId: 'PROJ1',
 });
 ```
 
+> ⚠️ **写入失败不一定体现在状态码上。** 版本冲突是 `HTTP 200 + data.success:false`：
+>
+> ```json
+> { "code": 1000, "message": "success",
+>   "data": { "success": false, "message": "版本冲突，请刷新后重试",
+>             "currentVersion": 9, "currentValue": "..." } }
+> ```
+>
+> 成功形态是 `{ "code": 1000, "data": { "success": true, "data": { ...row } } }`。
+> 只 catch 异常会把冲突当成功，导致“提示已回写、实际没写进去”。**必须判 `data.success`**，
+> 冲突时用 `data.currentVersion` 重读重试。
+
 ## 10. 表单提交时更新整行
+
+> ⚠️ 同第 9 节：`row.update()` / `row.delete()` 同样需要显式补 `teamId` / `projectId`，
+> 否则一律 403。
 
 ```ts
 await sdk.row.update(
@@ -165,6 +187,9 @@ await sdk.row.update(
   8
 );
 ```
+
+`teamId` / `projectId` 按第 9 节的写法一并提交；如果底层 SDK 方法签名不接受这两个参数，
+就在封装层合并进请求体，不要依赖服务端从 header 推断。
 
 ## 10.1 按字段精确匹配并批量更新一个字段
 
@@ -215,6 +240,10 @@ await fetch(`https://dimens.bintelai.com/api/app/mul/${teamId}/${projectId}/shee
 - 不要把团队级和项目级路径混成一个模板
 - 不要把人员字段、部门字段退化成普通下拉
 - 不要把 403/404 都当成 token 过期；先检查权限和资源上下文
+- **不要把 `row.updateCell()` / `row.update()` / `row.delete()` 当成会自动带上下文的读写接口**：它们原样透传 payload，必须自己补 `teamId` / `projectId`，否则稳定 403「缺少权限校验上下文」。
+- **不要用 `try/catch` 判断行写入成败**：版本冲突是 `HTTP 200 + data.success:false`，只看异常会把冲突当成功，静默丢数据。判 `data.success`。
+- **不要用 `column.id` 取字段标识**：`column.list` 的真实返回只有 `fieldId`（形如 `PL8MKPN_chinese`），`label` 是中文名。SDK 的 `ColumnInfo` 类型里写的 `id` 与线上返回并不一致，以 `fieldId` 为准。
+- **不要把 AI 字段配置里的 `config.aiField.targets[0].id` 当作聊天模型名**：它是平台内部的流程引用（如 `team-default-model`），直接当 `model` 提交会报「流程不存在」。团队默认模型请用 `team-default`。
 
 ## 13. 最小验证命令
 
@@ -225,3 +254,8 @@ dimens-cli row page --team-id TEAM1 --project-id PROJ1 --sheet-id SHEET1
 ```
 
 如果 CLI 读取失败，先排查 token、团队成员、项目权限和 `sheetId`，不要先改 SDK 封装。
+
+> ⚠️ **已知缺陷**：`row set-cell` / `row update` / `row delete` 等写命令目前不会把
+> `teamId` / `projectId` 带进请求体，在需要上下文校验的项目上会直接
+> `403 缺少权限校验上下文`。读类命令（`sheet info` / `column list` / `row page` / `row info`）
+> 不受影响。在修复前，写操作请在 SDK 封装层补齐上下文，或确认目标项目不校验上下文。

@@ -32,3 +32,5 @@
 - 不要把资源运维命令和端侧接入代码混成一个不可执行模板。
 - 不要把报表、画布、文档的版本字段忽略掉。
 - 不要因为 SDK 调用成功就判断前端权限已经刷新生效。
+- 不要以为 `sdk.row.updateCell()` / `row.update()` / `row.delete()` 会自动带上下文：它们原样透传 payload，必须自己补 `teamId` / `projectId`，否则 `403 缺少权限校验上下文`。
+- 不要只看 HTTP 状态码判断行写入成败：版本冲突是 `HTTP 200 + data.success:false`，必须判 `data.success`，否则会静默丢数据。

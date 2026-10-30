@@ -123,8 +123,11 @@ const rows = await fetch(
 
 ## 5. 浏览器端更新单元格
 
+> ⚠️ `teamId` / `projectId` 必须一起提交，否则 `403 缺少权限校验上下文`。
+> 这部分是 SDK 封装层要负责补齐的，直连 HTTP 时更要显式写出来。
+
 ```ts
-await fetch(`https://dimens.bintelai.com/api/app/mul/sheet/${sheetId}/row/cell`, {
+const res = await fetch(`https://dimens.bintelai.com/api/app/mul/sheet/${sheetId}/row/cell`, {
   method: 'POST',
   headers: {
     Authorization: `Bearer ${token}`,
@@ -135,14 +138,26 @@ await fetch(`https://dimens.bintelai.com/api/app/mul/sheet/${sheetId}/row/cell`,
     fieldId,
     value,
     version,
+    teamId,
+    projectId,
   }),
 });
+
+const payload = await res.json();
+// ⚠️ 写入失败也可能是 HTTP 200，必须看 data.success
+if (!payload?.data?.success) {
+  // 版本冲突：payload.data.message === '版本冲突，请刷新后重试'
+  // 用 payload.data.currentVersion 重读后重试
+  throw new Error(payload?.data?.message || '写入被服务端拒绝');
+}
 ```
 
 说明：
 
 - 更新前必须先拿到最新 `version`
 - 不要在浏览器端省掉并发版本控制
+- **不要只判断 HTTP 状态码**：版本冲突返回的是 `HTTP 200 + data.success:false`，
+  漏判会出现“提示成功但数据没变”的静默丢数据
 
 ## 6. Web 富文本文档读取与更新
 

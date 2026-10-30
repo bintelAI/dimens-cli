@@ -221,7 +221,8 @@ export async function fetchDocumentInfo(
 ## 10. 更新单元格示例
 
 这里要特别注意：  
-更新单元格除了 token，还依赖 `version`。
+更新单元格除了 token，还依赖 `version`，并且**必须显式带上 `teamId` / `projectId`**
+（`row.updateCell` 原样透传 payload，不会自动补上下文，漏传是 `403 缺少权限校验上下文`）。
 
 ```ts
 export async function updateCell(
@@ -239,14 +240,23 @@ export async function updateCell(
 
   const rowInfo = await withDimensRetry(() => dimens.row.info(sheetId, rowId));
 
-  return withDimensRetry(() =>
+  const res = await withDimensRetry(() =>
     dimens.row.updateCell(sheetId, {
       rowId,
       fieldId,
       value,
       version: Number(rowInfo.data.version),
+      // 封装层必须把它合并进请求体，缺一不可
+      teamId,
+      projectId,
     })
   );
+
+  // 版本冲突是 HTTP 200 + data.success:false，不判这个字段会静默丢数据
+  if (!res?.data?.success) {
+    throw new Error(res?.data?.message || '写入被服务端拒绝');
+  }
+  return res;
 }
 ```
 
@@ -254,6 +264,7 @@ export async function updateCell(
 
 - 这里即使 token 没问题，也可能因为 `version` 冲突失败
 - 所以不要把所有更新失败都误判成登录态失效
+- 冲突同样是「成功响应」，必须靠 `data.success` 而不是 `try/catch` 识别
 
 ## 11. 页面层怎么写
 
